@@ -1,10 +1,7 @@
 package jp.naist.sd.kenja.factextractor;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,20 +17,19 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
-import com.google.common.collect.Multimap;
-
-import jp.naist.sd.kenja.factextractor.TestASTVisitor;
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
+import com.google.common.primitives.Chars;
 
 public class ASTParserTest {
-	
-	private List<PackageDeclaration> packages = new ArrayList<PackageDeclaration>();
 	
 	private PackageDeclaration currentPackage;
 	
 	private ASTFileTreeCreator treeCreator = new ASTFileTreeCreator();
 
 	public static void main(String[] args){
-		String filePath = "/Users/kenjif/repos/git-svn/columba_all/ristretto/trunk/src/test/org/columba/ristretto/testserver/TestServerSession.java";
 		String baseDirPath = "/Users/kenjif/repos/git-svn/columba_all";
 		
 		ASTParserTest test = new ASTParserTest();
@@ -53,33 +49,58 @@ public class ASTParserTest {
 		return finder.getFiles();		
 	}
 	
-	public void createAST(File file){
+	public void createAST(char[] src){
+		currentPackage = null;
 		ASTParser parser = ASTParser.newParser(AST.JLS4);
 		
-		StringBuffer sb = new StringBuffer();
+		parser.setSource(src);
+		
+		NullProgressMonitor nullMonitor = new NullProgressMonitor();
+		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
+
+		visitCompilationUnit(unit);	
+	}
+	
+	public void createAST(File file){
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-			String line;
-			while((line = br.readLine()) != null){
-				sb.append(line + "\n");
-			}
+			this.createAST(Files.toString(file, Charsets.US_ASCII).toCharArray());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-			
-		parser.setSource(sb.toString().toCharArray());
-
-		NullProgressMonitor nullMonitor = new NullProgressMonitor();
-		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
-
-		visitCompilationUnit(unit);
-			
 		
-	    //TestASTVisitor visitor = new TestASTVisitor();
-		//unit.accept(visitor);
+//		currentPackage = null;
+//		ASTParser parser = ASTParser.newParser(AST.JLS4);
 		
-		//visitor.showTree();
+//		LineProcessor<char[]> lineProcessor = new LineProcessor<char[]>(){
+//			
+//			private StringBuilder builder = new StringBuilder();
+//			
+//			public char[] getResult(){
+//				return builder.toString().toCharArray();
+//			}
+//			
+//			public boolean processLine(String line){
+//				builder.append(line);
+//				builder.append('\n');
+//				return true;
+//			}
+//		};
+		
+//		try {
+////			parser.setSource(Files.readLines(file, Charsets.US_ASCII, lineProcessor));
+//			//char src = Chars.fromByteArray(ByteStreams.toByteArray(Files.newInputStreamSupplier(file)));
+//			char[] src = 
+//			parser.setSource(src);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		NullProgressMonitor nullMonitor = new NullProgressMonitor();
+//		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
+
+//		visitCompilationUnit(unit);
 	}
 	
 	private void visitCompilationUnit(CompilationUnit unit){
@@ -112,7 +133,7 @@ public class ASTParserTest {
 		for(MethodDeclaration method: node.getMethods()){
 			visitMethod(method);
 		}	
-		System.out.println(sb.toString());
+		//System.out.println(sb.toString());
 	}
 	
 	private void visitMethod(MethodDeclaration method){
@@ -124,14 +145,14 @@ public class ASTParserTest {
 			sb.append(method.getBody().toString());
 		}
 		
-		System.out.println(sb.toString());
+		//System.out.println(sb.toString());
 	}
 	
 	public void createAST(List<File> files){
 		for(File file: files){
-		    System.out.println("Creating:" + file.getAbsolutePath());
+		    //System.out.println("Creating:" + file.getAbsolutePath());
 			createAST(file);
-		    System.out.println("Done!");
+		    //System.out.println("Done!");
 		}
 	}
 	

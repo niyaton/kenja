@@ -28,14 +28,6 @@ public class TestASTVisitor extends ASTVisitor {
             sb.append("[Method]");
             Block body = node.getBody();
             
-//            for(Object o: body.statements()){
-//           	Statement s = (Statement) o;
-//            	sb.append(s.toString());
-//            }
-            
-            //System.out.println(body.toString());
-            
-            //Modifiers
             sb.append(node.modifiers().toString() + " ");
             sb.append(" ");
 
