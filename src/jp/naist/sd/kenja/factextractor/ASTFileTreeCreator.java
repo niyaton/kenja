@@ -154,7 +154,6 @@ public class ASTFileTreeCreator {
 
 	private void visitCompilationUnit(CompilationUnit unit) {
 		if (unit.getPackage() != null) {
-			// System.out.println("[Package]:" + unit.getPackage().getName());
 			append(unit.getPackage());
 			currentPackage = unit.getPackage();
 		}
@@ -167,40 +166,10 @@ public class ASTFileTreeCreator {
 	}
 
 	private void visitTopLevelTypeDeclarration(TypeDeclaration node) {
-		StringBuffer sb = new StringBuffer();
-
 		append(node, this.currentPackage);
-
-		for (FieldDeclaration field : node.getFields()) {
-			for (Object o : field.fragments()) {
-				VariableDeclarationFragment fragment = (VariableDeclarationFragment) o;
-				sb.append("[Field]:" + fragment.getName());
-			}
-		}
-
-		sb.append("\n");
-		for (MethodDeclaration method : node.getMethods()) {
-			visitMethod(method);
-		}
-		// System.out.println(sb.toString());
-	}
-
-	private void visitMethod(MethodDeclaration method) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("[Method]:" + method.getName());
-		sb.append("\n");
-
-		if (method.getBody() != null) {
-			sb.append(method.getBody().toString());
-		}
-
-		// System.out.println(sb.toString());
 	}
 
 	private File getTypeDir(File parent, String simpleName, String suffix) {
-		// String suffix = "CN";
-		// if(isInterface)
-		// suffix = "IN";
 		File classDir = new File(parent, suffix);
 		File targetDir = new File(classDir, simpleName);
 
