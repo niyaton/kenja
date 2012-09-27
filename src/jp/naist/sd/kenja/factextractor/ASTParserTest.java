@@ -68,39 +68,6 @@ public class ASTParserTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-//		currentPackage = null;
-//		ASTParser parser = ASTParser.newParser(AST.JLS4);
-		
-//		LineProcessor<char[]> lineProcessor = new LineProcessor<char[]>(){
-//			
-//			private StringBuilder builder = new StringBuilder();
-//			
-//			public char[] getResult(){
-//				return builder.toString().toCharArray();
-//			}
-//			
-//			public boolean processLine(String line){
-//				builder.append(line);
-//				builder.append('\n');
-//				return true;
-//			}
-//		};
-		
-//		try {
-////			parser.setSource(Files.readLines(file, Charsets.US_ASCII, lineProcessor));
-//			//char src = Chars.fromByteArray(ByteStreams.toByteArray(Files.newInputStreamSupplier(file)));
-//			char[] src = 
-//			parser.setSource(src);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		NullProgressMonitor nullMonitor = new NullProgressMonitor();
-//		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
-
-//		visitCompilationUnit(unit);
 	}
 	
 	private void visitCompilationUnit(CompilationUnit unit){
