@@ -18,10 +18,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.google.common.io.LineProcessor;
-import com.google.common.primitives.Chars;
 
 public class ASTParserTest {
 	
