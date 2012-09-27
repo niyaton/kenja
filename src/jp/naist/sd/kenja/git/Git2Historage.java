@@ -2,13 +2,10 @@ package jp.naist.sd.kenja.git;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import jp.naist.sd.kenja.factextractor.ASTFileTreeCreator;
-import jp.naist.sd.kenja.factextractor.ASTParserTest;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jgit.*;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -25,21 +22,14 @@ import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.storage.file.FileRepository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
-
-import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Chars;
 
 public class Git2Historage {
 
@@ -143,14 +133,14 @@ public class Git2Historage {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		} else {
 			RevTree previousTree = previousCommit.getTree();
 			try {
 				walker.addTree(previousTree);
 				walker.addTree(tree);
-				for(DiffEntry diff:DiffEntry.scan(walker)){
-					if(diff.getChangeType() == ChangeType.DELETE)
+				for (DiffEntry diff : DiffEntry.scan(walker)) {
+					if (diff.getChangeType() == ChangeType.DELETE)
 						continue;
 					System.out.println("[change?]:" + diff.getNewPath());
 					loadJavaFile(diff.getNewId().toObjectId());
@@ -174,37 +164,37 @@ public class Git2Historage {
 		previousCommit = commit;
 
 		Git git = new Git(hisotrageRepository);
-		 try {
-		 git.add().addFilepattern(".").call();
-		 git.commit().setAll(true).setAuthor("Kenja",
-		 "kenji-f@is.naist.jp").setMessage(commit.name()).call();
-		 } catch (NoHeadException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 } catch (NoMessageException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 } catch (UnmergedPathsException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 } catch (ConcurrentRefUpdateException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 } catch (WrongRepositoryStateException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 } catch (GitAPIException e) {
-		 // TODO Auto-generated catch block
-		 e.printStackTrace();
-		 }
+		try {
+			git.add().addFilepattern(".").call();
+			git.commit().setAll(true).setAuthor("Kenja", "kenji-f@is.naist.jp")
+					.setMessage(commit.name()).call();
+		} catch (NoHeadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoMessageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnmergedPathsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ConcurrentRefUpdateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (WrongRepositoryStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (GitAPIException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void loadJavaFile(ObjectId id) {
 		try {
 			ObjectLoader loader = baseRepository.open(id);
 			// parser.createAST(IOUtils.toCharArray(loader.openStream()));
-			
-			 creator.parseSourcecode(IOUtils.toCharArray(loader.openStream()));
+
+			creator.parseSourcecode(IOUtils.toCharArray(loader.openStream()));
 		} catch (MissingObjectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
