@@ -4,11 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Stack;
 
-import jp.naist.sd.kenja.factextractor.ASTFileTreeCreator;
 import jp.naist.sd.kenja.factextractor.ASTGitTreeCreator;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.core.internal.jobs.Queue;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -97,12 +95,7 @@ public class Git2Historage {
 			walk.sort(RevSort.REVERSE);
 			walk.markStart(walk.lookupCommit(head));
 			for (RevCommit commit : walk) {
-				//creator = new ASTGitTreeCreator();
-				
 				processCommit(commit);
-				
-				//System.out.println(creator.toString());
-				//creator.testPrint();
 			}
 		} catch (AmbiguousObjectException e) {
 			// TODO Auto-generated catch block
@@ -111,10 +104,6 @@ public class Git2Historage {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// Map<String, Ref> refMap = baseRepository.getAllRefs();
-
-		// for(Ref ref: refMap.values()){
-		// }
 	}
 
 	private void processCommit(RevCommit commit) {
@@ -213,14 +202,11 @@ public class Git2Historage {
 	private void loadJavaFile(ObjectId id) {
 		try {
 			ObjectLoader loader = baseRepository.open(id);
-			// parser.createAST(IOUtils.toCharArray(loader.openStream()));
 			ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
 			creator.setSource(IOUtils.toCharArray(loader.openStream()));
 			Thread thread = new Thread(creator);
 			threadPool.add(thread);
 			thread.run();
-//			File baseDir = new File("/Users/kenjif/Documents/workspace-juno/kenja2/historage");
-//			creator.parseSourcecode(IOUtils.toCharArray(loader.openStream()), baseDir);
 		} catch (MissingObjectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

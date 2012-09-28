@@ -1,8 +1,5 @@
 package jp.naist.sd.kenja.factextractor;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 public class ASTPackage implements Treeable {
@@ -10,8 +7,6 @@ public class ASTPackage implements Treeable {
 	private Tree root;
 
 	private Tree leaf;
-
-//	private static Map<String, Tree> packagesRoots = new HashMap<String, Tree>();
 
 	private String packageName;
 
@@ -31,10 +26,6 @@ public class ASTPackage implements Treeable {
 		separatedPackageName = packageName.split("\\.");
 
 		String packagePrefix = separatedPackageName[0];
-//		if (!packagesRoots.containsKey(packagePrefix)) {
-//			packagesRoots.put(packagePrefix, new Tree(packagePrefix));
-//		}
-//		root = packagesRoots.get(packagePrefix);
 		root = new Tree(packagePrefix);
 
 		leaf = root;
