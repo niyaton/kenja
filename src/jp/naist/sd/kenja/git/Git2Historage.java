@@ -35,7 +35,7 @@ import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 public class Git2Historage {
 
 	private Stack<Thread> threadPool = new Stack<Thread>();
-	
+
 	public static void main(String[] args) {
 		File testDir = new File(
 				"/Users/kenjif/Documents/workspace-juno/kenja2/test/.git");
@@ -52,23 +52,24 @@ public class Git2Historage {
 	private Repository hisotrageRepository;
 
 	private RevCommit previousCommit;
-	
 
 	// private ASTParserTest parser = new ASTParserTest();
-//	private ASTFileTreeCreator creator;
+	// private ASTFileTreeCreator creator;
 	private ASTGitTreeCreator creator;
 
 	public Git2Historage() {
 
 	}
 
-	private File baseDir = new File("/Users/kenjif/Documents/workspace-juno/kenja2/historage");
+	private File baseDir = new File(
+			"/Users/kenjif/Documents/workspace-juno/kenja2/historage");
+
 	public void createHistorage(File historageDir, File baseRepository) {
-//		creator = new ASTFileTreeCreator(new File(
-//				"/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
-	
-//		creator = new ASTGitTreeCreator();
-		
+		// creator = new ASTFileTreeCreator(new File(
+		// "/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
+
+		// creator = new ASTGitTreeCreator();
+
 		try {
 			FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			builder.setGitDir(baseRepository);
@@ -168,11 +169,11 @@ public class Git2Historage {
 		System.out.println(commit.name());
 		previousCommit = commit;
 
-		while(!threadPool.empty()){
-			if(!threadPool.peek().isAlive())
+		while (!threadPool.empty()) {
+			if (!threadPool.peek().isAlive())
 				threadPool.pop();
 		}
-		
+
 		Git git = new Git(hisotrageRepository);
 		try {
 			git.add().addFilepattern(".").call();

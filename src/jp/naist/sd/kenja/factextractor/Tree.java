@@ -6,16 +6,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import org.eclipse.core.internal.jobs.Queue;
-
 import com.google.common.io.Files;
 
 public class Tree {
 
+	private final String ROOT_NAME = "";
+	
 	private List<Blob> blobs = new ArrayList<Blob>();
 	private List<Tree> trees = new ArrayList<Tree>();
 
 	private String name;
+	
+	public boolean isRoot(){
+		return name.equals(ROOT_NAME);
+	}
 
 	public Tree(String name) {
 		this.name = name;
