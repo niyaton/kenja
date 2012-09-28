@@ -32,6 +32,9 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 public class Git2Historage {
 
 	private Stack<Thread> threadPool = new Stack<Thread>();
@@ -51,14 +54,16 @@ public class Git2Historage {
 
 	private Repository hisotrageRepository;
 
-	private RevCommit previousCommit;
+	private Multimap<RevCommit, ObjectId> changedBlobs;
 
 	// private ASTParserTest parser = new ASTParserTest();
 	// private ASTFileTreeCreator creator;
 	private ASTGitTreeCreator creator;
 
-	public Git2Historage() {
+	private Stack<RevCommit> baseCommits = new Stack<RevCommit>();
 
+	public Git2Historage() {
+		changedBlobs = HashMultimap.create();
 	}
 
 	private File baseDir = new File(
@@ -95,8 +100,13 @@ public class Git2Historage {
 			walk.sort(RevSort.TOPO);
 			walk.sort(RevSort.REVERSE);
 			walk.markStart(walk.lookupCommit(head));
+
+			RevCommit previousCommit = walk.next();
+			addPrimaryCommit(previousCommit);
+
 			for (RevCommit commit : walk) {
-				processCommit(commit);
+				detectChangedBlobs(previousCommit, commit);
+				previousCommit = commit;
 			}
 		} catch (AmbiguousObjectException e) {
 			// TODO Auto-generated catch block
@@ -107,7 +117,72 @@ public class Git2Historage {
 		}
 	}
 
-	private void processCommit(RevCommit commit) {
+	private void addPrimaryCommit(RevCommit commit) {
+		RevTree tree = commit.getTree();
+
+		PathSuffixFilter filter = PathSuffixFilter.create(".java");
+		TreeWalk walker = new TreeWalk(baseRepository);
+
+		walker.setFilter(filter);
+		walker.setRecursive(true);
+		try {
+			walker.addTree(tree.getId());
+			while (walker.next()) {
+				System.out.println("[file name?]:" + walker.getPathString());
+				// loadJavaFile(walker.getObjectId(0));
+				changedBlobs.put(commit, walker.getObjectId(0));
+			}
+		} catch (MissingObjectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IncorrectObjectTypeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CorruptObjectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void detectChangedBlobs(RevCommit previousCommit, RevCommit commit) {
+		RevTree tree = commit.getTree();
+
+		PathSuffixFilter filter = PathSuffixFilter.create(".java");
+		TreeWalk walker = new TreeWalk(baseRepository);
+
+		walker.setFilter(filter);
+		walker.setRecursive(true);
+		try {
+
+			RevTree previousTree = previousCommit.getTree();
+			walker.addTree(previousTree);
+			walker.addTree(tree);
+			for (DiffEntry diff : DiffEntry.scan(walker)) {
+				if (diff.getChangeType() == ChangeType.DELETE)
+					continue;
+				System.out.println("[change?]:" + diff.getNewPath());
+				// loadJavaFile(diff.getNewId().toObjectId());
+				changedBlobs.put(commit, diff.getNewId().toObjectId());
+			}
+		} catch (MissingObjectException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IncorrectObjectTypeException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (CorruptObjectException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+
+	private void processCommit(RevCommit commit, RevCommit previousCommit) {
 
 		RevTree tree = commit.getTree();
 		PathSuffixFilter filter = PathSuffixFilter.create(".java");
