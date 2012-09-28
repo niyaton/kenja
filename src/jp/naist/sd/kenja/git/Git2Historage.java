@@ -2,10 +2,13 @@ package jp.naist.sd.kenja.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Stack;
 
 import jp.naist.sd.kenja.factextractor.ASTFileTreeCreator;
+import jp.naist.sd.kenja.factextractor.ASTGitTreeCreator;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.core.internal.jobs.Queue;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -33,6 +36,8 @@ import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 
 public class Git2Historage {
 
+	private Stack<Thread> threadPool = new Stack<Thread>();
+	
 	public static void main(String[] args) {
 		File testDir = new File(
 				"/Users/kenjif/Documents/workspace-juno/kenja2/test/.git");
@@ -49,17 +54,23 @@ public class Git2Historage {
 	private Repository hisotrageRepository;
 
 	private RevCommit previousCommit;
+	
 
 	// private ASTParserTest parser = new ASTParserTest();
-	private ASTFileTreeCreator creator;
+//	private ASTFileTreeCreator creator;
+	private ASTGitTreeCreator creator;
 
 	public Git2Historage() {
 
 	}
 
+	private File baseDir = new File("/Users/kenjif/Documents/workspace-juno/kenja2/historage");
 	public void createHistorage(File historageDir, File baseRepository) {
-		creator = new ASTFileTreeCreator(new File(
-				"/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
+//		creator = new ASTFileTreeCreator(new File(
+//				"/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
+	
+//		creator = new ASTGitTreeCreator();
+		
 		try {
 			FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			builder.setGitDir(baseRepository);
@@ -86,7 +97,12 @@ public class Git2Historage {
 			walk.sort(RevSort.REVERSE);
 			walk.markStart(walk.lookupCommit(head));
 			for (RevCommit commit : walk) {
+				//creator = new ASTGitTreeCreator();
+				
 				processCommit(commit);
+				
+				//System.out.println(creator.toString());
+				//creator.testPrint();
 			}
 		} catch (AmbiguousObjectException e) {
 			// TODO Auto-generated catch block
@@ -163,6 +179,11 @@ public class Git2Historage {
 		System.out.println(commit.name());
 		previousCommit = commit;
 
+		while(!threadPool.empty()){
+			if(!threadPool.peek().isAlive())
+				threadPool.pop();
+		}
+		
 		Git git = new Git(hisotrageRepository);
 		try {
 			git.add().addFilepattern(".").call();
@@ -193,8 +214,13 @@ public class Git2Historage {
 		try {
 			ObjectLoader loader = baseRepository.open(id);
 			// parser.createAST(IOUtils.toCharArray(loader.openStream()));
-
-			creator.parseSourcecode(IOUtils.toCharArray(loader.openStream()));
+			ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
+			creator.setSource(IOUtils.toCharArray(loader.openStream()));
+			Thread thread = new Thread(creator);
+			threadPool.add(thread);
+			thread.run();
+//			File baseDir = new File("/Users/kenjif/Documents/workspace-juno/kenja2/historage");
+//			creator.parseSourcecode(IOUtils.toCharArray(loader.openStream()), baseDir);
 		} catch (MissingObjectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

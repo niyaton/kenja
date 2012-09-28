@@ -121,7 +121,6 @@ public class ASTFileTreeCreator {
 
 	private void appendField(FieldDeclaration node, File parent) {
 		File fieldDir = new File(parent, "[FE]");
-		// File targetDir = new File(sDir, simpleName);
 
 		if (!fieldDir.exists()) {
 			try {
