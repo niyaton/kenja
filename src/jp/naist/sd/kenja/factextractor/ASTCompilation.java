@@ -56,13 +56,6 @@ public class ASTCompilation implements Treeable {
 		addTypes(unit);
 	}
 	
-	public void writeFiles(File baseDir){
-		root.writeTree(baseDir);
-//		for(String str: root.getObjectsPath(baseDir.getAbsolutePath())){
-//			System.out.println(str);
-//		}
-	}
-	
 	public List<String> getChangedFileList(File baseDir){
 		return root.getObjectsPath("");
 	}

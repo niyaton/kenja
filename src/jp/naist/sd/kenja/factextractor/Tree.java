@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Stack;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.io.Files;
 
@@ -90,53 +91,6 @@ public class Tree {
 		return false;
 	}
 
-	public void testPrint() {
-		StringBuilder builder = new StringBuilder();
-		// builder.append(this.name);
-		// builder.append("\n");
-		System.out.println(this.name);
-
-		for (String line : getBlobsPath()) {
-			// builder.append(line);
-			System.out.println(line);
-			// builder.append("\n");
-		}
-
-		for (String line : getChildTreesPath(true, this.name + "/")) {
-			// builder.append(line);
-			System.out.println(line);
-			// builder.append("\n");
-		}
-
-		// return builder.toString();
-	}
-
-	private List<String> getChildTreesPath(boolean recursive, String prefix) {
-		List<String> result = new ArrayList<String>();
-		Stack<String> prefixStack = new Stack<String>();
-		Stack<Tree> treeStack = new Stack<Tree>();
-
-		prefixStack.push(this.name + "/");
-		treeStack.push(this);
-
-		while (!treeStack.empty()) {
-			Tree t = treeStack.pop();
-			prefix = prefixStack.pop();
-			result.addAll(t.getBlobsPath(prefix));
-
-			for (Tree next : t.trees) {
-				treeStack.push(next);
-				prefixStack.push(prefix + next.name + "/");
-			}
-		}
-		return result;
-	}
-
-	private List<String> getBlobsPath() {
-		String prefix = name + "/";
-		return getBlobsPath(prefix);
-	}
-
 	public void writeTree(File baseDir) {
 		if (!baseDir.exists())
 			try {
@@ -162,29 +116,25 @@ public class Tree {
 	}
 
 	public List<String> getObjectsPath(String prefix){
-		Stack<String> pathStack = new Stack<String>();
-		Stack<Tree> treeStack = new Stack<Tree>();
+		Stack<Pair<String, Tree>> treeStack = new Stack<Pair<String, Tree>>();
 		List<String> result = new LinkedList<String>();
 		
-		pathStack.push(prefix);
-		treeStack.push(this);
+		treeStack.push(Pair.of(prefix, this));
 		
 		while(!treeStack.empty()){
-//			prefix = pathStack.pop();
-			Tree tree = treeStack.pop();
-			prefix = pathStack.pop();
+			Pair<String, Tree> pair = treeStack.pop();
+			Tree tree = pair.getRight();
+			prefix = pair.getLeft();
+			
 			if(!tree.isRoot()){
 				prefix += tree.name + "/" ;
 				result.add(prefix);
 			}
 			
-			for(Blob blob: tree.blobs){
-				result.add(prefix + blob.getName());
-			}
+			result.addAll(getBlobsPath(prefix));
 			
 			for(Tree t: tree.trees){
-				treeStack.add(t);
-				pathStack.add(prefix);
+				treeStack.add(Pair.of(prefix, t));
 			}
 		}
 		
@@ -194,7 +144,7 @@ public class Tree {
 	private List<String> getBlobsPath(String prefix) {
 		List<String> result = new ArrayList<String>();
 		for (Blob blob : blobs) {
-			// result.add(prefix + blob.getName());
+			 result.add(prefix + blob.getName());
 		}
 
 		return result;

@@ -33,7 +33,7 @@ public class ASTGitTreeCreator implements Runnable{
 		NullProgressMonitor nullMonitor = new NullProgressMonitor();
 		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
 		ASTCompilation compilation = new ASTCompilation(unit, root);
-		compilation.writeFiles(baseDir);	
+		compilation.getTree().writeTree(baseDir);
 		synchronized (changedPathList) {
 			changedPathList.addAll(compilation.getChangedFileList(baseDir));
 		}

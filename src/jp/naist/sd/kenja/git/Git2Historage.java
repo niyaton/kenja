@@ -58,10 +58,6 @@ public class Git2Historage {
 
 	private Multimap<RevCommit, ObjectId> changedBlobs;
 
-	// private ASTParserTest parser = new ASTParserTest();
-	// private ASTFileTreeCreator creator;
-	private ASTGitTreeCreator creator;
-
 	private Stack<RevCommit> baseCommits = new Stack<RevCommit>();
 	
 	private List<String> changedPathList = new LinkedList<String>();
