@@ -3,7 +3,9 @@ package jp.naist.sd.kenja.factextractor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Stack;
 
 import com.google.common.io.Files;
@@ -11,13 +13,13 @@ import com.google.common.io.Files;
 public class Tree {
 
 	private final String ROOT_NAME = "";
-	
+
 	private List<Blob> blobs = new ArrayList<Blob>();
 	private List<Tree> trees = new ArrayList<Tree>();
 
 	private String name;
-	
-	public boolean isRoot(){
+
+	public boolean isRoot() {
 		return name.equals(ROOT_NAME);
 	}
 
@@ -159,6 +161,36 @@ public class Tree {
 		}
 	}
 
+	public List<String> getObjectsPath(String prefix){
+		Stack<String> pathStack = new Stack<String>();
+		Stack<Tree> treeStack = new Stack<Tree>();
+		List<String> result = new LinkedList<String>();
+		
+		pathStack.push(prefix);
+		treeStack.push(this);
+		
+		while(!treeStack.empty()){
+//			prefix = pathStack.pop();
+			Tree tree = treeStack.pop();
+			prefix = pathStack.pop();
+			if(!tree.isRoot()){
+				prefix += tree.name + "/" ;
+				result.add(prefix);
+			}
+			
+			for(Blob blob: tree.blobs){
+				result.add(prefix + blob.getName());
+			}
+			
+			for(Tree t: tree.trees){
+				treeStack.add(t);
+				pathStack.add(prefix);
+			}
+		}
+		
+		return result;
+	}
+	
 	private List<String> getBlobsPath(String prefix) {
 		List<String> result = new ArrayList<String>();
 		for (Blob blob : blobs) {

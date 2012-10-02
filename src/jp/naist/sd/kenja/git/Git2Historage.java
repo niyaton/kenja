@@ -2,6 +2,8 @@ package jp.naist.sd.kenja.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
 import jp.naist.sd.kenja.factextractor.ASTGitTreeCreator;
@@ -61,6 +63,8 @@ public class Git2Historage {
 	private ASTGitTreeCreator creator;
 
 	private Stack<RevCommit> baseCommits = new Stack<RevCommit>();
+	
+	private List<String> changedPathList = new LinkedList<String>();
 
 	public Git2Historage() {
 		changedBlobs = HashMultimap.create();
@@ -105,6 +109,7 @@ public class Git2Historage {
 			addPrimaryCommit(previousCommit);
 
 			for (RevCommit commit : walk) {
+				changedPathList = new LinkedList<String>();
 				detectChangedBlobs(previousCommit, commit);
 				previousCommit = commit;
 			}
@@ -164,7 +169,7 @@ public class Git2Historage {
 				if (diff.getChangeType() == ChangeType.DELETE)
 					continue;
 				System.out.println("[change?]:" + diff.getNewPath());
-				// loadJavaFile(diff.getNewId().toObjectId());
+				loadJavaFile(diff.getNewId().toObjectId());
 				changedBlobs.put(commit, diff.getNewId().toObjectId());
 			}
 		} catch (MissingObjectException e1) {
@@ -180,80 +185,28 @@ public class Git2Historage {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
+		waitParserProcess();
+		commitWorkingDirectory(commit.name(), changedPathList);
 	}
 
-	private void processCommit(RevCommit commit, RevCommit previousCommit) {
-
-		RevTree tree = commit.getTree();
-		PathSuffixFilter filter = PathSuffixFilter.create(".java");
-		TreeWalk walker = new TreeWalk(baseRepository);
-
-		walker.setFilter(filter);
-		walker.setRecursive(true);
-		if (previousCommit == null) {
-			try {
-				walker.addTree(tree.getId());
-				while (walker.next()) {
-					System.out
-							.println("[file name?]:" + walker.getPathString());
-					loadJavaFile(walker.getObjectId(0));
-					// System.out.println("[file?]:" +
-					// walker.getObjectId(0).name());
-					// walker.enterSubtree();
-				}
-			} catch (MissingObjectException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IncorrectObjectTypeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (CorruptObjectException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		} else {
-			RevTree previousTree = previousCommit.getTree();
-			try {
-				walker.addTree(previousTree);
-				walker.addTree(tree);
-				for (DiffEntry diff : DiffEntry.scan(walker)) {
-					if (diff.getChangeType() == ChangeType.DELETE)
-						continue;
-					System.out.println("[change?]:" + diff.getNewPath());
-					loadJavaFile(diff.getNewId().toObjectId());
-				}
-			} catch (MissingObjectException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IncorrectObjectTypeException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (CorruptObjectException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-
-		System.out.println(commit.name());
-		previousCommit = commit;
-
+	private void waitParserProcess(){
 		while (!threadPool.empty()) {
-			if (!threadPool.peek().isAlive())
+			if (!threadPool.peek().isAlive()){
 				threadPool.pop();
-		}
-
+			}
+		}	
+	}
+	
+	private void commitWorkingDirectory(String commitName, List<String> changedFilePathList){
+		if(changedFilePathList.size() == 0)
+			return;
+		
 		Git git = new Git(hisotrageRepository);
 		try {
 			git.add().addFilepattern(".").call();
 			git.commit().setAll(true).setAuthor("Kenja", "kenji-f@is.naist.jp")
-					.setMessage(commit.name()).call();
+					.setMessage(commitName).call();
 		} catch (NoHeadException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -274,12 +227,13 @@ public class Git2Historage {
 			e.printStackTrace();
 		}
 	}
-
+	
 	private void loadJavaFile(ObjectId id) {
 		try {
 			ObjectLoader loader = baseRepository.open(id);
 			ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
 			creator.setSource(IOUtils.toCharArray(loader.openStream()));
+			creator.setPathList(this.changedPathList);
 			Thread thread = new Thread(creator);
 			threadPool.add(thread);
 			thread.run();

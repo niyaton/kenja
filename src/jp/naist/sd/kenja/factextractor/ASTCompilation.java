@@ -1,6 +1,7 @@
 package jp.naist.sd.kenja.factextractor;
 
 import java.io.File;
+import java.util.List;
 
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -57,6 +58,13 @@ public class ASTCompilation implements Treeable {
 	
 	public void writeFiles(File baseDir){
 		root.writeTree(baseDir);
+//		for(String str: root.getObjectsPath(baseDir.getAbsolutePath())){
+//			System.out.println(str);
+//		}
+	}
+	
+	public List<String> getChangedFileList(File baseDir){
+		return root.getObjectsPath("");
 	}
 
 	public void addTypes(CompilationUnit unit) {
