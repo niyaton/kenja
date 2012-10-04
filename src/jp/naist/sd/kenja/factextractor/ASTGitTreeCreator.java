@@ -25,6 +25,8 @@ public class ASTGitTreeCreator implements Runnable{
 		this.baseDir = baseDir;
 	}
 	
+	ASTCompilation compilation;
+	
 	private void parseSourcecode(char[] src, File baseDir) {
 		ASTParser parser = ASTParser.newParser(AST.JLS4);
 
@@ -32,7 +34,8 @@ public class ASTGitTreeCreator implements Runnable{
 
 		NullProgressMonitor nullMonitor = new NullProgressMonitor();
 		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
-		ASTCompilation compilation = new ASTCompilation(unit, root);
+		
+		compilation = new ASTCompilation(unit, root);
 		compilation.getTree().writeTree(baseDir);
 		synchronized (changedPathList) {
 			changedPathList.addAll(compilation.getChangedFileList(baseDir));
@@ -52,6 +55,10 @@ public class ASTGitTreeCreator implements Runnable{
 
 	public void setPathList(List<String> changedPathList) {
 		this.changedPathList = changedPathList;
+	}
+	
+	public void removeTree(File baseDir){
+		compilation.removeTree(baseDir);
 	}
 	
 	public static void main(String[] args){

@@ -100,9 +100,9 @@ public class Tree {
 				e.printStackTrace();
 			}
 
-		if (!name.equals("")) {
+		if (!isRoot()) {
 			baseDir = new File(baseDir, this.name);
-			if (baseDir.exists())
+			if (!baseDir.exists())
 				baseDir.mkdir();
 		}
 
@@ -148,5 +148,28 @@ public class Tree {
 		}
 
 		return result;
+	}
+
+	public void removeTree(File baseDir) {
+		if (!isRoot()) {
+			baseDir = new File(baseDir, this.name);
+		}
+
+		if(!baseDir.exists())
+			return;
+		
+		for (Blob blob : blobs) {
+			blob.removeBlob(baseDir);
+		}
+
+		for (Tree t : trees) {
+			t.removeTree(baseDir);
+		}
+		
+		if(!isRoot()){
+			if(baseDir.list().length == 0){
+				baseDir.delete();
+			}
+		}
 	}
 }

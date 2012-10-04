@@ -1,5 +1,7 @@
 package jp.naist.sd.kenja.factextractor;
 
+import java.util.HashSet;
+
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -15,9 +17,14 @@ public class ASTClass extends ASTType {
 		
 		root.append(fieldRoot);
 
+		HashSet<String> tmpHashSet = new HashSet<String>();
 		for (MethodDeclaration methodDec : typeDec.getMethods()) {
+			if(tmpHashSet.contains(methodDec.getName().toString()))
+					continue;
+			tmpHashSet.add(methodDec.getName().toString());
 			ASTMethod method = ASTMethod.fromMethodDeclaralation(methodDec);
 			methodRoot.append(method.getTree());
+			// TODO overload methods
 		}
 
 		for (FieldDeclaration fieldDec : typeDec.getFields()) {

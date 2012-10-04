@@ -23,6 +23,11 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<archive>
+					<manifest>
+						<mainClass>jp.naist.sd.kenja.git.Git2Historage</mainClass>
+					</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 

@@ -2,11 +2,13 @@ package jp.naist.sd.kenja.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
 import jp.naist.sd.kenja.factextractor.ASTGitTreeCreator;
+import jp.naist.sd.kenja.factextractor.Tree;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jgit.api.Git;
@@ -43,9 +45,11 @@ public class Git2Historage {
 
 	public static void main(String[] args) {
 		File testDir = new File(
-				"/Users/kenjif/Documents/workspace-juno/kenja2/test/.git");
+//				"/Users/kenjif/Documents/workspace-juno/kenja2/test/.git");
+				"/home/kenji-f/kenja/test/.git");
 		File testBaseDir = new File(
-				"/Users/kenjif/repos/git-svn/columba_all/.git");
+//				"/Users/kenjif/repos/git-svn/columba_all/.git");
+				"/home/kenji-f/kenja/columba_all/.git");
 
 		Git2Historage historage = new Git2Historage();
 		historage.createHistorage(testDir, testBaseDir);
@@ -59,7 +63,9 @@ public class Git2Historage {
 	private Multimap<RevCommit, ObjectId> changedBlobs;
 
 	private Stack<RevCommit> baseCommits = new Stack<RevCommit>();
-	
+
+	private HashMap<ObjectId, ASTGitTreeCreator> treeCash = new HashMap<ObjectId, ASTGitTreeCreator>();
+
 	private List<String> changedPathList = new LinkedList<String>();
 
 	public Git2Historage() {
@@ -67,7 +73,8 @@ public class Git2Historage {
 	}
 
 	private File baseDir = new File(
-			"/Users/kenjif/Documents/workspace-juno/kenja2/historage");
+//			"/Users/kenjif/Documents/workspace-juno/kenja2/historage");
+			"/home/kenji-f/kenja/historage");
 
 	public void createHistorage(File historageDir, File baseRepository) {
 		// creator = new ASTFileTreeCreator(new File(
@@ -85,7 +92,8 @@ public class Git2Historage {
 			builder.setGitDir(historageDir);
 			// builder.setBare();
 			builder.setWorkTree(new File(
-					"/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
+//					"/Users/kenjif/Documents/workspace-juno/kenja2/historage"));
+					"/home/kenji-f/kenja/historage"));
 			this.hisotrageRepository = builder.build();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -162,9 +170,23 @@ public class Git2Historage {
 			walker.addTree(previousTree);
 			walker.addTree(tree);
 			for (DiffEntry diff : DiffEntry.scan(walker)) {
-				if (diff.getChangeType() == ChangeType.DELETE)
+				if (diff.getChangeType() == ChangeType.MODIFY
+						|| diff.getChangeType() == ChangeType.DELETE
+						|| diff.getChangeType() == ChangeType.RENAME) {
+					System.out.println(diff.getChangeType().toString());
+					System.out.println("[deleted]:"
+							+ diff.getOldId().toString());
+					
+					//TODO if repository have a clone files, transform will be failed by NullPointer Exception.
+					treeCash.get(diff.getOldId().toObjectId()).removeTree(
+							baseDir);
+					treeCash.remove(diff.getOldId().toObjectId());
+				}
+
+				if (diff.getChangeType() == ChangeType.DELETE) {
 					continue;
-				System.out.println("[change?]:" + diff.getNewPath());
+				}
+				// System.out.println("[change?]:" + diff.getNewPath());
 				loadJavaFile(diff.getNewId().toObjectId());
 				changedBlobs.put(commit, diff.getNewId().toObjectId());
 			}
@@ -181,23 +203,24 @@ public class Git2Historage {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 		waitParserProcess();
 		commitWorkingDirectory(commit.name(), changedPathList);
 	}
 
-	private void waitParserProcess(){
+	private void waitParserProcess() {
 		while (!threadPool.empty()) {
-			if (!threadPool.peek().isAlive()){
+			if (!threadPool.peek().isAlive()) {
 				threadPool.pop();
 			}
-		}	
+		}
 	}
-	
-	private void commitWorkingDirectory(String commitName, List<String> changedFilePathList){
-		if(changedFilePathList.size() == 0)
+
+	private void commitWorkingDirectory(String commitName,
+			List<String> changedFilePathList) {
+		if (changedFilePathList.size() == 0)
 			return;
-		
+
 		Git git = new Git(hisotrageRepository);
 		try {
 			git.add().addFilepattern(".").call();
@@ -223,11 +246,14 @@ public class Git2Historage {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void loadJavaFile(ObjectId id) {
 		try {
 			ObjectLoader loader = baseRepository.open(id);
 			ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
+
+			treeCash.put(id, creator);
+
 			creator.setSource(IOUtils.toCharArray(loader.openStream()));
 			creator.setPathList(this.changedPathList);
 			Thread thread = new Thread(creator);
