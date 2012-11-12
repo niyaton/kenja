@@ -37,9 +37,9 @@ public class ASTGitTreeCreator implements Runnable{
 		
 		compilation = new ASTCompilation(unit, root);
 		compilation.getTree().writeTree(baseDir);
-		synchronized (changedPathList) {
-			changedPathList.addAll(compilation.getChangedFileList(baseDir));
-		}
+//		synchronized (changedPathList) {
+//			changedPathList.addAll(compilation.getChangedFileList(baseDir));
+//		}
 	}
 	
 	private List<String> changedPathList;
