@@ -15,27 +15,25 @@ do
 
 				dirname=`dirname ${fpath}`
 
-				#echo $change
+				echo $change
 				if [ $change = "D" -o $change = "M" ]; then
-					rm -rf ${fpath}
-					git rm -rf ${fpath}
-					#echo git rm -r ${fpath} 
+					#rm -rf ${fpath}
+					echo git rm -r ${fpath} 
+					git rm -r ${fpath} 
 				fi
 
 				if [ $change = "D" ]; then
 					continue
 				fi
 
-				#echo mkdir ${dirname}
+				echo mkdir ${dirname}
 				mkdir -p ${dirname}
 
-				#echo cp -R ../syntax-trees/${new_id} ${fpath}
-				cp -R ../syntax-trees/${new_id} ${fpath}
-				git add -N $fpath 
+				echo cp -R ../syntax-trees/${new_id} ${fpath}
+				cp -R ../syntax-trees/${new_id} ${fpath} &
 
-				#echo git add $fpath
-				#echo git add "$fpath"
-				#git add "$fpath"
+				echo git add $fpath
+				git add $fpath
 			fi
 		done
 
@@ -43,14 +41,11 @@ do
 
 		#echo git add .
 		#echo git commit -a -m $line
-
-		#echo git commit -m $line
+		echo git commit -m $line
 
 		#git add .
 		#git commit -a -m $line
-
-		echo git commit -m $line
-		git commit -a -m $line --quiet
+		git commit -m $line
 	fi
 	previous=$line
 done
