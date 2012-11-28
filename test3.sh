@@ -1,10 +1,17 @@
+ORGGITDIR=$1
+HISTWORKDIR=$2
+
 previous=""
-cd ./historage
-git --git-dir=../.git rev-list --topo-order --reverse HEAD | while read line 
+#cd ./historage
+cd ${HISTWORKDIR}
+
+#git --git-dir=../.git rev-list --topo-order --reverse HEAD | while read line 
+git --git-dir=${ORGGITDIR} rev-list --topo-order --reverse HEAD | while read line 
 do 
 	echo $line
 	if [ -n "$previous" ]; then
-		git --git-dir=../.git diff-tree -r ${previous}..${line} | while read line2;
+		#git --git-dir=../.git diff-tree -r ${previous}..${line} | while read line2;
+		git --git-dir=${ORGGITDIR} diff-tree -r ${previous}..${line} | while read line2;
 		do
 			fpath=`echo $line2 | cut -d ' ' -f 6`
 			ext="${fpath##*.}"

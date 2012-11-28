@@ -1,8 +1,10 @@
+GITDIR=$1
 previous=""
-git rev-list --topo-order --reverse HEAD | while read line 
+
+git --git-dir=${GITDIR} rev-list --topo-order --reverse HEAD | while read line 
 do 
 	if [ -n "$previous" ]; then
-		git diff-tree -r ${previous}..${line} | while read line;
+		git --git-dir=${GITDIR} diff-tree -r ${previous}..${line} | while read line;
 		do
 			fpath=`echo $line | cut -d ' ' -f 6`
 			ext="${fpath##*.}"

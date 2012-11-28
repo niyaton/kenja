@@ -19,12 +19,16 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+KENJA_PARSER="./kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+KENJA_EXEC="${KENJA_PARSER} jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
+GITDIR=$1
+
 processes=0
 while read line 
 do
-	git show $line | java -cp ../kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar jp.naist.sd.kenja.factextractor.ASTGitTreeCreator ./syntax-trees/$line &
+	git --git-dir=$GITDIR show $line | java -cp ${KENJA_EXEC} ./syntax-trees/$line &
 	echo $processes
-	if [ $processes -ge 16 ]; then
+	if [ $processes -ge 10 ]; then
 		wait
 		processes=0
 	fi
