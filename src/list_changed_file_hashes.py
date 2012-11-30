@@ -23,6 +23,7 @@ class CommitList:
 
 if __name__ == '__main__':
     import argparse
+    from git import GitCmdObjectDB
 
     parser = argparse.ArgumentParser(description='Edit distance calculator')
     parser.add_argument('org_git_dir')
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     if not os.path.isdir(git_dir):
         print "%s is not a directory" % (git_dir)
 
-    repo = Repo(git_dir)
+    repo = Repo(git_dir, odbt=GitCmdObjectDB)
     
     cl = CommitList(repo)
     cl.print_all_blob_hashes()

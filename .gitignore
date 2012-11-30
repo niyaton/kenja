@@ -5,3 +5,5 @@
 *.class
 root
 target
+__pycache__
+*.pyc
