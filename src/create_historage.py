@@ -14,7 +14,7 @@ def func_star(a_b):
     return work(*a_b)
 
 kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
-kenja_outpu_dir = " ./syntax_trees/"
+kenja_outpu_dir = " /Users/kenjif/syntax_trees/"
 kenja_parser_class = " jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
 
 def work(blob, hexsha):
