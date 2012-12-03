@@ -35,7 +35,7 @@ class HistorageConverter:
     kenja_outpu_dir = " ./syntax_trees/"
     kenja_parser_class = " jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
     
-    def __init__(self, org_git_repo, new_git_repo_dir_path):
+    def __init__(self, org_git_repo, new_git_repo_dir_path, working_dir):
         dirname = os.path.basename(new_git_repo_dir_path)
         if(dirname == '.git'):
             raise InvalidHistoragePathException('Do not use ".git" dir for historage path')
@@ -56,6 +56,10 @@ class HistorageConverter:
 
         self.historage_repo = Repo.init(new_git_repo_dir_path)
         self.org_repo = org_git_repo
+
+        if not(os.path.isdir(working_dir)):
+            raise Exception('%s is not a directory' % (working_dir))
+        self.working_dir = working_dir
 
     def get_all_blob_hashes(self):
         #blob_hashes = set()
@@ -82,6 +86,7 @@ class HistorageConverter:
     def commit_all_syntax_trees(self):
         index = self.historage_repo.index
         working_dir_abspath = self.historage_repo.working_dir
+        syntax_trees_path = os.path.join(self.working_dir, 'syntax_trees')
         arg = {'reverse':True}
         for commit in self.org_repo.iter_commits(self.org_repo.head, **arg):
             print 'process commit:', commit.hexsha
@@ -91,13 +96,17 @@ class HistorageConverter:
                     if change.a_blob.name.endswith(".java"):
                         #hexsha = change.a_blob.hexsha
                         print 'remove', change.a_blob.path
-                        dirname = os.path.dirname(change.a_blob.path)
+                        #dirname = os.path.dirname(change.a_blob.path)
+                        dirname = change.a_blob.path
                         kwargs = {"r":True}
                         index.remove([change.a_blob.path], **kwargs)
+                        index.write()
                         shutil.rmtree(os.path.join(working_dir_abspath, dirname))
                 for change in diff.iter_change_type("M"):
                     if change.b_blob.name.endswith(".java"):
                         print 'remove changed', change.a_blob.path
+                        #dirname = os.path.dirname(change.a_blob.path)
+                        dirname = change.a_blob.path
                         kwargs = {"r":True}
                         index.remove([change.a_blob.path], **kwargs)
                         index.write()
@@ -111,7 +120,7 @@ class HistorageConverter:
                             os.makedirs(os.path.join(working_dir_abspath, dirname))
                             
                         hexsha = change.b_blob.hexsha
-                        src = os.path.join('./syntax_trees', hexsha)
+                        src = os.path.join(syntax_trees_path, hexsha)
                         #dst = os.path.join(working_dir_abspath, dirname)
                         dst = os.path.join(working_dir_abspath, change.b_blob.path)
                         print 'copy from %s to %s' % (src, dst)
@@ -130,14 +139,16 @@ class HistorageConverter:
                             os.makedirs(os.path.join(working_dir_abspath, dirname))
 
                         hexsha = change.b_blob.hexsha
-                        src = os.path.join('./syntax_trees', hexsha)
+                        src = os.path.join(syntax_trees_path, hexsha)
                         dst = os.path.join(working_dir_abspath, change.b_blob.path)
                         print 'copy from %s to %s' % (src, dst)
                         shutil.copytree(src, dst)
                         
                         self.historage_repo.git.add([change.b_blob.path])
                         index.update()
-            if self.historage_repo.is_dirty():
+            #if self.historage_repo.is_dirty():
+            #    index.commit(commit.hexsha)
+            if len(index.diff(None, staged=True)):
                 index.commit(commit.hexsha)
 
 
@@ -169,6 +180,8 @@ if __name__ == '__main__':
  
     parser = argparse.ArgumentParser(description='Git Blob Parser')
     parser.add_argument('org_git_dir')
+    parser.add_argument('new_git_repo_dir')
+    parser.add_argument('syntax_trees_dir')
 
     args = parser.parse_args()
     
@@ -178,5 +191,5 @@ if __name__ == '__main__':
 
     repo = Repo(git_dir)
     
-    gbp = HistorageConverter(repo, 'test_dir')
+    gbp = HistorageConverter(repo, args.new_git_repo_dir, args.syntax_trees_dir)
     gbp.convert()
