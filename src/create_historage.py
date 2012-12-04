@@ -4,7 +4,8 @@ from git import Repo
 from exc import InvalidHistoragePathException
 from subprocess import (
                             Popen,
-                            PIPE
+                            PIPE,
+                            check_output
                         )
 from multiprocessing import Pool
 import multiprocessing
@@ -83,6 +84,19 @@ class HistorageConverter:
         #return blob_hashes
         return blobs
 
+    def remove_files_from_index(self, index, removed_files):
+        kwargs = {"r":True}
+        index.remove(removed_files, **kwargs)
+        index.write()
+
+    def is_completed_parse(self, blob):
+        path = os.path.join(self.working_dir, 'syntax_trees', blob.hexsha)
+        cmd = ['find', path, '-type', 'f']
+        output = check_output(cmd)
+        if len(output) == 0:
+            print 'Interface?:', blob.path
+        return len(output) > 0
+
     def commit_all_syntax_trees(self):
         index = self.historage_repo.index
         working_dir_abspath = self.historage_repo.working_dir
@@ -90,65 +104,114 @@ class HistorageConverter:
         arg = {'reverse':True}
         for commit in self.org_repo.iter_commits(self.org_repo.head, **arg):
             print 'process commit:', commit.hexsha
+
+            removed_files = []
+            #added_files = []
+            #added_hexsha = {}
+            added_files = {}
+            #removed_blobs = []
+            #added_blobs = []
+            assert len(commit.parents) < 2 # Not support branched repository
+
             for p in commit.parents:
-                diff = p.diff(commit)
-                for change in diff.iter_change_type("D"):
-                    if change.a_blob.name.endswith(".java"):
-                        #hexsha = change.a_blob.hexsha
-                        print 'remove', change.a_blob.path
-                        #dirname = os.path.dirname(change.a_blob.path)
-                        dirname = change.a_blob.path
-                        kwargs = {"r":True}
-                        index.remove([change.a_blob.path], **kwargs)
-                        index.write()
-                        shutil.rmtree(os.path.join(working_dir_abspath, dirname))
-                for change in diff.iter_change_type("M"):
-                    if change.b_blob.name.endswith(".java"):
-                        print 'remove changed', change.a_blob.path
-                        #dirname = os.path.dirname(change.a_blob.path)
-                        dirname = change.a_blob.path
-                        kwargs = {"r":True}
-                        index.remove([change.a_blob.path], **kwargs)
-                        index.write()
-                        shutil.rmtree(os.path.join(working_dir_abspath, dirname))
+                #diff = p.diff(commit)
 
-                        print 'add change', change.b_blob.path
-                        dirname = os.path.dirname(change.b_blob.path)
+                for diff in p.diff(commit):
 
-                        new_dir = os.path.join(working_dir_abspath, dirname)
-                        if not os.path.exists(new_dir):
-                            os.makedirs(os.path.join(working_dir_abspath, dirname))
-                            
-                        hexsha = change.b_blob.hexsha
+                    if(diff.deleted_file):
+                        if not diff.a_blob.name.endswith(".java"):
+                            continue
+                        if self.is_completed_parse(diff.a_blob):
+                            removed_files.append(diff.a_blob.path)
+
+                    if(diff.new_file):
+                        if not diff.b_blob.name.endswith(".java"):
+                            continue
+                        #added_files.append(diff.b_blob.path)
+                        if self.is_completed_parse(diff.b_blob):
+                            added_files[diff.b_blob.path] = diff.b_blob.hexsha
+
+                print 'removed:', removed_files
+                print 'added:', added_files 
+
+                kwargs = {"r" : True}
+                if len(removed_files) > 0:
+                    index.remove(removed_files, **kwargs)
+                    index.write()
+
+                    for p in removed_files:
+                        shutil.rmtree(os.path.join(working_dir_abspath, p))
+
+                if len(added_files) > 0:    
+                    for path, hexsha in added_files.items():
                         src = os.path.join(syntax_trees_path, hexsha)
-                        #dst = os.path.join(working_dir_abspath, dirname)
-                        dst = os.path.join(working_dir_abspath, change.b_blob.path)
-                        print 'copy from %s to %s' % (src, dst)
+                        dst = os.path.join(working_dir_abspath, path)
+                        #print 'copy from %s to %s' % (src, dst)
                         shutil.copytree(src, dst)
+ 
+                    self.historage_repo.git.add(added_files.keys())
+                    index.update()
 
-                        self.historage_repo.git.add([change.b_blob.path])
-                        index.update()
+                #for change in diff.iter_change_type("D"):
+                #    if change.a_blob.name.endswith(".java"):
+                #        #hexsha = change.a_blob.hexsha
+                #        print 'remove', change.a_blob.path
+                #        #dirname = os.path.dirname(change.a_blob.path)
+                #        #dirname = change.a_blob.path
+                #        blob_path = change.a_blob.path
+                #        removed_files.append(blob_path)
+                #        #kwargs = {"r":True}
+                #        #index.remove([change.a_blob.path], **kwargs)
+                #        #index.write()
+                #        #shutil.rmtree(os.path.join(working_dir_abspath, dirname))
+                #        shutil.rmtree(os.path.join(working_dir_abspath, blob_path))
+                #for change in diff.iter_change_type("M"):
+                #    if change.b_blob.name.endswith(".java"):
+                #        print 'remove changed', change.a_blob.path
+                #        #dirname = os.path.dirname(change.a_blob.path)
+                #        dirname = change.a_blob.path
+                #        kwargs = {"r":True}
+                #        index.remove([change.a_blob.path], **kwargs)
+                #        index.write()
+                #        shutil.rmtree(os.path.join(working_dir_abspath, dirname))
 
-                for change in diff.iter_change_type("A"):
-                    if change.b_blob.name.endswith(".java"):
-                        print 'add new', change.b_blob.path
-                        dirname = os.path.dirname(change.b_blob.path)
+                #        print 'add change', change.b_blob.path
+                #        dirname = os.path.dirname(change.b_blob.path)
 
-                        new_dir = os.path.join(working_dir_abspath, dirname)
-                        if not os.path.exists(new_dir):
-                            os.makedirs(os.path.join(working_dir_abspath, dirname))
+                #        new_dir = os.path.join(working_dir_abspath, dirname)
+                #        if not os.path.exists(new_dir):
+                #            os.makedirs(os.path.join(working_dir_abspath, dirname))
+                #            
+                #        hexsha = change.b_blob.hexsha
+                #        src = os.path.join(syntax_trees_path, hexsha)
+                #        #dst = os.path.join(working_dir_abspath, dirname)
+                #        dst = os.path.join(working_dir_abspath, change.b_blob.path)
+                #        print 'copy from %s to %s' % (src, dst)
+                #        shutil.copytree(src, dst)
 
-                        hexsha = change.b_blob.hexsha
-                        src = os.path.join(syntax_trees_path, hexsha)
-                        dst = os.path.join(working_dir_abspath, change.b_blob.path)
-                        print 'copy from %s to %s' % (src, dst)
-                        shutil.copytree(src, dst)
-                        
-                        self.historage_repo.git.add([change.b_blob.path])
-                        index.update()
-            #if self.historage_repo.is_dirty():
-            #    index.commit(commit.hexsha)
+                #        self.historage_repo.git.add([change.b_blob.path])
+                #        index.update()
+
+                #for change in diff.iter_change_type("A"):
+                #    if change.b_blob.name.endswith(".java"):
+                #        print 'add new', change.b_blob.path
+                #        dirname = os.path.dirname(change.b_blob.path)
+
+                #        new_dir = os.path.join(working_dir_abspath, dirname)
+                #        if not os.path.exists(new_dir):
+                #            os.makedirs(os.path.join(working_dir_abspath, dirname))
+
+                #        hexsha = change.b_blob.hexsha
+                #        src = os.path.join(syntax_trees_path, hexsha)
+                #        dst = os.path.join(working_dir_abspath, change.b_blob.path)
+                #        print 'copy from %s to %s' % (src, dst)
+                #        shutil.copytree(src, dst)
+                #        
+                #        self.historage_repo.git.add([change.b_blob.path])
+                #        index.update()
+
             if len(index.diff(None, staged=True)):
+                print 'committing...'
                 index.commit(commit.hexsha)
 
 
@@ -169,8 +232,8 @@ class HistorageConverter:
         self.blobs = self.get_all_blob_hashes()
         
         print 'parse all blobs...'
-        #pool = Pool(multiprocessing.cpu_count())
-        #pool.map(func_star, self.blobs)
+        pool = Pool(multiprocessing.cpu_count())
+        pool.map(func_star, self.blobs)
 
         print 'commiting...'
         self.commit_all_syntax_trees()
