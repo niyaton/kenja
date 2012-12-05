@@ -84,7 +84,6 @@ class HistorageConverter:
 
             for p in commit.parents:
                 for diff in p.diff(commit):
-
                     if(diff.a_blob):
                         if not diff.a_blob.name.endswith(".java"):
                             continue
@@ -98,9 +97,9 @@ class HistorageConverter:
                             added_files[diff.b_blob.path] = diff.b_blob.hexsha
 
                 print 'removed:', removed_files
-                print 'added:', added_files 
-
                 self.remove_files(index, removed_files)
+
+                print 'added:', added_files 
                 self.add_files(index, added_files)
 
             if len(index.diff(None, staged=True)):
