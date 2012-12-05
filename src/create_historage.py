@@ -1,6 +1,5 @@
 import os
 from git import Repo
-#from git.repo.fun import is_git_dir
 from exc import InvalidHistoragePathException
 from subprocess import (
                             Popen,
@@ -22,11 +21,9 @@ def work(blob, hexsha):
     cmd = "java "
     cmd += "-cp " + kenja_jar
     cmd += kenja_parser_class
-    #cmd += kenja_outpu_dir + blob.hexsha
     cmd += kenja_outpu_dir + hexsha
     
     p = Popen(cmd.split(' '), stdin=PIPE)
-    #p.stdin.write(blob.data_stream.read())
     p.stdin.write(blob)
     p.communicate()
     return True
@@ -44,17 +41,6 @@ class HistorageConverter:
         if os.path.exists(new_git_repo_dir_path):
             raise InvalidHistoragePathException('%s is already exists. Historage converter will be create new directory and git repository automatically' % (new_git_repo_dir_path))
 
-        #    abspath = os.path.abspath(new_git_repo_dir_path)
-        #    
-        #    if not(os.path.isdir(new_git_repo_dir_path)):
-        #        raise InvalidHistoragePathException('%s is not a directory' % (new_git_repo_dir_path))
-
-        #    git_dir = os.path.join(new_git_repo_dir_path + '.git')
-        #    if is_git_dir(git_dir):
-        #        raise InvalidHistoragePathException('You already have git repository in %s' % (abspath))
-        #    elif os.path.exists(git_dir):
-        #        raise InvalidHistoragePathException('%s is already exists but not a git repository' % (git_dir))
-
         self.historage_repo = Repo.init(new_git_repo_dir_path)
         self.org_repo = org_git_repo
 
@@ -63,25 +49,17 @@ class HistorageConverter:
         self.working_dir = working_dir
 
     def get_all_blob_hashes(self):
-        #blob_hashes = set()
-        #blobs = set()
         blobs = list()
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
                 diff = p.diff(commit)
                 for change in diff.iter_change_type("M"):
                     if change.b_blob.name.endswith(".java"):
-                        #blob_hashes.add(change.b_blob.hexsha)
-                        #blobs.add([change.b_blob.data_stream.read(), change.b_blob.hexsha])
                         blobs.append([change.b_blob.data_stream.read(), change.b_blob.hexsha])
-                        #blobs.add(change.b_blob)
                 for change in diff.iter_change_type("A"):
                     if change.b_blob.name.endswith(".java"):
-                        #blob_hashes.add(change.b_blob.hexsha)
                         blobs.append([change.b_blob.data_stream.read(), change.b_blob.hexsha])
-                        #blobs.add(change.b_blob)
 
-        #return blob_hashes
         return blobs
 
     def remove_files_from_index(self, index, removed_files):
@@ -112,14 +90,12 @@ class HistorageConverter:
             for p in commit.parents:
                 for diff in p.diff(commit):
 
-                    #if(diff.deleted_file):
                     if(diff.a_blob):
                         if not diff.a_blob.name.endswith(".java"):
                             continue
                         if self.is_completed_parse(diff.a_blob):
                             removed_files.append(diff.a_blob.path)
 
-                    #if(diff.new_file):
                     if(diff.b_blob):
                         if not diff.b_blob.name.endswith(".java"):
                             continue
@@ -141,7 +117,6 @@ class HistorageConverter:
                     for path, hexsha in added_files.items():
                         src = os.path.join(syntax_trees_path, hexsha)
                         dst = os.path.join(working_dir_abspath, path)
-                        #print 'copy from %s to %s' % (src, dst)
                         shutil.copytree(src, dst)
  
                     self.historage_repo.git.add(added_files.keys())
@@ -170,7 +145,7 @@ class HistorageConverter:
         pool = Pool(multiprocessing.cpu_count())
         pool.map(func_star, self.blobs)
 
-        print 'commiting...'
+        print 'create historage...'
         self.commit_all_syntax_trees()
 
 if __name__ == '__main__':
