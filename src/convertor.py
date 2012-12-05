@@ -54,7 +54,6 @@ class HistorageConverter:
         blobs = list()
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
-                diff = p.diff(commit)
                 for diff in p.diff(commit):
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
                         blobs.append([diff.b_blob.data_stream.read(), diff.b_blob.hexsha])
