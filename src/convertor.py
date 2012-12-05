@@ -9,28 +9,8 @@ from subprocess import (
 import shutil
 from parser import ParserExecutor
 
-def func_star(a_b):
-    return work(*a_b)
-
-kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
-kenja_outpu_dir = " /Users/kenjif/syntax_trees/"
-kenja_parser_class = " jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
-
-def work(blob, hexsha):
-    cmd = "java "
-    cmd += "-cp " + kenja_jar
-    cmd += kenja_parser_class
-    cmd += kenja_outpu_dir + hexsha
-    
-    p = Popen(cmd.split(' '), stdin=PIPE)
-    p.stdin.write(blob)
-    p.communicate()
-    return True
-
 class HistorageConverter:
-    kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
-    kenja_outpu_dir = " /Users/kenjif/syntax_trees/"
-    kenja_parser_class = " jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
+    parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
     
     def __init__(self, org_git_repo, new_git_repo_dir_path, working_dir):
         dirname = os.path.basename(new_git_repo_dir_path)
@@ -45,13 +25,14 @@ class HistorageConverter:
         self.historage_repo = Repo.init(new_git_repo_dir_path)
         self.org_repo = org_git_repo
         
-        self.parser_executor = ParserExecutor(self.kenja_outpu_dir, self.kenja_jar)
-
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
         self.working_dir = working_dir
 
-    def get_all_blob_hashes(self):
+        self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
+        self.parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
+
+    def parse_all_java_files(self):
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
                 for diff in p.diff(commit):
@@ -134,8 +115,8 @@ class HistorageConverter:
         return p
 
     def convert(self):
-        print 'get all blobs...'
-        self.blobs = self.get_all_blob_hashes()
+        print 'create paresr processes...'
+        self.parse_all_java_files()
         
         print 'waiting parser processes'
         self.parser_executor.join()
