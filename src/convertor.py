@@ -6,9 +6,8 @@ from subprocess import (
                             PIPE,
                             check_output
                         )
-from multiprocessing import Pool
-import multiprocessing
 import shutil
+from parser import ParserExecutor
 
 def func_star(a_b):
     return work(*a_b)
@@ -30,7 +29,7 @@ def work(blob, hexsha):
 
 class HistorageConverter:
     kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
-    kenja_outpu_dir = " ./syntax_trees/"
+    kenja_outpu_dir = " /Users/kenjif/syntax_trees/"
     kenja_parser_class = " jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
     
     def __init__(self, org_git_repo, new_git_repo_dir_path, working_dir):
@@ -45,20 +44,19 @@ class HistorageConverter:
 
         self.historage_repo = Repo.init(new_git_repo_dir_path)
         self.org_repo = org_git_repo
+        
+        self.parser_executor = ParserExecutor(self.kenja_outpu_dir, self.kenja_jar)
 
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
         self.working_dir = working_dir
 
     def get_all_blob_hashes(self):
-        blobs = list()
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
                 for diff in p.diff(commit):
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
-                        blobs.append([diff.b_blob.data_stream.read(), diff.b_blob.hexsha])
-
-        return blobs
+                        self.parser_executor.parse_blob(diff.b_blob)
 
     def remove_files_from_index(self, index, removed_files):
         kwargs = {"r":True}
@@ -139,9 +137,8 @@ class HistorageConverter:
         print 'get all blobs...'
         self.blobs = self.get_all_blob_hashes()
         
-        print 'parse all blobs...'
-        pool = Pool(multiprocessing.cpu_count())
-        pool.map(func_star, self.blobs)
+        print 'waiting parser processes'
+        self.parser_executor.join()
 
         print 'create historage...'
         self.commit_all_syntax_trees()
