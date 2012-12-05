@@ -92,13 +92,15 @@ public class Tree {
 	}
 
 	public void writeTree(File baseDir) {
-		if (!baseDir.exists())
+		if (!baseDir.exists()){
 			try {
 				Files.createParentDirs(baseDir);
+				baseDir.mkdir();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
 
 		if (!isRoot()) {
 			baseDir = new File(baseDir, this.name);

@@ -112,13 +112,15 @@ class HistorageConverter:
             for p in commit.parents:
                 for diff in p.diff(commit):
 
-                    if(diff.deleted_file):
+                    #if(diff.deleted_file):
+                    if(diff.a_blob):
                         if not diff.a_blob.name.endswith(".java"):
                             continue
                         if self.is_completed_parse(diff.a_blob):
                             removed_files.append(diff.a_blob.path)
 
-                    if(diff.new_file):
+                    #if(diff.new_file):
+                    if(diff.b_blob):
                         if not diff.b_blob.name.endswith(".java"):
                             continue
                         if self.is_completed_parse(diff.b_blob):
