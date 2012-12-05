@@ -91,13 +91,7 @@ class HistorageConverter:
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
 
-
     def commit_syntax_trees(self, repo, start, end):
-        #rev = start + '..' + end
-
-        #arg = {'reverse':True}
-        #for commit in self.org_repo.iter_commits(rev=rev, **arg):
-        #    print commit.hexsha
         index = repo.index
         for i in range(start, end + 1):
             commit = self.org_repo.commit(self.changed_commits[i])
@@ -133,8 +127,6 @@ class HistorageConverter:
             if len(index.diff(None, staged=True)):
                 print 'committing...'
                 index.commit(commit.hexsha)
-
-
     
     def divide_commits(self, num):
         self.changed_commits.reverse()
@@ -146,8 +138,6 @@ class HistorageConverter:
         if(starts > num):
             starts.pop()
         
-        #starts = [self.changed_commits[i] for i in starts]
-        #ends = [self.changed_commits[i] for i in ends]
         return(starts, ends)
 
     def prepare_base_repo(self):
