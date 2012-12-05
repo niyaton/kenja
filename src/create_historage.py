@@ -39,7 +39,9 @@ class HistorageConverter:
             raise InvalidHistoragePathException('Do not use ".git" dir for historage path')
 
         if os.path.exists(new_git_repo_dir_path):
-            raise InvalidHistoragePathException('%s is already exists. Historage converter will be create new directory and git repository automatically' % (new_git_repo_dir_path))
+            raise InvalidHistoragePathException( \
+                    '%s is already exists. Historage converter will be create new directory and git repository automatically' \
+                    % (new_git_repo_dir_path))
 
         self.historage_repo = Repo.init(new_git_repo_dir_path)
         self.org_repo = org_git_repo
@@ -53,12 +55,9 @@ class HistorageConverter:
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
                 diff = p.diff(commit)
-                for change in diff.iter_change_type("M"):
-                    if change.b_blob.name.endswith(".java"):
-                        blobs.append([change.b_blob.data_stream.read(), change.b_blob.hexsha])
-                for change in diff.iter_change_type("A"):
-                    if change.b_blob.name.endswith(".java"):
-                        blobs.append([change.b_blob.data_stream.read(), change.b_blob.hexsha])
+                for diff in p.diff(commit):
+                    if diff.b_blob and diff.b_blob.name.endswith(".java"):
+                        blobs.append([diff.b_blob.data_stream.read(), diff.b_blob.hexsha])
 
         return blobs
 
