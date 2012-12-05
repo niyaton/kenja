@@ -92,41 +92,44 @@ class HistorageConverter:
         repo.index.commit(commit.hexsha)
 
     def commit_syntax_trees(self, repo, start, end):
-        index = repo.index
         for i in range(start, end + 1):
             commit = self.org_repo.commit(self.changed_commits[i])
-            removed_files = []
-            added_files = {}
 
             if i == start:
                 self.construct_from_commit(repo, commit)
-                continue
+            else:
+                self.apply_change(repo, commit)
 
-            assert len(commit.parents) < 2 # Not support branched repository
+    def apply_change(self, new_repo, commit):
+        assert len(commit.parents) < 2 # Not support branched repository
 
-            for p in commit.parents:
-                for diff in p.diff(commit):
-                    if(diff.a_blob):
-                        if not diff.a_blob.name.endswith(".java"):
-                            continue
-                        if self.is_completed_parse(diff.a_blob):
-                            removed_files.append(diff.a_blob.path)
+        index = new_repo.index
+        removed_files = []
+        added_files = {}
+        for p in commit.parents:
+            for diff in p.diff(commit):
+                if(diff.a_blob):
+                    if not diff.a_blob.name.endswith(".java"):
+                        continue
+                    if self.is_completed_parse(diff.a_blob):
+                        removed_files.append(diff.a_blob.path)
 
-                    if(diff.b_blob):
-                        if not diff.b_blob.name.endswith(".java"):
-                            continue
-                        if self.is_completed_parse(diff.b_blob):
-                            added_files[diff.b_blob.path] = diff.b_blob.hexsha
+                if(diff.b_blob):
+                    if not diff.b_blob.name.endswith(".java"):
+                        continue
+                    if self.is_completed_parse(diff.b_blob):
+                        added_files[diff.b_blob.path] = diff.b_blob.hexsha
 
-                print 'removed:', removed_files
-                self.remove_files(repo, index, removed_files)
+            print 'removed:', removed_files
+            self.remove_files(repo, index, removed_files)
 
-                print 'added:', added_files 
-                self.add_files(repo, index, added_files)
+            print 'added:', added_files
+            self.add_files(repo, index, added_files)
 
-            if len(index.diff(None, staged=True)):
-                print 'committing...'
-                index.commit(commit.hexsha)
+        if len(index.diff(None, staged=True)):
+            print 'committing...'
+            index.commit(commit.hexsha)
+
     
     def divide_commits(self, num):
         self.changed_commits.reverse()
@@ -154,38 +157,10 @@ class HistorageConverter:
             self.working_repos.append(self.base_repo.clone(working_repo_dir))
 
     def commit_all_syntax_trees(self):
-        index = self.historage_repo.index
         arg = {'reverse':True}
         for commit in self.org_repo.iter_commits(self.org_repo.head, **arg):
             print 'process commit:', commit.hexsha
-
-            removed_files = []
-            added_files = {}
-            assert len(commit.parents) < 2 # Not support branched repository
-
-            for p in commit.parents:
-                for diff in p.diff(commit):
-                    if(diff.a_blob):
-                        if not diff.a_blob.name.endswith(".java"):
-                            continue
-                        if self.is_completed_parse(diff.a_blob):
-                            removed_files.append(diff.a_blob.path)
-
-                    if(diff.b_blob):
-                        if not diff.b_blob.name.endswith(".java"):
-                            continue
-                        if self.is_completed_parse(diff.b_blob):
-                            added_files[diff.b_blob.path] = diff.b_blob.hexsha
-
-                print 'removed:', removed_files
-                self.remove_files(index, removed_files)
-
-                print 'added:', added_files 
-                self.add_files(index, added_files)
-
-            if len(index.diff(None, staged=True)):
-                print 'committing...'
-                index.commit(commit.hexsha)
+            self.apply_change(self.historage_repo, commit)
 
     def parse_blob(self, blob):
         blob.data_stream.read()
