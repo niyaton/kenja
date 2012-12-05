@@ -39,10 +39,27 @@ class HistorageConverter:
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
                         self.parser_executor.parse_blob(diff.b_blob)
 
-    def remove_files_from_index(self, index, removed_files):
-        kwargs = {"r":True}
+    def remove_files(self, index, removed_files):
+        kwargs = {"r" : True}
+        if len(removed_files) == 0:
+            return
         index.remove(removed_files, **kwargs)
         index.write()
+
+        for p in removed_files:
+            shutil.rmtree(os.path.join(self.historage_repo.working_dir, p))
+
+    def add_files(self, index, added_files):
+        if len(added_files) == 0:
+            return
+
+        for path, hexsha in added_files.items():
+            src = os.path.join(self.syntax_trees_dir, hexsha)
+            dst = os.path.join(self.historage_repo.working_dir, path)
+            shutil.copytree(src, dst)
+
+        self.historage_repo.git.add(added_files.keys())
+        index.update()
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.working_dir, 'syntax_trees', blob.hexsha)
@@ -52,10 +69,11 @@ class HistorageConverter:
             print 'Interface?:', blob.path
         return len(output) > 0
 
+    def commit_syntax_trees(self, start, end):
+        pass
+
     def commit_all_syntax_trees(self):
         index = self.historage_repo.index
-        working_dir_abspath = self.historage_repo.working_dir
-        syntax_trees_path = os.path.join(self.working_dir, 'syntax_trees')
         arg = {'reverse':True}
         for commit in self.org_repo.iter_commits(self.org_repo.head, **arg):
             print 'process commit:', commit.hexsha
@@ -82,22 +100,8 @@ class HistorageConverter:
                 print 'removed:', removed_files
                 print 'added:', added_files 
 
-                kwargs = {"r" : True}
-                if len(removed_files) > 0:
-                    index.remove(removed_files, **kwargs)
-                    index.write()
-
-                    for p in removed_files:
-                        shutil.rmtree(os.path.join(working_dir_abspath, p))
-
-                if len(added_files) > 0:    
-                    for path, hexsha in added_files.items():
-                        src = os.path.join(syntax_trees_path, hexsha)
-                        dst = os.path.join(working_dir_abspath, path)
-                        shutil.copytree(src, dst)
- 
-                    self.historage_repo.git.add(added_files.keys())
-                    index.update()
+                self.remove_files(index, removed_files)
+                self.add_files(index, added_files)
 
             if len(index.diff(None, staged=True)):
                 print 'committing...'
