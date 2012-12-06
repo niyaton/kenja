@@ -1,39 +1,25 @@
 import os
 from git import Repo
 from git import Commit
-from git import Blob
 from exc import InvalidHistoragePathException
-from subprocess import (
-                            Popen,
-                            PIPE,
-                            check_output
-                        )
-import shutil
 from parser import ParserExecutor
 from committer import SyntaxTreesParallelCommitter
 
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
     
-    def __init__(self, org_git_repo, new_git_repo_dir_path, working_dir):
-        dirname = os.path.basename(new_git_repo_dir_path)
-        if(dirname == '.git'):
-            raise InvalidHistoragePathException('Do not use ".git" dir for historage path')
-
-        if os.path.exists(new_git_repo_dir_path):
-            raise InvalidHistoragePathException( \
-                    '%s is already exists. Historage converter will be create new directory and git repository automatically' \
-                    % (new_git_repo_dir_path))
-
-        self.historage_repo = Repo.init(new_git_repo_dir_path)
+    def __init__(self, org_git_repo, working_dir):
         self.org_repo = org_git_repo
         
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
+
         self.working_dir = working_dir
 
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
         self.parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
+
+        self.num_commit_process = 6
 
     def parse_all_java_files(self):
         self.changed_commits = []
@@ -85,9 +71,9 @@ class HistorageConverter:
         print len(self.changed_commits)
         
         self.prepare_base_repo()
-        self.clone_working_repos(16)
+        self.clone_working_repos(self.num_commit_process)
 
-        (starts, ends) = self.divide_commits(16)
+        (starts, ends) = self.divide_commits(self.num_commit_process)
 
         parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.changed_commits, self.org_repo.git_dir)
         for i in range(len(starts)):
@@ -109,7 +95,6 @@ class HistorageConverter:
         i = 0
         for work_repo in self.working_repos:
             print 'fetch %d th repo' % (i)
-            #abspath = os.path.abspath('work_repo' + str(i))
             abspath = os.path.abspath(work_repo.git_dir)
             new_remote = repo.create_remote('work_repo' + str(i), abspath)
             new_remote.fetch()
@@ -133,10 +118,9 @@ class HistorageConverter:
 if __name__ == '__main__':
     import argparse
  
-    parser = argparse.ArgumentParser(description='Git Blob Parser')
+    parser = argparse.ArgumentParser(description='Git convert to Historage')
     parser.add_argument('org_git_dir')
-    parser.add_argument('new_git_repo_dir')
-    parser.add_argument('syntax_trees_dir')
+    parser.add_argument('working_dir')
 
     args = parser.parse_args()
     
@@ -146,5 +130,5 @@ if __name__ == '__main__':
 
     repo = Repo(git_dir)
     
-    gbp = HistorageConverter(repo, args.new_git_repo_dir, args.syntax_trees_dir)
+    gbp = HistorageConverter(repo, args.working_dir)
     gbp.convert()
