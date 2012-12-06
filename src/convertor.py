@@ -49,89 +49,6 @@ class HistorageConverter:
                 if changed:
                     self.changed_commits.append(commit.hexsha)
 
-    def remove_files(self, repo, index, removed_files):
-        kwargs = {"r" : True}
-        if len(removed_files) == 0:
-            return
-        index.remove(removed_files, **kwargs)
-        index.write()
-
-        for p in removed_files:
-            shutil.rmtree(os.path.join(repo.working_dir, p))
-
-    def add_files(self, repo, index, added_files):
-        if len(added_files) == 0:
-            return
-
-        for path, hexsha in added_files.items():
-            src = os.path.join(self.syntax_trees_dir, hexsha)
-            dst = os.path.join(repo.working_dir, path)
-            shutil.copytree(src, dst)
-
-        repo.git.add(added_files.keys())
-        index.update()
-
-    def is_completed_parse(self, blob):
-        path = os.path.join(self.working_dir, 'syntax_trees', blob.hexsha)
-        cmd = ['find', path, '-type', 'f']
-        output = check_output(cmd)
-        if len(output) == 0:
-            print 'Interface?:', blob.path
-        return len(output) > 0
-
-    def construct_from_commit(self, repo, commit):
-        added_files = {}
-        for entry in commit.tree.traverse():
-            if not isinstance(entry, Blob):
-                continue
-
-            if not entry.name.endswith('.java'):
-                continue
-            if self.is_completed_parse(entry):
-                added_files[entry.path] = entry.hexsha
-
-        self.add_files(repo, repo.index, added_files)
-        repo.index.commit(commit.hexsha)
-
-    def commit_syntax_trees(self, repo, start, end):
-        for i in range(start, end + 1):
-            commit = self.org_repo.commit(self.changed_commits[i])
-
-            if i == start:
-                self.construct_from_commit(repo, commit)
-            else:
-                self.apply_change(repo, commit)
-
-    def apply_change(self, new_repo, commit):
-        assert len(commit.parents) < 2 # Not support branched repository
-
-        index = new_repo.index
-        removed_files = []
-        added_files = {}
-        for p in commit.parents:
-            for diff in p.diff(commit):
-                if(diff.a_blob):
-                    if not diff.a_blob.name.endswith(".java"):
-                        continue
-                    if self.is_completed_parse(diff.a_blob):
-                        removed_files.append(diff.a_blob.path)
-
-                if(diff.b_blob):
-                    if not diff.b_blob.name.endswith(".java"):
-                        continue
-                    if self.is_completed_parse(diff.b_blob):
-                        added_files[diff.b_blob.path] = diff.b_blob.hexsha
-
-            print 'removed:', removed_files
-            self.remove_files(new_repo, index, removed_files)
-
-            print 'added:', added_files
-            self.add_files(new_repo, index, added_files)
-
-        if len(index.diff(None, staged=True)):
-            print 'committing...'
-            index.commit(commit.hexsha)
-    
     def divide_commits(self, num):
         self.changed_commits.reverse()
         num_commits = len(self.changed_commits)
@@ -157,23 +74,6 @@ class HistorageConverter:
             working_repo_dir = os.path.join(self.working_dir, 'work_repo%d' % (i))
             self.working_repos.append(self.base_repo.clone(working_repo_dir))
 
-    def commit_all_syntax_trees(self):
-        arg = {'reverse':True}
-        for commit in self.org_repo.iter_commits(self.org_repo.head, **arg):
-            print 'process commit:', commit.hexsha
-            self.apply_change(self.historage_repo, commit)
-
-    def parse_blob(self, blob):
-        blob.data_stream.read()
-        cmd = "java "
-        cmd += "-cp " + self.kenja_jar
-        cmd += self.kenja_parser_class
-        cmd += self.kenja_outpu_dir + blob.hexsha
-
-        p = Popen(cmd.split(' '), stdin=PIPE)
-        p.stdin.write(blob.data_stream.read())
-        return p
-
     def convert(self):
         print 'create paresr processes...'
         self.parse_all_java_files()
@@ -182,7 +82,6 @@ class HistorageConverter:
         self.parser_executor.join()
 
         print 'create historage...'
-        #self.commit_all_syntax_trees()
         print len(self.changed_commits)
         
         self.prepare_base_repo()
