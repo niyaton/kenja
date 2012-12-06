@@ -8,8 +8,8 @@ from committer import SyntaxTreesParallelCommitter
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
     
-    def __init__(self, org_git_repo, working_dir):
-        self.org_repo = org_git_repo
+    def __init__(self, org_git_repo_dir, working_dir):
+        self.org_repo = Repo(org_git_repo_dir)
         
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
@@ -47,18 +47,21 @@ class HistorageConverter:
         
         return(starts, ends)
 
+    def prepare_repositories(self, num_working_repos):
+        base_repo = self.prepare_base_repo()
+        self.clone_working_repos(base_repo, num_working_repos)
+
     def prepare_base_repo(self):
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
         self.base_repo = Repo.init(base_repo_dir)
         open(os.path.join(base_repo_dir, 'historage_dummy'), 'w').close()
         self.base_repo.index.add(['historage_dummy'])
         self.base_repo.index.commit('Initail dummy commit')
-
-    def clone_working_repos(self, num):
-        self.working_repos = []
-        for i in range(num):
+    
+    def clone_working_repos(self, base_repo, num_working_repos):
+        for i in range(num_working_repos):
             working_repo_dir = os.path.join(self.working_dir, 'work_repo%d' % (i))
-            self.working_repos.append(self.base_repo.clone(working_repo_dir))
+            base_repo.clone(working_repo_dir)
 
     def convert(self):
         print 'create paresr processes...'
@@ -68,13 +71,9 @@ class HistorageConverter:
         self.parser_executor.join()
 
         print 'create historage...'
-        print len(self.changed_commits)
-        
-        self.prepare_base_repo()
-        self.clone_working_repos(self.num_commit_process)
+        self.prepare_repositories(self.num_commit_process)
 
         (starts, ends) = self.divide_commits(self.num_commit_process)
-
         parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.changed_commits, self.org_repo.git_dir)
         for i in range(len(starts)):
             print 'process %d th repo...' % (i)
@@ -123,11 +122,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     
-    git_dir = args.org_git_dir
-    if not os.path.isdir(git_dir):
-        print "%s is not a directory" % (git_dir)
+    #git_dir = args.org_git_dir
+    #if not os.path.isdir(git_dir):
+    #    print "%s is not a directory" % (git_dir)
 
-    repo = Repo(git_dir)
+    #repo = Repo(git_dir)
     
-    gbp = HistorageConverter(repo, args.working_dir)
+    gbp = HistorageConverter(args.org_git_dir, args.working_dir)
     gbp.convert()
