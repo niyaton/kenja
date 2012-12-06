@@ -48,7 +48,8 @@ class SyntaxTreesCommitter:
         cmd = ['find', path, '-type', 'f']
         output = check_output(cmd)
         if len(output) == 0:
-            print 'Interface?:', blob.path
+            #print 'Interface?:', blob.path
+            pass
         return len(output) > 0
 
     def construct_from_commit(self, repo, commit):
@@ -117,7 +118,6 @@ class SyntaxTreesParallelCommitter:
             self.pool = Pool(self.processes)
             self.closed = False
 
-        print self.pool
         self.pool.apply_async(commit_syntax_trees_worker, args=args)
 
     def join(self):

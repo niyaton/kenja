@@ -19,7 +19,7 @@ class HistorageConverter:
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
         self.parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
 
-        self.num_commit_process = 6
+        self.num_commit_process = 8
 
     def parse_all_java_files(self):
         self.changed_commits = []
@@ -78,7 +78,6 @@ class HistorageConverter:
         parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.changed_commits, self.org_repo.git_dir)
         for i in range(len(starts)):
             print 'process %d th repo...' % (i)
-            #self.commit_syntax_trees(self.working_repos[i], starts[i], ends[i])
             parallel_committer.commit_syntax_trees_parallel(self.working_repos[i].git_dir, starts[i], ends[i])
 
         print 'waiting commit processes...'
@@ -90,16 +89,16 @@ class HistorageConverter:
     def merge_work_repos(self):
         parent = None
         new_remotes = []
-        repo = self.base_repo
-        #for i in range(10):
-        i = 0
-        for work_repo in self.working_repos:
-            print 'fetch %d th repo' % (i)
+        base_repo_dir = os.path.join(self.working_dir, 'base_repo')
+        repo = Repo(base_repo_dir)
+        
+        for i in range(self.num_commit_process):
+            work_repo = Repo(os.path.join(self.working_dir, 'work_repo' + str(i)))
             abspath = os.path.abspath(work_repo.git_dir)
             new_remote = repo.create_remote('work_repo' + str(i), abspath)
+            print 'fetch %d th repo' % (i)
             new_remote.fetch()
             new_remotes.append(new_remote)
-            i += 1
         
         for remote in new_remotes:
             arg = {"reverse":True}
