@@ -39,13 +39,11 @@ class HistorageConverter:
         self.changed_commits.reverse()
         num_commits = len(self.changed_commits)
         step = num_commits // num
-        starts = range(0, num_commits, step)
-        ends = range(0 + step - 1, num_commits, step) 
-        ends[-1] = num_commits - 1
-        if(starts > num):
-            starts.pop()
-        
-        return(starts, ends)
+        first = step + num_commits % step
+        result = []
+        result.append(self.changed_commits[0:first])
+        result.extend( [self.changed_commits[i:i+step] for i in range(first, num_commits, step)])
+        return result
 
     def prepare_repositories(self, num_working_repos):
         base_repo = self.prepare_base_repo()
@@ -53,14 +51,17 @@ class HistorageConverter:
 
     def prepare_base_repo(self):
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
-        self.base_repo = Repo.init(base_repo_dir)
+        base_repo = Repo.init(base_repo_dir)
         open(os.path.join(base_repo_dir, 'historage_dummy'), 'w').close()
-        self.base_repo.index.add(['historage_dummy'])
-        self.base_repo.index.commit('Initail dummy commit')
+        base_repo.index.add(['historage_dummy'])
+        base_repo.index.commit('Initail dummy commit')
+        return base_repo
     
     def clone_working_repos(self, base_repo, num_working_repos):
+        self.working_repo_dirs = []
         for i in range(num_working_repos):
             working_repo_dir = os.path.join(self.working_dir, 'work_repo%d' % (i))
+            self.working_repo_dirs.append(working_repo_dir)
             base_repo.clone(working_repo_dir)
 
     def convert(self):
@@ -73,11 +74,10 @@ class HistorageConverter:
         print 'create historage...'
         self.prepare_repositories(self.num_commit_process)
 
-        (starts, ends) = self.divide_commits(self.num_commit_process)
-        parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.changed_commits, self.org_repo.git_dir)
-        for i in range(len(starts)):
-            print 'process %d th repo...' % (i)
-            parallel_committer.commit_syntax_trees_parallel(self.working_repos[i].git_dir, starts[i], ends[i])
+        divided_commits = self.divide_commits(self.num_commit_process)
+        parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.org_repo.git_dir)
+        for (commits, working_repo_dir) in zip(divided_commits, self.working_repo_dirs):
+            parallel_committer.commit_syntax_trees_parallel(working_repo_dir, commits)
 
         print 'waiting commit processes...'
         parallel_committer.join()
@@ -121,12 +121,6 @@ if __name__ == '__main__':
     parser.add_argument('working_dir')
 
     args = parser.parse_args()
-    
-    #git_dir = args.org_git_dir
-    #if not os.path.isdir(git_dir):
-    #    print "%s is not a directory" % (git_dir)
-
-    #repo = Repo(git_dir)
     
     gbp = HistorageConverter(args.org_git_dir, args.working_dir)
     gbp.convert()

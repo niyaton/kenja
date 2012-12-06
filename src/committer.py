@@ -9,17 +9,16 @@ from multiprocessing import (
                                 cpu_count
                             )
 
-def commit_syntax_trees_worker(repo_dir, org_repo_dir, start, end, syntax_trees_dir, changed_commits):
+def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
-    committer = SyntaxTreesCommitter(org_repo, syntax_trees_dir, changed_commits)
-    committer.commit_syntax_trees(repo, start, end)
+    committer = SyntaxTreesCommitter(org_repo, syntax_trees_dir)
+    committer.commit_syntax_trees(repo, changed_commits)
 
 class SyntaxTreesCommitter:
-    def __init__(self, org_repo, syntax_trees_dir, changed_commits):
+    def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir
-        self.changed_commits = changed_commits
 
     def remove_files(self, repo, index, removed_files):
         kwargs = {"r" : True}
@@ -66,14 +65,12 @@ class SyntaxTreesCommitter:
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
 
-    def commit_syntax_trees(self, repo, start, end):
-        for i in range(start, end + 1):
-            commit = self.org_repo.commit(self.changed_commits[i])
-
-            if i == start:
-                self.construct_from_commit(repo, commit)
-            else:
-                self.apply_change(repo, commit)
+    def commit_syntax_trees(self, repo, changed_commits):
+        start_commit = self.org_repo.commit(changed_commits.pop(0))
+        self.construct_from_commit(repo, start_commit)
+        for commit_hexsha in changed_commits:
+            commit = self.org_repo.commit(commit_hexsha)
+            self.apply_change(repo, commit)
 
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
@@ -104,16 +101,15 @@ class SyntaxTreesCommitter:
 
 
 class SyntaxTreesParallelCommitter:
-    def __init__(self, syntax_trees_dir, changed_commits, org_repo_dir, processes=None):
+    def __init__(self, syntax_trees_dir, org_repo_dir, processes=None):
         self.syntax_trees_dir = syntax_trees_dir
-        self.changed_commits = changed_commits
         self.org_repo_dir = org_repo_dir
         self.processes = processes if processes else cpu_count()
         self.pool = Pool(self.processes)
         self.closed = False
 
-    def commit_syntax_trees_parallel(self, repo_dir, start, end):
-        args = [repo_dir, self.org_repo_dir, start, end, self.syntax_trees_dir, self.changed_commits]
+    def commit_syntax_trees_parallel(self, repo_dir, changed_commits):
+        args = [repo_dir, self.org_repo_dir, changed_commits, self.syntax_trees_dir]
         if(self.closed):
             self.pool = Pool(self.processes)
             self.closed = False
