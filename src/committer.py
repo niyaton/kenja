@@ -66,13 +66,8 @@ class SyntaxTreesCommitter:
         repo.index.commit(commit.hexsha)
 
     def commit_syntax_trees(self, repo, start, end):
-        print repo
-        print start
-        print end
-        print self.changed_commits
         for i in range(start, end + 1):
             commit = self.org_repo.commit(self.changed_commits[i])
-            print 'wa-i!'
 
             if i == start:
                 self.construct_from_commit(repo, commit)
@@ -99,14 +94,11 @@ class SyntaxTreesCommitter:
                     if self.is_completed_parse(diff.b_blob):
                         added_files[diff.b_blob.path] = diff.b_blob.hexsha
 
-            print 'removed:', removed_files
             self.remove_files(new_repo, index, removed_files)
-
-            print 'added:', added_files
             self.add_files(new_repo, index, added_files)
 
         if len(index.diff(None, staged=True)):
-            print 'committing...'
+            print 'commit to :', new_repo.git_dir
             index.commit(commit.hexsha)
 
 
