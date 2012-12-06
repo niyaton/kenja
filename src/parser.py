@@ -47,20 +47,21 @@ class ParserExecutor:
         self.pool.close()
         self.closed = True
         self.pool.join()
+        self.pool = None
 
-if __name__ == "__main__":
-    kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
-    kenja_parser_class = "jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
-    output_dir = "/Users/kenjif/syntax_trees_test/"
-
-    from git import Repo
-    repo = Repo('/Users/kenjif/historage_recover_test/columba_all')
-    exe = ParserExecutor(output_dir, kenja_jar)
-
-    for commit in repo.iter_commits(repo.head):
-        for p in commit.parents:
-            for diff in p.diff(commit):
-                if diff.b_blob and diff.b_blob.name.endswith(".java"):
-                    exe.parse_blob(diff.b_blob)
-
-    exe.join()
+#if __name__ == "__main__":
+#    kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+#    kenja_parser_class = "jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
+#    output_dir = "/Users/kenjif/syntax_trees_test/"
+#
+#    from git import Repo
+#    repo = Repo('/Users/kenjif/historage_recover_test/columba_all')
+#    exe = ParserExecutor(output_dir, kenja_jar)
+#
+#    for commit in repo.iter_commits(repo.head):
+#        for p in commit.parents:
+#            for diff in p.diff(commit):
+#                if diff.b_blob and diff.b_blob.name.endswith(".java"):
+#                    exe.parse_blob(diff.b_blob)
+#
+#    exe.join()

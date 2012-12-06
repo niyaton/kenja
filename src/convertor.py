@@ -1,5 +1,6 @@
 import os
 from git import Repo
+from git import Commit
 from git import Blob
 from exc import InvalidHistoragePathException
 from subprocess import (
@@ -9,6 +10,7 @@ from subprocess import (
                         )
 import shutil
 from parser import ParserExecutor
+from committer import SyntaxTreesParallelCommitter
 
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
@@ -42,7 +44,7 @@ class HistorageConverter:
                     if diff.a_blob and diff.a_blob.name.endswith(".java"):
                         changed = True
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
-                        #self.parser_executor.parse_blob(diff.b_blob)
+                        self.parser_executor.parse_blob(diff.b_blob)
                         changed = True
                 if changed:
                     self.changed_commits.append(commit.hexsha)
@@ -85,8 +87,8 @@ class HistorageConverter:
 
             if not entry.name.endswith('.java'):
                 continue
-
-            added_files[entry.path] = entry.hexsha
+            if self.is_completed_parse(entry):
+                added_files[entry.path] = entry.hexsha
 
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
@@ -121,15 +123,14 @@ class HistorageConverter:
                         added_files[diff.b_blob.path] = diff.b_blob.hexsha
 
             print 'removed:', removed_files
-            self.remove_files(repo, index, removed_files)
+            self.remove_files(new_repo, index, removed_files)
 
             print 'added:', added_files
-            self.add_files(repo, index, added_files)
+            self.add_files(new_repo, index, added_files)
 
         if len(index.diff(None, staged=True)):
             print 'committing...'
             index.commit(commit.hexsha)
-
     
     def divide_commits(self, num):
         self.changed_commits.reverse()
@@ -176,22 +177,59 @@ class HistorageConverter:
     def convert(self):
         print 'create paresr processes...'
         self.parse_all_java_files()
-
-        print len(self.changed_commits)
         
-        self.prepare_base_repo()
-        self.clone_working_repos(10)
-
-        (starts, ends) = self.divide_commits(10)
-        for i in range(len(starts)):
-            print 'process %d th repo...' % (i)
-            self.commit_syntax_trees(self.working_repos[i], starts[i], ends[i])
-
         print 'waiting parser processes'
-        #self.parser_executor.join()
+        self.parser_executor.join()
 
         print 'create historage...'
         #self.commit_all_syntax_trees()
+        print len(self.changed_commits)
+        
+        self.prepare_base_repo()
+        self.clone_working_repos(16)
+
+        (starts, ends) = self.divide_commits(16)
+
+        parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.changed_commits, self.org_repo.git_dir)
+        for i in range(len(starts)):
+            print 'process %d th repo...' % (i)
+            #self.commit_syntax_trees(self.working_repos[i], starts[i], ends[i])
+            parallel_committer.commit_syntax_trees_parallel(self.working_repos[i].git_dir, starts[i], ends[i])
+
+        print 'waiting commit processes...'
+        parallel_committer.join()
+
+        print 'merge working repos...'
+        self.merge_work_repos()
+
+    def merge_work_repos(self):
+        parent = None
+        new_remotes = []
+        repo = self.base_repo
+        #for i in range(10):
+        i = 0
+        for work_repo in self.working_repos:
+            print 'fetch %d th repo' % (i)
+            #abspath = os.path.abspath('work_repo' + str(i))
+            abspath = os.path.abspath(work_repo.git_dir)
+            new_remote = repo.create_remote('work_repo' + str(i), abspath)
+            new_remote.fetch()
+            new_remotes.append(new_remote)
+            i += 1
+        
+        for remote in new_remotes:
+            arg = {"reverse":True}
+            commits = repo.iter_commits(remote.refs.master, **arg)
+            if not parent:
+                parent = commits.next()
+            else:
+                commits.next()
+            for commit in commits:
+                print 'process remote commit: %s' % (commit.hexsha)
+                print 'parent is: %s' % (parent.hexsha)
+                print 'tree is: %s' % (commit.tree.hexsha)
+                parent = Commit.create_from_tree(repo, commit.tree, commit.message,
+                        parent_commits = [parent], head=True)
 
 if __name__ == '__main__':
     import argparse
