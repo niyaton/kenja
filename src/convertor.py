@@ -122,5 +122,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     
-    gbp = HistorageConverter(args.org_git_dir, args.working_dir)
-    gbp.convert()
+    hc = HistorageConverter(args.org_git_dir, args.working_dir)
+    hc.convert()
