@@ -119,25 +119,52 @@ class HistorageConverter:
 
 if __name__ == '__main__':
     import argparse
- 
-    parser = argparse.ArgumentParser(description='Git convert to Historage')
-    subparsers = parser.add_subparsers()
+    class ConvertorCommandParser:
+        def __init__(self):
+            self.parser = argparse.ArgumentParser(description='Git convert to Historage')
+            self.subparsers = self.parser.add_subparsers()
 
-    def convert(args):
-        print args
-        hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            self.add_convert_command()
 
-        if args.non_parallel:
-            hc.disable_parallel()
-            
-        if args.parser_processes:
-            hc.parser_processes = args.parser_processes
-
-        if args.working_repositories:
-            hc.num_commit_process = args.working_repositories
-
-        hc.convert()
+        def parse_and_execute_command(self):
+            args = self.parser.parse_args()
+            args.func(args)
     
+        def add_convert_command(self):
+            sub_parser = self.subparsers.add_parser('convert', 
+            help='convert git repository to historage')
+            sub_parser.add_argument('org_git_dir', 
+                    help='path of original git repository')
+            sub_parser.add_argument('working_dir', 
+                    help='path of working directory')
+            sub_parser.add_argument('--non-parallel',
+                    action='store_true'
+                    )
+            sub_parser.add_argument('--parser-processes',
+                    type=int,
+                    help='set parser processes (default value is number of processers of your machine)',
+                    )
+            sub_parser.add_argument('--working-repositories',
+                    type=int,
+                    help='set number of working repositories (default value is 2)',
+                    )
+            sub_parser.set_defaults(func=self.convert)
+
+        def convert(self, args):
+            print args
+            hc = HistorageConverter(args.org_git_dir, args.working_dir)
+
+            if args.non_parallel:
+                hc.disable_parallel()
+                
+            if args.parser_processes:
+                hc.parser_processes = args.parser_processes
+
+            if args.working_repositories:
+                hc.num_commit_process = args.working_repositories
+
+            hc.convert()
+
     def parse(args):
         pass
 
@@ -147,62 +174,65 @@ if __name__ == '__main__':
     def merge(args):
         pass
 
-    sub_parser = subparsers.add_parser('convert', 
-            help='convert git repository to historage')
-    sub_parser.add_argument('org_git_dir', 
-            help='path of original git repository')
-    sub_parser.add_argument('working_dir', 
-            help='path of working directory')
-    sub_parser.add_argument('--non-parallel',
-            action='store_true'
-            )
-    sub_parser.add_argument('--parser-processes',
-            type=int,
-            help='set parser processes (default value is number of processers of your machine)',
-            )
-    sub_parser.add_argument('--working-repositories',
-            type=int,
-            help='set number of working repositories (default value is 2)',
-            )
-    sub_parser.set_defaults(func=convert)
+    ##sub_parser = subparsers.add_parser('convert', 
+    ##        help='convert git repository to historage')
+    ##sub_parser.add_argument('org_git_dir', 
+    ##        help='path of original git repository')
+    ##sub_parser.add_argument('working_dir', 
+    ##        help='path of working directory')
+    ##sub_parser.add_argument('--non-parallel',
+    ##        action='store_true'
+    ##        )
+    ##sub_parser.add_argument('--parser-processes',
+    ##        type=int,
+    ##        help='set parser processes (default value is number of processers of your machine)',
+    ##        )
+    ##sub_parser.add_argument('--working-repositories',
+    ##        type=int,
+    ##        help='set number of working repositories (default value is 2)',
+    ##        )
+    ##sub_parser.set_defaults(func=convert)
 
-    sub_parser = subparsers.add_parser('parse', 
-            help='parse all java files from orginal git repository')
-    sub_parser.add_argument('org_git_dir', 
-            help='path of original git repository')
-    sub_parser.add_argument('working_dir', 
-            help='"syntax_treses" dir will be created in this dir')
-    sub_parser.add_argument('--non-parallel',
-            action='store_true'
-            )
-    sub_parser.set_defaults(func=parse)
+    ##sub_parser = subparsers.add_parser('parse', 
+    ##        help='parse all java files from orginal git repository')
+    ##sub_parser.add_argument('org_git_dir', 
+    ##        help='path of original git repository')
+    ##sub_parser.add_argument('working_dir', 
+    ##        help='"syntax_treses" dir will be created in this dir')
+    ##sub_parser.add_argument('--non-parallel',
+    ##        action='store_true'
+    ##        )
+    ##sub_parser.set_defaults(func=parse)
 
-    sub_parser = subparsers.add_parser('construct', 
-            help='construct historage by using syntax trees')
-    sub_parser.add_argument('org_git_dir', 
-            help='path of original git repository')
-    sub_parser.add_argument('syntax_trees_dir', 
-            help='path of syntax treses dir')
-    sub_parser.add_argument('working_dir', 
-            help='path of working dir')
-    sub_parser.add_argument('--without-merge', 
-            action='store_true',
-            help='Convertor will not merge working repos to base repo'
-            )
-    sub_parser.add_argument('--non-parallel',
-            action='store_true'
-            )
-    sub_parser.set_defaults(func=construct)
-    
-    sub_parser = subparsers.add_parser('merge', 
-            help='merge working repositorie to base repo')
-    sub_parser.add_argument('working_dir', 
-            help='path of working repositories dir')
-    sub_parser.set_defaults(func=merge)
+    ##sub_parser = subparsers.add_parser('construct', 
+    ##        help='construct historage by using syntax trees')
+    ##sub_parser.add_argument('org_git_dir', 
+    ##        help='path of original git repository')
+    ##sub_parser.add_argument('syntax_trees_dir', 
+    ##        help='path of syntax treses dir')
+    ##sub_parser.add_argument('working_dir', 
+    ##        help='path of working dir')
+    ##sub_parser.add_argument('--without-merge', 
+    ##        action='store_true',
+    ##        help='Convertor will not merge working repos to base repo'
+    ##        )
+    ##sub_parser.add_argument('--non-parallel',
+    ##        action='store_true'
+    ##        )
+    ##sub_parser.set_defaults(func=construct)
+    ##
+    ##sub_parser = subparsers.add_parser('merge', 
+    ##        help='merge working repositorie to base repo')
+    ##sub_parser.add_argument('working_dir', 
+    ##        help='path of working repositories dir')
+    ##sub_parser.set_defaults(func=merge)
 
-    args = parser.parse_args()
-    args.func(args)
+    ##args = parser.parse_args()
+    ##args.func(args)
     #args = parser.parse_args()
     
     #hc = HistorageConverter(args.org_git_dir, args.working_dir)
     #hc.convert()
+
+    parser = ConvertorCommandParser()
+    parser.parse_and_execute_command()
