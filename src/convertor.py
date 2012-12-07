@@ -125,6 +125,9 @@ if __name__ == '__main__':
             self.subparsers = self.parser.add_subparsers()
 
             self.add_convert_command()
+            self.add_parse_command()
+            self.add_construct_command()
+            self.add_merge_command()
 
         def parse_and_execute_command(self):
             args = self.parser.parse_args()
@@ -180,34 +183,36 @@ if __name__ == '__main__':
         def parse(args):
             pass
 
+        def add_construct_command(self):
+            sub_parser = self.subparsers.add_parser('construct', 
+                    help='construct historage by using syntax trees')
+            sub_parser.add_argument('org_git_dir', 
+                    help='path of original git repository')
+            sub_parser.add_argument('syntax_trees_dir', 
+                    help='path of syntax treses dir')
+            sub_parser.add_argument('working_dir', 
+                    help='path of working dir')
+            sub_parser.add_argument('--without-merge', 
+                    action='store_true',
+                    help='Convertor will not merge working repos to base repo'
+                    )
+            sub_parser.add_argument('--non-parallel',
+                    action='store_true'
+                    )
+            sub_parser.set_defaults(func=self.construct)
+
         def construct(args):
             pass
 
+        def add_merge_command(self):
+            sub_parser = self.subparsers.add_parser('merge', 
+                    help='merge working repositorie to base repo')
+            sub_parser.add_argument('working_dir', 
+                    help='path of working repositories dir')
+            sub_parser.set_defaults(func=self.merge)
+
         def merge(args):
             pass
-
-    ##sub_parser = subparsers.add_parser('construct', 
-    ##        help='construct historage by using syntax trees')
-    ##sub_parser.add_argument('org_git_dir', 
-    ##        help='path of original git repository')
-    ##sub_parser.add_argument('syntax_trees_dir', 
-    ##        help='path of syntax treses dir')
-    ##sub_parser.add_argument('working_dir', 
-    ##        help='path of working dir')
-    ##sub_parser.add_argument('--without-merge', 
-    ##        action='store_true',
-    ##        help='Convertor will not merge working repos to base repo'
-    ##        )
-    ##sub_parser.add_argument('--non-parallel',
-    ##        action='store_true'
-    ##        )
-    ##sub_parser.set_defaults(func=construct)
-    ##
-    ##sub_parser = subparsers.add_parser('merge', 
-    ##        help='merge working repositorie to base repo')
-    ##sub_parser.add_argument('working_dir', 
-    ##        help='path of working repositories dir')
-    ##sub_parser.set_defaults(func=merge)
-
+    
     parser = ConvertorCommandParser()
     parser.parse_and_execute_command()
