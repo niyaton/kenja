@@ -227,12 +227,5 @@ if __name__ == '__main__':
     ##        help='path of working repositories dir')
     ##sub_parser.set_defaults(func=merge)
 
-    ##args = parser.parse_args()
-    ##args.func(args)
-    #args = parser.parse_args()
-    
-    #hc = HistorageConverter(args.org_git_dir, args.working_dir)
-    #hc.convert()
-
     parser = ConvertorCommandParser()
     parser.parse_and_execute_command()
