@@ -165,44 +165,26 @@ if __name__ == '__main__':
 
             hc.convert()
 
-    def parse(args):
-        pass
+        def add_parse_command(self):
+            sub_parser = self.subparsers.add_parser('parse', 
+                    help='parse all java files from orginal git repository')
+            sub_parser.add_argument('org_git_dir', 
+                    help='path of original git repository')
+            sub_parser.add_argument('working_dir', 
+                    help='"syntax_treses" dir will be created in this dir')
+            sub_parser.add_argument('--non-parallel',
+                    action='store_true'
+                    )
+            sub_parser.set_defaults(func=self.parse)
 
-    def construct(args):
-        pass
+        def parse(args):
+            pass
 
-    def merge(args):
-        pass
+        def construct(args):
+            pass
 
-    ##sub_parser = subparsers.add_parser('convert', 
-    ##        help='convert git repository to historage')
-    ##sub_parser.add_argument('org_git_dir', 
-    ##        help='path of original git repository')
-    ##sub_parser.add_argument('working_dir', 
-    ##        help='path of working directory')
-    ##sub_parser.add_argument('--non-parallel',
-    ##        action='store_true'
-    ##        )
-    ##sub_parser.add_argument('--parser-processes',
-    ##        type=int,
-    ##        help='set parser processes (default value is number of processers of your machine)',
-    ##        )
-    ##sub_parser.add_argument('--working-repositories',
-    ##        type=int,
-    ##        help='set number of working repositories (default value is 2)',
-    ##        )
-    ##sub_parser.set_defaults(func=convert)
-
-    ##sub_parser = subparsers.add_parser('parse', 
-    ##        help='parse all java files from orginal git repository')
-    ##sub_parser.add_argument('org_git_dir', 
-    ##        help='path of original git repository')
-    ##sub_parser.add_argument('working_dir', 
-    ##        help='"syntax_treses" dir will be created in this dir')
-    ##sub_parser.add_argument('--non-parallel',
-    ##        action='store_true'
-    ##        )
-    ##sub_parser.set_defaults(func=parse)
+        def merge(args):
+            pass
 
     ##sub_parser = subparsers.add_parser('construct', 
     ##        help='construct historage by using syntax trees')
