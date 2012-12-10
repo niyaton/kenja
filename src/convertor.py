@@ -206,7 +206,7 @@ if __name__ == '__main__':
                     )
             sub_parser.set_defaults(func=self.construct)
 
-        def construct(args):
+        def construct(self, args):
             pass
 
         def add_merge_command(self):
@@ -216,7 +216,7 @@ if __name__ == '__main__':
                     help='path of working repositories dir')
             sub_parser.set_defaults(func=self.merge)
 
-        def merge(args):
+        def merge(self, args):
             pass
     
     parser = ConvertorCommandParser()
