@@ -9,7 +9,8 @@ class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
     
     def __init__(self, org_git_repo_dir, working_dir):
-        self.org_repo = Repo(org_git_repo_dir)
+        if org_git_repo_dir:
+            self.org_repo = Repo(org_git_repo_dir)
         
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
@@ -21,8 +22,28 @@ class HistorageConverter:
         self.num_commit_process = 8
         self.parallel = True
 
+        self.changed_commits = None
+
     def disable_parallel(self):
         self.parallel = False
+
+    def get_changed_commits(self):
+        changed_commits = []
+        for commit in self.org_repo.iter_commits(self.org_repo.head):
+            assert len(commit.parents) < 2
+            for p in commit.parents:
+                for diff in p.diff(commit):
+                    if self.is_target_blob(diff.a_blob, ".java") \
+                        or self.is_target_blob(diff.b_blob, ".java"):
+                            changed_commits.append(commit.hexsha)
+                            break
+
+        return changed_commits
+
+    def is_target_blob(self, blob, ext):
+        if not blob:
+            return False
+        return blob.name.endswith(ext)
 
     def parse_all_java_files(self):
         print 'create paresr processes...'
@@ -43,6 +64,9 @@ class HistorageConverter:
         parser_executor.join()
 
     def divide_commits(self, num):
+        if not self.changed_commits:
+            self.changed_commits = self.get_changed_commits()
+
         self.changed_commits.reverse()
         num_commits = len(self.changed_commits)
         step = num_commits // num
@@ -73,7 +97,10 @@ class HistorageConverter:
 
     def convert(self):
         self.parse_all_java_files()
+        self.construct_historage_repositories()
+        self.merge_work_repos()
 
+    def construct_historage_repositories(self):
         print 'create historage...'
         self.prepare_repositories(self.num_commit_process)
 
@@ -85,10 +112,8 @@ class HistorageConverter:
         print 'waiting commit processes...'
         parallel_committer.join()
 
-        print 'merge working repos...'
-        self.merge_work_repos()
-
     def merge_work_repos(self):
+        print 'merge working repos...'
         parent = None
         new_remotes = []
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
@@ -193,10 +218,10 @@ if __name__ == '__main__':
                     help='construct historage by using syntax trees')
             sub_parser.add_argument('org_git_dir', 
                     help='path of original git repository')
-            sub_parser.add_argument('syntax_trees_dir', 
-                    help='path of syntax treses dir')
             sub_parser.add_argument('working_dir', 
                     help='path of working dir')
+            sub_parser.add_argument('--syntax-trees-dir',
+                    help='path of syntax treses dir')
             sub_parser.add_argument('--without-merge', 
                     action='store_true',
                     help='Convertor will not merge working repos to base repo'
@@ -207,7 +232,8 @@ if __name__ == '__main__':
             sub_parser.set_defaults(func=self.construct)
 
         def construct(self, args):
-            pass
+            hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            hc.construct_historage_repositories()
 
         def add_merge_command(self):
             sub_parser = self.subparsers.add_parser('merge', 
@@ -217,7 +243,8 @@ if __name__ == '__main__':
             sub_parser.set_defaults(func=self.merge)
 
         def merge(self, args):
-            pass
+            hc = HistorageConverter(None, args.working_dir)
+            hc.merge_work_repos()
     
     parser = ConvertorCommandParser()
     parser.parse_and_execute_command()
