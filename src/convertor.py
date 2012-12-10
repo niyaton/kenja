@@ -17,7 +17,6 @@ class HistorageConverter:
         self.working_dir = working_dir
 
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
-        self.parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
 
         self.num_commit_process = 8
         self.parallel = True
@@ -26,6 +25,8 @@ class HistorageConverter:
         self.parallel = False
 
     def parse_all_java_files(self):
+        print 'create paresr processes...'
+        parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         self.changed_commits = []
         for commit in self.org_repo.iter_commits(self.org_repo.head):
             for p in commit.parents:
@@ -34,10 +35,12 @@ class HistorageConverter:
                     if diff.a_blob and diff.a_blob.name.endswith(".java"):
                         changed = True
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
-                        self.parser_executor.parse_blob(diff.b_blob)
+                        parser_executor.parse_blob(diff.b_blob)
                         changed = True
                 if changed:
                     self.changed_commits.append(commit.hexsha)
+        print 'waiting parser processes'
+        parser_executor.join()
 
     def divide_commits(self, num):
         self.changed_commits.reverse()
@@ -69,11 +72,7 @@ class HistorageConverter:
             base_repo.clone(working_repo_dir)
 
     def convert(self):
-        print 'create paresr processes...'
         self.parse_all_java_files()
-        
-        print 'waiting parser processes'
-        self.parser_executor.join()
 
         print 'create historage...'
         self.prepare_repositories(self.num_commit_process)
@@ -180,7 +179,13 @@ if __name__ == '__main__':
                     )
             sub_parser.set_defaults(func=self.parse)
 
-        def parse(args):
+        def parse(self, args):
+            hc = HistorageConverter(args.org_git_dir, args.working_dir)
+
+            if args.non_parallel:
+                hc.disable_parallel()
+
+            hc.parse_all_java_files()
             pass
 
         def add_construct_command(self):
