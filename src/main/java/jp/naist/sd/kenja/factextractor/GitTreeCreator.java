@@ -9,12 +9,12 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-public class ASTGitTreeCreator{
+public class GitTreeCreator{
 	private Tree root = new Tree("");
 	
 	private ASTCompilation compilation;
 	
-	public ASTGitTreeCreator(){
+	public GitTreeCreator(){
 	}
 	
 	private void parseSourcecode(char[] src) {
@@ -39,7 +39,7 @@ public class ASTGitTreeCreator{
 		}
 		
 		File outputDir = new File(args[0]);
-		ASTGitTreeCreator creator = new ASTGitTreeCreator();
+		GitTreeCreator creator = new GitTreeCreator();
 			
 		try {
 			creator.parseSourcecode(IOUtils.toCharArray(System.in));

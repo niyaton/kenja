@@ -15,7 +15,7 @@ def execute_parser(cmd, src):
     return True
 
 class ParserExecutor:
-    parser_class = "jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
+    parser_class = "jp.naist.sd.kenja.factextractor.GitTreeCreator"
 
     def __init__(self, output_dir, parser_path, processes=None):
         self.output_dir = output_dir
