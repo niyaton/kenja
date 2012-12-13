@@ -1,8 +1,11 @@
-package jp.naist.sd.kenja.factextractor;
+package jp.naist.sd.kenja.factextractor.ast;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+
+import jp.naist.sd.kenja.factextractor.Tree;
+import jp.naist.sd.kenja.factextractor.Treeable;
 
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -26,13 +29,12 @@ public class ASTCompilation implements Treeable {
 	protected ASTCompilation() {
 
 	}
-
 	
 	public static ASTCompilation fromCompilation(CompilationUnit unit){
 		return new ASTCompilation(unit, new Tree(""));
 	}
 	
-	protected ASTCompilation(CompilationUnit unit, Tree root) {
+	public ASTCompilation(CompilationUnit unit, Tree root) {
 		this.root = root;
 		if (unit.getPackage() != null) {
 			pack = ASTPackage.fromPackageDeclaration(unit.getPackage());

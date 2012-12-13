@@ -1,4 +1,8 @@
-package jp.naist.sd.kenja.factextractor;
+package jp.naist.sd.kenja.factextractor.ast;
+
+import jp.naist.sd.kenja.factextractor.Blob;
+import jp.naist.sd.kenja.factextractor.Tree;
+import jp.naist.sd.kenja.factextractor.Treeable;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 

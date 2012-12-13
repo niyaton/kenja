@@ -1,6 +1,8 @@
-package jp.naist.sd.kenja.factextractor;
+package jp.naist.sd.kenja.factextractor.ast;
 
 import java.util.HashSet;
+
+import jp.naist.sd.kenja.factextractor.Tree;
 
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;

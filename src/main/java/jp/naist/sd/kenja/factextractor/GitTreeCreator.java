@@ -3,6 +3,8 @@ package jp.naist.sd.kenja.factextractor;
 import java.io.File;
 import java.io.IOException;
 
+import jp.naist.sd.kenja.factextractor.ast.ASTCompilation;
+
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.dom.AST;
