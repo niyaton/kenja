@@ -11,13 +11,16 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 public class ASTClass extends ASTType {
 
 	private final String FIELD_ROOT_NAME = "[FE]";
+	private final String CONSTURCTOR_ROOT_NAME = "[CS]";
 
 	private Tree fieldRoot = new Tree(FIELD_ROOT_NAME);
+	private Tree constructorRoot = new Tree(CONSTURCTOR_ROOT_NAME);
 
 	protected ASTClass(TypeDeclaration typeDec) {
 		super(typeDec.getName().toString());
 		
 		root.append(fieldRoot);
+		root.append(constructorRoot);
 
 		HashSet<String> tmpHashSet = new HashSet<String>();
 		for (MethodDeclaration methodDec : typeDec.getMethods()) {
@@ -25,7 +28,12 @@ public class ASTClass extends ASTType {
 					continue;
 			tmpHashSet.add(methodDec.getName().toString());
 			ASTMethod method = ASTMethod.fromMethodDeclaralation(methodDec);
-			methodRoot.append(method.getTree());
+			if(method.isConstructor()){
+				constructorRoot.append(method.getTree());
+			}
+			else{
+				methodRoot.append(method.getTree());
+			}
 			// TODO overload methods
 		}
 
