@@ -56,10 +56,4 @@ public class Blob {
 			e.printStackTrace();
 		}
 	}
-
-	public String removeBlob(File baseDir) {
-		File blob = new File(baseDir, name);
-		blob.delete();
-		return blob.getAbsolutePath();
-	}
 }

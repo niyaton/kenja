@@ -104,12 +104,4 @@ public class ASTCompilation implements Treeable {
 	public Tree getTree() {
 		return root;
 	}
-
-
-	public void removeTree(File baseDir) {
-		// TODO Auto-generated method stub
-		root.removeTree(baseDir);
-		
-	}
-
 }
