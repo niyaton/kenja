@@ -7,3 +7,4 @@ root
 target
 __pycache__
 *.pyc
+testdata
