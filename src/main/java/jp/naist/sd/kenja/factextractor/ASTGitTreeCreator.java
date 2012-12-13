@@ -12,12 +12,9 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 public class ASTGitTreeCreator{
 	private Tree root = new Tree("");
 	
-	private File baseDir;
-	
 	private ASTCompilation compilation;
 	
-	public ASTGitTreeCreator(File baseDir){
-		this.baseDir = baseDir;
+	public ASTGitTreeCreator(){
 	}
 	
 	private void parseSourcecode(char[] src) {
@@ -31,22 +28,22 @@ public class ASTGitTreeCreator{
 		compilation = new ASTCompilation(unit, root);
 	}
 	
-	public void writeASTAsFileTree(){
-		compilation.getTree().writeTree(baseDir);
+	public void writeASTAsFileTree(File outputDir){
+		compilation.getTree().writeTree(outputDir);
 	}
 
 	public static void main(String[] args){
 		if(args.length != 1){
-			System.out.println("please input commit hash");
+			System.out.println("please input output dir path");
 			return;
 		}
 		
-		File baseDir = new File(args[0]);
-		ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
+		File outputDir = new File(args[0]);
+		ASTGitTreeCreator creator = new ASTGitTreeCreator();
 			
 		try {
 			creator.parseSourcecode(IOUtils.toCharArray(System.in));
-			creator.writeASTAsFileTree();
+			creator.writeASTAsFileTree(outputDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
