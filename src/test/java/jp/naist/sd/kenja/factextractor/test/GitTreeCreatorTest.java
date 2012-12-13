@@ -10,5 +10,4 @@ public class GitTreeCreatorTest {
 	public void test() {
 		System.out.println("hogehoge");
 	}
-
 }
