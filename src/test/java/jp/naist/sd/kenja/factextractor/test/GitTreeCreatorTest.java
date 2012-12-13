@@ -9,7 +9,6 @@ public class GitTreeCreatorTest {
 	@Test
 	public void test() {
 		System.out.println("hogehoge");
-		fail("Not yet implemented");
 	}
 
 }
