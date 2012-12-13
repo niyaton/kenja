@@ -48,7 +48,6 @@ public class Blob {
 			}
 		File blob = new File(parentDir, name);
 		try {
-			//System.out.println(blob.getAbsolutePath());
 			blob.createNewFile();
 			Files.write(body, blob, Charsets.US_ASCII);
 		} catch (IOException e) {
