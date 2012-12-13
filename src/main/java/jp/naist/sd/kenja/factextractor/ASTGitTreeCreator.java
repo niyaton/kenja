@@ -14,6 +14,8 @@ public class ASTGitTreeCreator{
 	
 	private File baseDir;
 	
+	private ASTCompilation compilation;
+	
 	public ASTGitTreeCreator(File baseDir){
 		this.baseDir = baseDir;
 	}
@@ -26,7 +28,10 @@ public class ASTGitTreeCreator{
 		NullProgressMonitor nullMonitor = new NullProgressMonitor();
 		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
 		
-		ASTCompilation compilation = new ASTCompilation(unit, root);
+		compilation = new ASTCompilation(unit, root);
+	}
+	
+	public void writeASTAsFileTree(){
 		compilation.getTree().writeTree(baseDir);
 	}
 
@@ -41,6 +46,7 @@ public class ASTGitTreeCreator{
 			
 		try {
 			creator.parseSourcecode(IOUtils.toCharArray(System.in));
+			creator.writeASTAsFileTree();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
