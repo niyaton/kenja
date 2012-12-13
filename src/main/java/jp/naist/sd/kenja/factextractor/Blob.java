@@ -37,16 +37,16 @@ public class Blob {
 		this.name = name;
 	}
 
-	public void writeBlob(File baseDir) {
-		if (!baseDir.exists())
+	public void writeBlob(File parentDir) {
+		if (!parentDir.exists())
 			try {
-				Files.createParentDirs(baseDir);
-				baseDir.mkdir();
+				Files.createParentDirs(parentDir);
+				parentDir.mkdir();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		File blob = new File(baseDir, name);
+		File blob = new File(parentDir, name);
 		try {
 			//System.out.println(blob.getAbsolutePath());
 			blob.createNewFile();
