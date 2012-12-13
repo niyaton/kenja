@@ -2,7 +2,6 @@ package jp.naist.sd.kenja.factextractor;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -10,14 +9,8 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-public class ASTGitTreeCreator implements Runnable{
+public class ASTGitTreeCreator{
 	private Tree root = new Tree("");
-	
-	private char[] src;
-	
-	public void setSource(char[] src){
-		this.src = src;
-	}
 	
 	private File baseDir;
 	
@@ -25,9 +18,7 @@ public class ASTGitTreeCreator implements Runnable{
 		this.baseDir = baseDir;
 	}
 	
-	ASTCompilation compilation;
-	
-	private void parseSourcecode(char[] src, File baseDir) {
+	private void parseSourcecode(char[] src) {
 		ASTParser parser = ASTParser.newParser(AST.JLS4);
 
 		parser.setSource(src);
@@ -35,32 +26,10 @@ public class ASTGitTreeCreator implements Runnable{
 		NullProgressMonitor nullMonitor = new NullProgressMonitor();
 		CompilationUnit unit = (CompilationUnit) parser.createAST(nullMonitor);
 		
-		compilation = new ASTCompilation(unit, root);
+		ASTCompilation compilation = new ASTCompilation(unit, root);
 		compilation.getTree().writeTree(baseDir);
-//		synchronized (changedPathList) {
-//			changedPathList.addAll(compilation.getChangedFileList(baseDir));
-//		}
-	}
-	
-	private List<String> changedPathList;
-	
-	public List<String> getChangedPathList(){
-		return changedPathList;
 	}
 
-	@Override
-	public void run() {
-		parseSourcecode(src, baseDir);
-	}
-
-	public void setPathList(List<String> changedPathList) {
-		this.changedPathList = changedPathList;
-	}
-	
-	public void removeTree(File baseDir){
-		compilation.removeTree(baseDir);
-	}
-	
 	public static void main(String[] args){
 		if(args.length != 1){
 			System.out.println("please input commit hash");
@@ -68,14 +37,11 @@ public class ASTGitTreeCreator implements Runnable{
 		}
 		
 		File baseDir = new File(args[0]);
-		
 		ASTGitTreeCreator creator = new ASTGitTreeCreator(baseDir);
 			
 		try {
-			creator.setSource(IOUtils.toCharArray(System.in));
-			creator.run();
+			creator.parseSourcecode(IOUtils.toCharArray(System.in));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
