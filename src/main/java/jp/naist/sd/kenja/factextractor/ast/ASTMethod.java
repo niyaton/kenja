@@ -17,6 +17,7 @@ public class ASTMethod implements Treeable{
 	private Tree root; 
 	
 	private static final String BODY_BLOB_NAME = "body";
+	private static final String PARAMETERS_BLOB_NAME = "parameters";
 	
 	private boolean isConstructor;
 	
@@ -25,18 +26,10 @@ public class ASTMethod implements Treeable{
 	}
 	
 	protected ASTMethod(MethodDeclaration node){
-		//root = new Tree(node.getName().toString());
 		root = new Tree(getTreeName(node));
 		
-		body = new Blob(BODY_BLOB_NAME);
-		if(node.getBody() == null)
-			body.setBody("");
-		else
-			body.setBody(node.getBody().toString());
-		
-		root.append(body);
-		
 		isConstructor = node.isConstructor();
+		setBody(node);
 		setParameters(node.parameters());
 	}
 	
@@ -57,8 +50,18 @@ public class ASTMethod implements Treeable{
 		return result.toString();
 	}
 	
+	private void setBody(MethodDeclaration node){
+		body = new Blob(BODY_BLOB_NAME);
+		if(node.getBody() == null)
+			body.setBody("");
+		else
+			body.setBody(node.getBody().toString());
+		
+		root.append(body);	
+	}
+	
 	private void setParameters(List parametersList){	
-		parameters = new Blob("parameters");
+		parameters = new Blob(PARAMETERS_BLOB_NAME);
 		root.append(parameters);
 		String parameterBody = "";
 		for(Object item: parametersList){
