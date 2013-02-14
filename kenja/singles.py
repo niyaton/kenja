@@ -46,6 +46,8 @@ def tokenizing_expr():
     | (op_xor_eq <- "^=")
     | (op_gt <- ">") | (op_ge <- ">=") | (op_lt <- "<") | (op_le <- "<=") | (op_ne <- "!=") | (op_eq <- "==")
     | (op_and <- "&&") | (op_or <- "||")
+    | (op_and2 <- "&")
+    | (op_tilda <- "~")
     | (op_plusplus <- "++") | (op_minusminus <- "--")
     | (op_plus <- "+") | (op_minus <- "-") | (op_mul <- "*") | (op_div <- "/") | (op_mod <- "%")
     | (op_assign <- "=") | (op_not <- "!") | (op_dollar <- "$") | (op_or2 <- "|")
@@ -99,13 +101,16 @@ def tokenize(tokenizer, script):
 
 def calculate_similarity(script1, script2):
     tokenizer = tokenizing_expr()
-    seq = tokenize(tokenizer, script1)
-    seq2 = tokenize(tokenizer, script2)
+    try:
+        seq = tokenize(tokenizer, script1)
+        seq2 = tokenize(tokenizer, script2)
+    except Exception:
+        print script1
+        print script2
+        raise
 
     singles1 = create_two_singles(seq)
     singles2 = create_two_singles(seq2)
-
-
     return len( singles1 & singles2) / float(len(singles1 | singles2))
 
 def main():
