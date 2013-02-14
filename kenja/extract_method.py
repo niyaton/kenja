@@ -56,12 +56,11 @@ def detect_extract_method(historage):
                                 #print "can't calculate similarity"
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, -1))
                             else:
-                                script = ""
-                                for l in deleted_lines:
-                                    script = '\n'.join([script, l[1]])
-                                script2 = ""
-                                for l in added_lines_dict[(c, method, num_args)]:
-                                    script2 = '\n'.join([script2, l[1]])
+                                script = '\n'.join([l[1] for l in deleted_lines])
+
+                                extracted_lines = added_lines_dict[(c, method, num_args)]
+                                script2 = '\n'.join([l[1] for l in extracted_lines])
+
                                 #print script, script2
                                 sim = singles.calculate_similarity(script, script2)
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, sim))
