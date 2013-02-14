@@ -39,8 +39,8 @@ public class ASTMethod implements Treeable{
 		for(Object item: node.parameters()){
 			SingleVariableDeclaration parameter = (SingleVariableDeclaration)item;
 			result.append(parameter.getType().toString());
-			result.append(" ");
-			result.append(parameter.getName());
+			//result.append(" ");
+			//result.append(parameter.getName());
 			result.append(",");
 		}
 		int lastIndex = result.lastIndexOf(",");

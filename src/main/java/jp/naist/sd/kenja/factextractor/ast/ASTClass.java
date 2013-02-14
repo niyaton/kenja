@@ -22,11 +22,13 @@ public class ASTClass extends ASTType {
 		root.append(fieldRoot);
 		root.append(constructorRoot);
 
-		HashSet<String> tmpHashSet = new HashSet<String>();
+		//HashSet<String> tmpHashSet = new HashSet<String>();
 		for (MethodDeclaration methodDec : typeDec.getMethods()) {
-			if(tmpHashSet.contains(methodDec.getName().toString()))
-					continue;
-			tmpHashSet.add(methodDec.getName().toString());
+			//if(tmpHashSet.contains(methodDec.getName().toString())){
+			//	System.out.println(methodDec.getName());
+			//	continue;
+			//}
+			//tmpHashSet.add(methodDec.getName().toString());
 			ASTMethod method = ASTMethod.fromMethodDeclaralation(methodDec);
 			if(method.isConstructor()){
 				constructorRoot.append(method.getTree());
