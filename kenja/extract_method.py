@@ -48,7 +48,10 @@ def detect_extract_method(historage):
                             #extract_method_information.append((commit.hexsha, commit.message, c, m, method, line))
                             extract_method_revisions.add(commit.hexsha)
                             extracted_method_name = line[line.rindex(method):]
-                            num_args = len(extracted_method_name[extracted_method_name.index(r'('):extracted_method_name.index(r')')].split(r','))
+                            try:
+                                num_args = len(extracted_method_name[extracted_method_name.index(r'('):extracted_method_name.index(r')')].split(r','))
+                            except:
+                                continue # probably extracted_method_name is not a method invocation
 
                             #print c, method, num_args
                             if (c, method, num_args) not in added_lines_dict.keys():
