@@ -99,13 +99,11 @@ if __name__ == '__main__':
                     c = get_class(diff.b_blob.path)
                     extracted_method_candidates[c].append(method_name)
                     (deleted_lines, added_lines) = parser.parse(diff.diff)
-                    #print c, method, method_name, num_args
                     if (c, method_name, num_args) in added_lines_dict.keys():
+                        # TODO support method overloads completely
                         #print "Oops!"
                         continue
                     added_lines_dict[(c, method_name, num_args)] = added_lines
-
-            #print added_lines_dict
 
             for diff in diff_index.iter_change_type('M'):
                 if not is_method_body(diff.b_blob.path):
@@ -128,17 +126,18 @@ if __name__ == '__main__':
 
                             #print c, method, num_args
                             if (c, method, num_args) not in added_lines_dict.keys():
+                                # TODO support method overloads completely
                                 #print "can't calculate similarity"
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, -1))
                             else:
                                 script = ""
                                 for l in deleted_lines:
                                     script = '\n'.join([script, l[1]])
-                                script += "\n"
+                                #script += "\n"
                                 script2 = ""
                                 for l in added_lines_dict[(c, method, num_args)]:
                                     script2 = '\n'.join([script2, l[1]])
-                                script2 += "\n"
+                                #script2 += "\n"
                                 #print script, script2
                                 sim = singles.calculate_similarity(script, script2)
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, sim))
