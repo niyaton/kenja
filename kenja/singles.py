@@ -94,8 +94,6 @@ def create_two_singles(seq):
     for tok in seq:
         singles.add((prev[0], prev[2], tok[0], tok[2]))
         prev = tok
-    #print "\n\n"
-    #print singles
 
     return singles
 
