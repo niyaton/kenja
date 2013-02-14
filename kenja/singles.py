@@ -12,7 +12,7 @@ def split_to_str(text):
         r"//[^\r\n]*", # comment
         r"[ \t]+", r"\r\n|\r|\n", # white spaces, newline
         r"[a-zA-Z_](\w|_)*", # identifier
-        r"[^<>!=]=|&&|[|][|]", r"[*/%<>!=()${},;]|[+][+]?|--?|\[|\]", # operators
+        r"[*/+-<>!&=^]=|&&|[|][|]", r"[*/%<>!=()${},;~]|[+][+]?|--?|\[|\]", # operators
         r"." # invalid chars
     ]))
     return [ 'code' ] + utility.split_to_strings(text, pattern=p)
@@ -49,6 +49,7 @@ def tokenizing_expr():
     | (l_integer <- r"^[0-9]") | (l_string <- r"^\"") | (l_char <- r"^'")
     | (op_xor_eq <- "^=")
     | (op_gt <- ">") | (op_ge <- ">=") | (op_lt <- "<") | (op_le <- "<=") | (op_ne <- "!=") | (op_eq <- "==")
+    | (op_minus_eq <- "-=") | (op_plus_eq <- "+=") | (op_mul_eq <- "*=") | (op_div_eq <- "/=") | (op_and_eq <- "&=")
     | (op_and <- "&&") | (op_or <- "||")
     | (op_xor <- "^") | (op_bit_not <- "~")
     | (op_plusplus <- "++") | (op_minusminus <- "--")
