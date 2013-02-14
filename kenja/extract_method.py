@@ -47,8 +47,8 @@ def detect_extract_method(historage):
                         if method in line:
                             #extract_method_information.append((commit.hexsha, commit.message, c, m, method, line))
                             extract_method_revisions.add(commit.hexsha)
-                            tmp = line[line.rindex(method):]
-                            num_args = len(tmp[tmp.index(r'('):tmp.index(r')')].split(r','))
+                            extracted_method_name = line[line.rindex(method):]
+                            num_args = len(extracted_method_name[extracted_method_name.index(r'('):extracted_method_name.index(r')')].split(r','))
 
                             #print c, method, num_args
                             if (c, method, num_args) not in added_lines_dict.keys():
