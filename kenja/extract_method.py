@@ -81,8 +81,10 @@ if __name__ == '__main__':
     historage = Repo(args.historage_dir)
     extract_method_information = detect_extract_method(historage)
 
+    candidate_revisions = set()
     for info in extract_method_information:
+        candidate_revisions.add(info[0])
         print '"%s","%s","%s","%s","%s","%s","%s"' % info
 
     print 'candidates:', len(extract_method_information)
-    #print 'candidate revisions:', len(extract_method_revisions)
+    print 'candidate revisions:', len(candidate_revisions)
