@@ -4,10 +4,7 @@ from historage import *
 from gitdiff import GitDiffParser
 from collections import defaultdict
 
-if __name__ == '__main__':
-    historage = Repo('~/kenja_test/columba_distilled/1302122318/base_repo')
-    #historage = Repo('~/jEdit/base_repo')
-
+def detect_extract_method(historage):
     extract_method_information = []
     extract_method_revisions = set()
 
@@ -62,19 +59,30 @@ if __name__ == '__main__':
                                 script = ""
                                 for l in deleted_lines:
                                     script = '\n'.join([script, l[1]])
-                                #script += "\n"
                                 script2 = ""
                                 for l in added_lines_dict[(c, method, num_args)]:
                                     script2 = '\n'.join([script2, l[1]])
-                                #script2 += "\n"
                                 #print script, script2
                                 sim = singles.calculate_similarity(script, script2)
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, sim))
                                 #print deleted_lines, added_lines_dict[(c, method, num_args)]
                             break # One method call is enough to judge as a candidate
 
+    return extract_method_information
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Extract Method Detector')
+    parser.add_argument('historage_dir',
+            help='path of historage repository dir')
+    args = parser.parse_args()
+
+    historage = Repo(args.historage_dir)
+    extract_method_information = detect_extract_method(historage)
+
     for info in extract_method_information:
         print '"%s","%s","%s","%s","%s","%s","%s"' % info
 
     print 'candidates:', len(extract_method_information)
-    print 'candidate revisions:', len(extract_method_revisions)
+    #print 'candidate revisions:', len(extract_method_revisions)
