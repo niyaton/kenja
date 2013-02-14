@@ -6,11 +6,13 @@ from pyrem_torq.treeseq import seq_split_nodes_of_label
 #      such as ^= ++ --
 def split_to_str(text):
     p = re.compile("|".join([
-        r"/[^/\r\n]*/", r'"[^"\r\n]*"', r"\d+", # literals (regex, string, integer)
-        r"#[^\r\n]*", # comment
+        r'"[^"\r\n]*"', r"'[^'\r\n]*'", # literals(string, char)
+        r"\d+[.]\d+", # literals (float)
+        r"0x[0-9A-F]+", r"\d+", # literals (integers)
+        r"//[^\r\n]*", # comment
         r"[ \t]+", r"\r\n|\r|\n", # white spaces, newline
         r"[a-zA-Z_](\w|_)*", # identifier
-        r"[<>!=]=|&&|[|][|]", r"[-+*/%<>!=()${},;]|\[|\]", # operators
+        r"[^<>!=]=|&&|[|][|]", r"[*/%<>!=()${},;]|[+][+]?|--?|\[|\]", # operators
         r"." # invalid chars
     ]))
     return [ 'code' ] + utility.split_to_strings(text, pattern=p)
@@ -40,18 +42,20 @@ def tokenizing_expr():
     | (r_true <- "true")
     | (r_try <- "try")
     | (r_volatile <- "volatile")
-    | (id <- r"^[a-zA-Z_]") 
-    | (l_integer <- r"^[0-9]") | (l_string <- r"^\"") | (l_string <- r"^'")
-    | (op_xor <- "^")
+    | (id <- r"^[a-zA-Z_]")
+    | (l_float <- r"^[0-9]\.[0-9]")
+    | (l_integer16 <- r"^0x[0-9ABCDEF]")
+    | (l_integer8 <- r"^0[0-7]+$")
+    | (l_integer <- r"^[0-9]") | (l_string <- r"^\"") | (l_char <- r"^'")
     | (op_xor_eq <- "^=")
     | (op_gt <- ">") | (op_ge <- ">=") | (op_lt <- "<") | (op_le <- "<=") | (op_ne <- "!=") | (op_eq <- "==")
     | (op_and <- "&&") | (op_or <- "||")
-    | (op_and2 <- "&")
-    | (op_tilda <- "~")
+    | (op_xor <- "^") | (op_bit_not <- "~")
     | (op_plusplus <- "++") | (op_minusminus <- "--")
     | (op_plus <- "+") | (op_minus <- "-") | (op_mul <- "*") | (op_div <- "/") | (op_mod <- "%")
-    | (op_assign <- "=") | (op_not <- "!") | (op_dollar <- "$") | (op_or2 <- "|")
+    | (op_assign <- "=") | (op_not <- "!") | (op_dollar <- "$") | (op_and2 <- "&") | (op_or2 <- "|")
     | (LP <- "(") | (RP <- ")") | (LB <- "{") | (RB <- "}") | (LK <- "[") | (RK <- "]")
+    | (atmark <- "@")
     | (dot <- ".") | (comma <- ",") | (semicolon <- ";") | (colon <- ":")
     | (ques <- "?") | (bslash <- "\\")
     | (newline <- "\r\n" | "\r" | "\n")
@@ -117,13 +121,13 @@ def main():
     import sys
     
     if len(sys.argv) == 1:
-        print "usage: singles -f <script> [ <input> ]\nAn calculator of method similarity for Java."
+        print "usage: singles <script> [ <input> ]\nAn calculator of method similarity for Java."
         return
     
-    assert len(sys.argv) in (3, 4)
-    assert sys.argv[1] == "-f"
-    scriptFile = sys.argv[2]
-    scriptFile2 = sys.argv[3] if len(sys.argv) == 4 else None
+    assert len(sys.argv) in (2, 3)
+    #assert sys.argv[1] == "-f"
+    scriptFile = sys.argv[1]
+    scriptFile2 = sys.argv[2] if len(sys.argv) == 3 else None
 
     f = open(scriptFile, "r")
     try:
@@ -133,7 +137,7 @@ def main():
 
     if scriptFile2 is None:
         tokenizer = tokenizing_expr()
-        seq = tokenizer.parse(script)
+        seq = tokenize(tokenizer, script)
         print "\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq)))
         return
 
