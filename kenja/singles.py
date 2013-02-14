@@ -1,18 +1,9 @@
-# tinyawk
-# an interpreter of a extremely small subset of AWK programming language.
-# supported reserved words are:
-#   BEGIN END NF NR if else next print while
-#   ( ) [ ] { } ; , < <= > >= == != && || ! - + * / % $
-# note that: 
-# - escape sequences in string are not supported.
-# - regular expression is Python's one.
-# - all numbers are integers, no floating points.
-# - assignment to NF, NR or $* is undefined behavior.
-
 from pyrem_torq import *
 from pyrem_torq.expression import *
 from pyrem_torq.treeseq import seq_split_nodes_of_label
 
+# TODO We should consider to splitting process to parse two characters operators
+#      such as ^= ++ --
 def split_to_str(text):
     p = re.compile("|".join([
         r"/[^/\r\n]*/", r'"[^"\r\n]*"', r"\d+", # literals (regex, string, integer)
@@ -26,7 +17,7 @@ def split_to_str(text):
 
 def tokenizing_expr():
     # identify reserved words, literals, identifiers
-    e = Search(script.compile(r"""
+    return Search(script.compile(r"""
     (r_BEGIN <- "BEGIN") | (r_END <- "END")
     | (r_assert <- "assert")
     | (r_boolean <- "boolean") | (r_byte <- "byte") | (r_char <- "char") | (r_int <- "int" )
@@ -65,10 +56,8 @@ def tokenizing_expr():
     | (null <- r"^[ \t#]")
     | any, error("unexpected character")
     ;"""))
-    #yield "identify reserved words, literals, identifiers", e
-    #print e
-    return e
-    
+
+# remained reserved keywords but these keyword never appear in the method maybe.
 #< ABSTRACT: "abstract" >
 #| < CLASS: "class" >
 #| < CONST: "const" >
@@ -91,14 +80,6 @@ def tokenizing_expr():
 #| < TRANSIENT: "transient" >
 #| < VOID: "void" >
 #| < WHILE: "while" >
-#}
-
-    # identify statement-terminating new-line chars
-    #e = Search(script.compile(r"""
-    #(comma | LB | op_or | op_and | r_else), (null <- newline)
-    #;"""))
-    #yield "remove neglected new-line characters", e
-
 
 def create_two_singles(seq):
     singles = set()
@@ -116,7 +97,7 @@ def tokenize(tokenizer, script):
     seq = tokenizer.parse(seq)
     return seq_split_nodes_of_label(seq, "null")[0]
 
-def calculate_simirarity(script1, script2):
+def calculate_similarity(script1, script2):
     tokenizer = tokenizing_expr()
     seq = tokenize(tokenizer, script1)
     seq2 = tokenize(tokenizer, script2)
@@ -124,66 +105,40 @@ def calculate_simirarity(script1, script2):
     singles1 = create_two_singles(seq)
     singles2 = create_two_singles(seq2)
 
-    #print "\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq)))
 
     return len( singles1 & singles2) / float(len(singles1 | singles2))
 
-
-def main(debugTrace=False):
+def main():
     import sys
     
     if len(sys.argv) == 1:
-        print "usage: tinyawk -f <script> [ <input> ]\nAn interpreter of a awk-like small language."
+        print "usage: singles -f <script> [ <input> ]\nAn calculator of method similarity for Java."
         return
     
     assert len(sys.argv) in (3, 4)
     assert sys.argv[1] == "-f"
     scriptFile = sys.argv[2]
-    scriptFile2 = sys.argv[3]
-    #inputFile = sys.argv[3] if len(sys.argv) == 4 else None
-    debugWrite = sys.stderr.write if debugTrace else None
-    
+    scriptFile2 = sys.argv[3] if len(sys.argv) == 4 else None
+
     f = open(scriptFile, "r")
     try:
         script = f.read()
     finally: f.close()
     script = script + "\n" # prepare for missing new-line char at the last line
-    
+
+    if scriptFile2 is None:
+        tokenizer = tokenizing_expr()
+        seq = tokenizer.parse(script)
+        print "\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq)))
+        return
+
     f = open(scriptFile2, "r")
     try:
         script2 = f.read()
     finally: f.close()
     script2 = script2 + "\n"
 
-    # parsing
-    #seq = split_to_str(script)
-    #des = []
-    #des.extend(tokenizing_expr_iter())
-
-    #des.extend(stmt_parsing_expr_iter()) 
-    #des.extend(expr_parsing_expr_iter())
-    #for desc, expr in des:
-    #    if debugWrite:
-    #        #debugWrite("\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq))) + "\n") # prints a seq
-    #        debugWrite("step: %s\n" % desc)
-    #        newSeq = expr.parse(seq)
-
-    #        #print seq
-
-    #    if newSeq is None: sys.exit("parse error")
-    #    seq = newSeq
-    #    seq = seq_split_nodes_of_label(seq, "null")[0]
-    #print seq
-
-    #tokenizer = tokenizing_expr()
-    #seq = tokenize(tokenizer, script)
-    #seq2 = tokenize(tokenizer, script2)
-
-    #singles1 = create_two_singles(seq)
-    #singles2 = create_two_singles(seq2)
-
-    #print len( singles1 & singles2) / float(len(singles1 | singles2))
-    print calculate_simirarity(script, script2)
+    calculate_similarity(script, script2)
 
 if __name__ == '__main__':
-    main(debugTrace=True)
+    main()

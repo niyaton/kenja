@@ -140,7 +140,7 @@ if __name__ == '__main__':
                                     script2 = '\n'.join([script2, l[1]])
                                 script2 += "\n"
                                 #print script, script2
-                                sim = singles.calculate_simirarity(script, script2)
+                                sim = singles.calculate_similarity(script, script2)
                                 extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, sim))
                                 #print deleted_lines, added_lines_dict[(c, method, num_args)]
                             break # One method call is enough to judge as a candidate
