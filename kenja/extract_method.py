@@ -57,16 +57,18 @@ def detect_extract_method(historage):
                             if (c, method, num_args) not in added_lines_dict.keys():
                                 # TODO support method overloads completely
                                 #print "can't calculate similarity"
-                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, -1))
+                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, -1))
                             else:
                                 script = '\n'.join([l[1] for l in deleted_lines])
 
                                 extracted_lines = added_lines_dict[(c, method, num_args)]
+                                extracted_lines = extracted_lines[1:-1]
                                 script2 = '\n'.join([l[1] for l in extracted_lines])
 
                                 #print script, script2
+                                #print commit.hexsha, commit.message
                                 sim = singles.calculate_similarity(script, script2)
-                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, line, sim))
+                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, sim))
                                 #print deleted_lines, added_lines_dict[(c, method, num_args)]
                             break # One method call is enough to judge as a candidate
 
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     candidate_revisions = set()
     for info in extract_method_information:
         candidate_revisions.add(info[0])
-        print '"%s","%s","%s","%s","%s","%s","%s"' % info
+        print '"%s","%s","%s","%s","%s","%s"' % info
 
     print 'candidates:', len(extract_method_information)
     print 'candidate revisions:', len(candidate_revisions)
