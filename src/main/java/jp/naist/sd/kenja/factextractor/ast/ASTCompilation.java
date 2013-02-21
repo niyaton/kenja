@@ -36,10 +36,10 @@ public class ASTCompilation implements Treeable {
 	
 	public ASTCompilation(CompilationUnit unit, Tree root) {
 		this.root = root;
-		if (unit.getPackage() != null) {
-			pack = ASTPackage.fromPackageDeclaration(unit.getPackage());
-			root.append(pack.getTree());
-		}
+		//if (unit.getPackage() != null) {
+		//	pack = ASTPackage.fromPackageDeclaration(unit.getPackage());
+		//	root.append(pack.getTree());
+		//}
 
 //		Tree typeRoot = root;
 //		if (pack != null)
