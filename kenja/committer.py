@@ -3,6 +3,8 @@ import os
 from subprocess import check_output
 from git import Blob
 from git import Repo
+from itertools import count
+from itertools import izip
 
 from multiprocessing import (
                                 Pool,
@@ -68,7 +70,10 @@ class SyntaxTreesCommitter:
     def commit_syntax_trees(self, repo, changed_commits):
         start_commit = self.org_repo.commit(changed_commits.pop(0))
         self.construct_from_commit(repo, start_commit)
-        for commit_hexsha in changed_commits:
+
+        total_commits = len(changed_commits)
+        for (num, commit_hexsha) in izip(count(1), changed_commits):
+            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
             commit = self.org_repo.commit(commit_hexsha)
             self.apply_change(repo, commit)
 
@@ -96,7 +101,6 @@ class SyntaxTreesCommitter:
             self.add_files(new_repo, index, added_files)
 
         if len(index.diff(None, staged=True)):
-            print 'commit to :', new_repo.git_dir
             index.commit(commit.hexsha)
 
 
