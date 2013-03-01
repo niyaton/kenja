@@ -1,4 +1,8 @@
+.DS_Store
 *.swp
+*.iml
+*.iws
+.idea/
 .classpath
 .settings
 .project
