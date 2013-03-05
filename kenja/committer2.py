@@ -32,7 +32,7 @@ class SyntaxTreesCommitter:
             pass
         return len(output) > 0
 
-    def construct_from_commit2(self, repo, commit):
+    def construct_from_commit(self, repo, commit):
         modes = []
         binshas = []
         names = []
@@ -62,7 +62,7 @@ class SyntaxTreesCommitter:
         start_commit = self.org_repo.commit(changed_commits.pop(0))
         total_commits = len(changed_commits)
         print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-        self.construct_from_commit2(repo, start_commit)
+        self.construct_from_commit(repo, start_commit)
 
         for (num, commit_hexsha) in izip(count(1), changed_commits):
             print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
