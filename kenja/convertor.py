@@ -166,7 +166,6 @@ if __name__ == '__main__':
             self.add_convert_command()
             self.add_parse_command()
             self.add_construct_command()
-            self.add_merge_command()
 
         def parse_and_execute_command(self):
             args = self.parser.parse_args()
@@ -234,10 +233,6 @@ if __name__ == '__main__':
                     help='path of working dir')
             sub_parser.add_argument('--syntax-trees-dir',
                     help='path of syntax treses dir')
-            sub_parser.add_argument('--without-merge', 
-                    action='store_true',
-                    help='Convertor will not merge working repos to base repo'
-                    )
             sub_parser.add_argument('--non-parallel',
                     action='store_true'
                     )
@@ -254,16 +249,6 @@ if __name__ == '__main__':
 
             hc.construct_historage()
 
-        def add_merge_command(self):
-            sub_parser = self.subparsers.add_parser('merge', 
-                    help='merge working repositorie to base repo')
-            sub_parser.add_argument('working_dir', 
-                    help='path of working repositories dir')
-            sub_parser.set_defaults(func=self.merge)
 
-        def merge(self, args):
-            hc = HistorageConverter(None, args.working_dir)
-            hc.merge_work_repos()
-    
     parser = ConvertorCommandParser()
     parser.parse_and_execute_command()
