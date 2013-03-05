@@ -56,20 +56,6 @@ class SyntaxTreesCommitter:
             pass
         return len(output) > 0
 
-    def construct_from_commit(self, repo, commit):
-        added_files = {}
-        for entry in commit.tree.traverse():
-            if not isinstance(entry, Blob):
-                continue
-
-            if not entry.name.endswith('.java'):
-                continue
-            if self.is_completed_parse(entry):
-                added_files[self.get_normalized_path(entry.path)] = entry.hexsha
-
-        self.add_files(repo, repo.index, added_files)
-        repo.index.commit(commit.hexsha)
-
     def construct_from_commit2(self, repo, commit):
         modes = []
         binshas = []
