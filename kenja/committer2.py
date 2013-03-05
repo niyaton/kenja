@@ -34,19 +34,6 @@ class SyntaxTreesCommitter:
         for p in removed_files:
             shutil.rmtree(os.path.join(repo.working_dir, p))
 
-    def add_files(self, repo, index, added_files):
-        if len(added_files) == 0:
-            return
-
-        for path, hexsha in added_files.items():
-            #path = self.get_normalized_path(path)
-            src = os.path.join(self.syntax_trees_dir, hexsha)
-            dst = os.path.join(repo.working_dir, path)
-            shutil.copytree(src, dst)
-
-        repo.git.add(added_files.keys())
-        index.update()
-
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
         cmd = ['find', path, '-type', 'f']
