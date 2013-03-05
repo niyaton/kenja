@@ -106,6 +106,7 @@ class HistorageConverter:
 
         divided_commits = self.divide_commits(self.num_commit_process)
         parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.org_repo.git_dir)
+
         for (commits, working_repo_dir) in zip(divided_commits, self.working_repo_dirs):
             parallel_committer.commit_syntax_trees_parallel(working_repo_dir, commits)
 
@@ -233,6 +234,8 @@ if __name__ == '__main__':
 
         def construct(self, args):
             hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            if args.syntax_trees_dir:
+                hc.syntax_trees_dir = args.syntax_trees_dir
             hc.construct_historage_repositories()
 
         def add_merge_command(self):
