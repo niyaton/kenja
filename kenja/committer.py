@@ -62,7 +62,7 @@ class SyntaxTreesCommitter:
             if not entry.name.endswith('.java'):
                 continue
             if self.is_completed_parse(entry):
-                added_files[entry.path] = entry.hexsha
+                added_files[self.get_normalized_path(entry.path)] = entry.hexsha
 
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
@@ -89,19 +89,23 @@ class SyntaxTreesCommitter:
                     if not diff.a_blob.name.endswith(".java"):
                         continue
                     if self.is_completed_parse(diff.a_blob):
-                        removed_files.append(diff.a_blob.path)
+                        removed_files.append(self.get_normalized_path(diff.a_blob.path))
 
                 if(diff.b_blob):
                     if not diff.b_blob.name.endswith(".java"):
                         continue
                     if self.is_completed_parse(diff.b_blob):
-                        added_files[diff.b_blob.path] = diff.b_blob.hexsha
+                        added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
+
 
             self.remove_files(new_repo, index, removed_files)
             self.add_files(new_repo, index, added_files)
 
         if len(index.diff(None, staged=True)):
             index.commit(commit.hexsha)
+
+    def get_normalized_path(self, path):
+        return path.replace("/", "_")
 
 
 class SyntaxTreesParallelCommitter:
