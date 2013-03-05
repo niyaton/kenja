@@ -3,11 +3,8 @@ import os
 from subprocess import check_output
 from git import Blob
 from git import Repo
-from StringIO import StringIO
-from gitdb import IStream
 from itertools import count
 from itertools import izip
-import io
 import gittools
 
 from multiprocessing import (
@@ -113,10 +110,6 @@ class SyntaxTreesCommitter:
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
 
-        index = new_repo.index
-        removed_files = []
-        added_files = {}
-
         changed = False
         for p in commit.parents:
             for diff in p.diff(commit):
@@ -124,8 +117,6 @@ class SyntaxTreesCommitter:
                     if not diff.a_blob.name.endswith(".java"):
                         continue
                     if self.is_completed_parse(diff.a_blob):
-                        #removed_files.append(diff.a_blob.path)
-                        #removed_files.append(self.get_normalized_path(diff.a_blob.path))
                         path = self.get_normalized_path(diff.a_blob.path)
                         self.previous_top_tree.pop(path)
                         changed = True
@@ -134,25 +125,15 @@ class SyntaxTreesCommitter:
                     if not diff.b_blob.name.endswith(".java"):
                         continue
                     if self.is_completed_parse(diff.b_blob):
-                        #added_files[diff.b_blob.path] = diff.b_blob.hexsha
-                        #added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
                         path = self.get_normalized_path(diff.b_blob.path)
                         #gittools.write_tree(repo.odb, )
                         (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
                         self.previous_top_tree[path] = (mode, binsha)
                         changed = True
 
-
-
-
-            #self.remove_files(new_repo, index, removed_files)
-            #self.add_files(new_repo, index, added_files)
-
         if changed:
             (mode, binsha) = gittools.mktree_from_iter(new_repo.odb, self.iter_object_info())
             gittools.commit_from_binsha(new_repo, binsha, commit.hexsha)
-        #if len(index.diff(None, staged=True)):
-        #    index.commit(commit.hexsha)
 
     def get_normalized_path(self, path):
         return path.replace("/", "_")
