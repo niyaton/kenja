@@ -4,10 +4,11 @@ from git import Commit
 from exc import InvalidHistoragePathException
 from parser import ParserExecutor
 from committer2 import SyntaxTreesParallelCommitter
+from committer2 import SyntaxTreesCommitter
 
 class HistorageConverter:
-    parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar" 
-    
+    parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+
     def __init__(self, org_git_repo_dir, working_dir):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
@@ -19,13 +20,7 @@ class HistorageConverter:
 
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
 
-        self.num_commit_process = 8
-        self.parallel = True
-
         self.changed_commits = None
-
-    def disable_parallel(self):
-        self.parallel = False
 
     def get_changed_commits(self):
         changed_commits = []
@@ -63,23 +58,6 @@ class HistorageConverter:
         print 'waiting parser processes'
         parser_executor.join()
 
-    def divide_commits(self, num):
-        if not self.changed_commits:
-            self.changed_commits = self.get_changed_commits()
-
-        self.changed_commits.reverse()
-        num_commits = len(self.changed_commits)
-        step = num_commits // num
-        first = step + num_commits % step
-        result = []
-        result.append(self.changed_commits[0:first])
-        result.extend( [self.changed_commits[i:i+step] for i in range(first, num_commits, step)])
-        return result
-
-    def prepare_repositories(self, num_working_repos):
-        base_repo = self.prepare_base_repo()
-        self.clone_working_repos(base_repo, num_working_repos)
-
     def prepare_base_repo(self):
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
         base_repo = Repo.init(base_repo_dir)
@@ -97,10 +75,27 @@ class HistorageConverter:
 
     def convert(self):
         self.parse_all_java_files()
-        self.construct_historage_repositories()
-        self.merge_work_repos()
+        self.construct_historage()
 
-    def construct_historage_repositories(self):
+    def construct_historage(self):
+        print 'create historage...'
+
+        if not self.changed_commits:
+            self.changed_commits = self.get_changed_commits()
+
+        self.changed_commits.reverse()
+
+        parallel_committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
+        base_repo = self.prepare_base_repo()
+        parallel_committer.commit_syntax_trees(base_repo, self.changed_commits)
+
+class ParallelHistorageConverter(HistorageConverter):
+    def __init__(self, org_git_repo_dir, working_dir):
+        HistorageConverter.__init__(org_git_repo_dir, working_dir)
+
+        self.num_commit_process = 8
+
+    def construct_historage(self):
         print 'create historage...'
         self.prepare_repositories(self.num_commit_process)
 
@@ -113,13 +108,32 @@ class HistorageConverter:
         print 'waiting commit processes...'
         parallel_committer.join()
 
+        self.merge_work_repos()
+
+    def divide_commits(self, num):
+        if not self.changed_commits:
+            self.changed_commits = self.get_changed_commits()
+
+        self.changed_commits.reverse()
+        num_commits = len(self.changed_commits)
+        step = num_commits // num
+        first = step + num_commits % step
+        result = []
+        result.append(self.changed_commits[0:first])
+        result.extend( [self.changed_commits[i:i+step] for i in range(first, num_commits, step)])
+        return result
+
+    def prepare_repositories(self, num_working_repos):
+        base_repo = self.prepare_base_repo()
+        self.clone_working_repos(base_repo, num_working_repos)
+
     def merge_work_repos(self):
         print 'merge working repos...'
         parent = None
         new_remotes = []
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
         repo = Repo(base_repo_dir)
-        
+
         for i in range(self.num_commit_process):
             work_repo = Repo(os.path.join(self.working_dir, 'work_repo' + str(i)))
             abspath = os.path.abspath(work_repo.git_dir)
@@ -127,7 +141,7 @@ class HistorageConverter:
             print 'fetch %d th repo' % (i)
             new_remote.fetch()
             new_remotes.append(new_remote)
-        
+
         for remote in new_remotes:
             arg = {"reverse":True}
             commits = repo.iter_commits(remote.refs.master, **arg)
@@ -180,11 +194,12 @@ if __name__ == '__main__':
 
         def convert(self, args):
             print args
-            hc = HistorageConverter(args.org_git_dir, args.working_dir)
 
             if args.non_parallel:
-                hc.disable_parallel()
-                
+                hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            else:
+                hc = ParallelHistorageConverter(args.org_git_dir, args.working_dir)
+
             if args.parser_processes:
                 hc.parser_processes = args.parser_processes
 
@@ -207,10 +222,6 @@ if __name__ == '__main__':
 
         def parse(self, args):
             hc = HistorageConverter(args.org_git_dir, args.working_dir)
-
-            if args.non_parallel:
-                hc.disable_parallel()
-
             hc.parse_all_java_files()
             pass
 
@@ -233,10 +244,15 @@ if __name__ == '__main__':
             sub_parser.set_defaults(func=self.construct)
 
         def construct(self, args):
-            hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            if args.non_parallel:
+                hc = HistorageConverter(args.org_git_dir, args.working_dir)
+            else:
+                hc = ParallelHistorageConverter(args.org_git_dir, args.working_dir)
+
             if args.syntax_trees_dir:
                 hc.syntax_trees_dir = args.syntax_trees_dir
-            hc.construct_historage_repositories()
+
+            hc.construct_historage()
 
         def add_merge_command(self):
             sub_parser = self.subparsers.add_parser('merge', 
