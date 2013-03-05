@@ -214,9 +214,6 @@ if __name__ == '__main__':
                     help='path of original git repository')
             sub_parser.add_argument('working_dir', 
                     help='"syntax_treses" dir will be created in this dir')
-            sub_parser.add_argument('--non-parallel',
-                    action='store_true'
-                    )
             sub_parser.set_defaults(func=self.parse)
 
         def parse(self, args):
