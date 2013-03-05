@@ -1,4 +1,3 @@
-import shutil
 import os
 from subprocess import check_output
 from git import Blob
@@ -23,16 +22,6 @@ class SyntaxTreesCommitter:
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir
         self.previous_top_tree = {}
-
-    def remove_files(self, repo, index, removed_files):
-        kwargs = {"r" : True}
-        if len(removed_files) == 0:
-            return
-        index.remove(removed_files, **kwargs)
-        index.write()
-
-        for p in removed_files:
-            shutil.rmtree(os.path.join(repo.working_dir, p))
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
