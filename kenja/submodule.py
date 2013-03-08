@@ -43,8 +43,13 @@ submodule_mode = '160000'
 
 committed = {}
 tags = {}
+heads = {}
 for tag_ref in repo.tags:
     tags[tag_ref.commit.hexsha] = tag_ref.name
+
+for head in repo.heads:
+    heads[head.commit.hexsha] = head.name
+
 for commit_hexsha, num in izip(commits, count()):
     print num, commit_hexsha
     git = new_repo.git
@@ -59,4 +64,6 @@ for commit_hexsha, num in izip(commits, count()):
     new_commit = Commit.create_from_tree(new_repo, tree, message, parents)
     if commit_hexsha in tags:
         new_repo.create_tag(tags[commit_hexsha], ref=new_commit)
+    if commit_hexsha in heads:
+        new_repo.create_head(heads[commit_hexsha], commit=new_commit)
     committed[commit_hexsha] = new_commit
