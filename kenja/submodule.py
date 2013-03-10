@@ -43,6 +43,32 @@ def get_topological_ordered_commits(repo, revs):
                 break
     return topological_sorting(dag)
 
+def get_reversed_topological_ordered_commits(repo, revs):
+    revs = [repo.commit(rev).hexsha for rev in revs]
+    nodes = list(revs)
+    visited = set()
+    post = []
+    while nodes:
+        node = nodes[-1]
+        if node in visited:
+            nodes.pop()
+            continue
+        commit = repo.commit(node)
+
+        children = []
+        for parent in commit.parents:
+            if not parent.hexsha in visited:
+                children.append(parent.hexsha)
+
+        if children:
+            nodes.extend(children)
+        else:
+            nodes.pop()
+            visited.add(node)
+            post.append(node)
+
+    return post
+
 def create_submodule_tree(odb, submodule_commit_hexsha):
     submodule_mode = '160000'
     submodule_conf = '/Users/kenjif/test_gitmodules'
@@ -57,8 +83,7 @@ def create_submodule_tree(odb, submodule_commit_hexsha):
 if __name__ == '__main__':
     repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
 
-    commits = get_topological_ordered_commits(repo, repo.refs)
-    commits.reverse()
+    commits = get_reversed_topological_ordered_commits(repo, repo.refs)
 
     new_repo = Repo.init('/Users/kenjif/test_git_repo')
 
