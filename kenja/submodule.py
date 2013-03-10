@@ -5,8 +5,22 @@ from itertools import izip
 from itertools import count
 from git import Commit
 import tempfile
+from ConfigParser import RawConfigParser
+import gittools
+from gitdb.util import (hex_to_bin,
+                        bin_to_hex
+                        )
 
 repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
+
+def write_submodule_config(f):
+    config = RawConfigParser()
+    section = 'submodule "%s"' % ('jEdit')
+    config.add_section(section)
+    config.set(section, 'path', 'jEdit')
+    config.set(section, 'url', '/Users/kenjif/msr_repos/git/jEdit')
+
+    config.write(f)
 
 def get_topological_ordered_commits(repo, revs):
     dag = digraph()
@@ -36,10 +50,19 @@ commits.reverse()
 
 new_repo = Repo.init('/Users/kenjif/test_git_repo')
 
-kwargs = {}
-#submodule = new_repo.create_submodule('old', 'old', url=repo.git_dir)
-
 submodule_mode = '160000'
+with open('/Users/kenjif/test_gitmodules', 'wb') as f:
+    write_submodule_config(f)
+
+def create_submodule_tree(odb, submodule_commit_hexsha):
+    submodule_conf = '/Users/kenjif/test_gitmodules'
+    conf_mode, conf_binsha = gittools.write_blob(odb, submodule_conf)
+    tree_contents = []
+    tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
+    tree_contents.append((submodule_mode, hex_to_bin(submodule_commit_hexsha), 'jEdit'))
+
+    tree_mode, binsha = gittools.mktree_from_iter(odb, tree_contents)
+    return bin_to_hex(binsha)
 
 committed = {}
 tags = {}
@@ -54,14 +77,15 @@ for commit_hexsha, num in izip(commits, count()):
     print num, commit_hexsha
     git = new_repo.git
     commit = repo.commit(commit_hexsha)
-    tree = repo.tree(commit_hexsha)
 
     parents = []
     for parent in commit.parents:
         parents.append(committed[parent.hexsha])
 
     message = '[%s] from %s' % (num, commit_hexsha)
-    new_commit = Commit.create_from_tree(new_repo, tree, message, parents)
+    new_tree = create_submodule_tree(new_repo.odb, commit_hexsha)
+    #new_commit = Commit.create_from_tree(new_repo, tree, message, parents)
+    new_commit = Commit.create_from_tree(new_repo, new_tree, message, parents)
     if commit_hexsha in tags:
         new_repo.create_tag(tags[commit_hexsha], ref=new_commit)
     if commit_hexsha in heads:
