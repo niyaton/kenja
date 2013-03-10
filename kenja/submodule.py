@@ -43,6 +43,17 @@ def get_topological_ordered_commits(repo, revs):
                 break
     return topological_sorting(dag)
 
+def create_submodule_tree(odb, submodule_commit_hexsha):
+    submodule_mode = '160000'
+    submodule_conf = '/Users/kenjif/test_gitmodules'
+    conf_mode, conf_binsha = gittools.write_blob(odb, submodule_conf)
+    tree_contents = []
+    tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
+    tree_contents.append((submodule_mode, hex_to_bin(submodule_commit_hexsha), 'jEdit'))
+
+    tree_mode, binsha = gittools.mktree_from_iter(odb, tree_contents)
+    return bin_to_hex(binsha)
+
 if __name__ == '__main__':
     repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
 
@@ -51,23 +62,11 @@ if __name__ == '__main__':
 
     new_repo = Repo.init('/Users/kenjif/test_git_repo')
 
-    submodule_mode = '160000'
-
     with open('/Users/kenjif/test_gitmodules', 'wb') as f:
         name = 'jEdit'
         path = 'jEdit'
         url = '/Users/kenjif/msr_repos/git/jEdit'
         write_submodule_config(f, name, path, url)
-
-    def create_submodule_tree(odb, submodule_commit_hexsha):
-        submodule_conf = '/Users/kenjif/test_gitmodules'
-        conf_mode, conf_binsha = gittools.write_blob(odb, submodule_conf)
-        tree_contents = []
-        tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
-        tree_contents.append((submodule_mode, hex_to_bin(submodule_commit_hexsha), 'jEdit'))
-
-        tree_mode, binsha = gittools.mktree_from_iter(odb, tree_contents)
-        return bin_to_hex(binsha)
 
     committed = {}
     tags = {}
