@@ -88,7 +88,6 @@ if __name__ == '__main__':
 
         message = '[%s] from %s' % (num, commit_hexsha)
         new_tree = create_submodule_tree(new_repo.odb, commit_hexsha)
-        #new_commit = Commit.create_from_tree(new_repo, tree, message, parents)
         new_commit = Commit.create_from_tree(new_repo, new_tree, message, parents)
         if commit_hexsha in tags:
             new_repo.create_tag(tags[commit_hexsha], ref=new_commit)
