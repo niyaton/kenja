@@ -1,10 +1,7 @@
 from git import Repo
-from pygraph.classes.digraph import digraph
-from pygraph.algorithms.sorting import topological_sorting
 from itertools import izip
 from itertools import count
 from git import Commit
-import tempfile
 from ConfigParser import RawConfigParser
 import gittools
 from gitdb.util import (hex_to_bin,
@@ -19,29 +16,6 @@ def write_submodule_config(f, name, path ,url):
     config.set(section, 'url', url)
 
     config.write(f)
-
-def get_topological_ordered_commits(repo, revs):
-    dag = digraph()
-    checked_nodes = set()
-    for rev in revs:
-        for commit in repo.iter_commits(rev):
-            hexsha = commit.hexsha
-            if not dag.has_node(hexsha):
-                dag.add_node(hexsha)
-            finished = True
-            for parent in commit.parents:
-                p_hexsha = parent.hexsha
-                if not dag.has_node(p_hexsha):
-                    dag.add_node(p_hexsha)
-                edge = (hexsha, p_hexsha)
-                if not dag.has_edge(edge):
-                    dag.add_edge(edge)
-                if not hexsha in checked_nodes:
-                    finished = False
-            checked_nodes.add(commit.hexsha)
-            if finished:
-                break
-    return topological_sorting(dag)
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
