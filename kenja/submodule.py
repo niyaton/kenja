@@ -11,14 +11,12 @@ from gitdb.util import (hex_to_bin,
                         bin_to_hex
                         )
 
-repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
-
-def write_submodule_config(f):
+def write_submodule_config(f, name, path ,url):
     config = RawConfigParser()
-    section = 'submodule "%s"' % ('jEdit')
+    section = 'submodule "%s"' % (name)
     config.add_section(section)
-    config.set(section, 'path', 'jEdit')
-    config.set(section, 'url', '/Users/kenjif/msr_repos/git/jEdit')
+    config.set(section, 'path', path)
+    config.set(section, 'url', url)
 
     config.write(f)
 
@@ -46,14 +44,20 @@ def get_topological_ordered_commits(repo, revs):
     return topological_sorting(dag)
 
 if __name__ == '__main__':
+    repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
+
     commits = get_topological_ordered_commits(repo, repo.refs)
     commits.reverse()
 
     new_repo = Repo.init('/Users/kenjif/test_git_repo')
 
     submodule_mode = '160000'
+
     with open('/Users/kenjif/test_gitmodules', 'wb') as f:
-        write_submodule_config(f)
+        name = 'jEdit'
+        path = 'jEdit'
+        url = '/Users/kenjif/msr_repos/git/jEdit'
+        write_submodule_config(f, name, path, url)
 
     def create_submodule_tree(odb, submodule_commit_hexsha):
         submodule_conf = '/Users/kenjif/test_gitmodules'
