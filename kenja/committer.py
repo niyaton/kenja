@@ -17,12 +17,6 @@ from multiprocessing import (
                                 cpu_count
                             )
 
-def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
-    repo = Repo(repo_dir)
-    org_repo = Repo(org_repo_dir)
-    committer = syntax_trees_committer(org_repo, syntax_trees_dir)
-    committer.commit_syntax_trees(repo, changed_commits)
-
 class SyntaxTreesCommitterBase:
    def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
@@ -194,6 +188,11 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
             yield mode, binsha, name
 
+def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
+    repo = Repo(repo_dir)
+    org_repo = Repo(org_repo_dir)
+    committer = syntax_trees_committer(org_repo, syntax_trees_dir)
+    committer.commit_syntax_trees(repo, changed_commits)
 
 class SyntaxTreesParallelCommitter:
     def __init__(self, syntax_trees_dir, org_repo_dir, syntax_trees_committer, processes=None):
