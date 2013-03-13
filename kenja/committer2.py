@@ -14,10 +14,10 @@ from multiprocessing import (
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
-    committer = SyntaxTreesCommitter(org_repo, syntax_trees_dir)
+    committer = FastSyntaxTreesCommitter(org_repo, syntax_trees_dir)
     committer.commit_syntax_trees(repo, changed_commits)
 
-class SyntaxTreesCommitter:
+class FastSyntaxTreesCommitter:
     def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir

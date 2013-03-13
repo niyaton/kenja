@@ -4,7 +4,7 @@ from git import Commit
 from exc import InvalidHistoragePathException
 from parser import ParserExecutor
 from committer2 import SyntaxTreesParallelCommitter
-from committer2 import SyntaxTreesCommitter
+from committer2 import FastSyntaxTreesCommitter
 
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
@@ -85,7 +85,7 @@ class HistorageConverter:
 
         self.changed_commits.reverse()
 
-        parallel_committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
+        parallel_committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
         parallel_committer.commit_syntax_trees(base_repo, self.changed_commits)
 
