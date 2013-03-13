@@ -3,7 +3,7 @@ from git import Repo
 from git import Commit
 from exc import InvalidHistoragePathException
 from parser import ParserExecutor
-from committer2 import SyntaxTreesParallelCommitter
+from committer import SyntaxTreesParallelCommitter
 from committer2 import FastSyntaxTreesCommitter
 
 class HistorageConverter:

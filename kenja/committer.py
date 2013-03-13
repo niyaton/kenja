@@ -17,10 +17,23 @@ def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_t
     committer = SyntaxTreesCommitter(org_repo, syntax_trees_dir)
     committer.commit_syntax_trees(repo, changed_commits)
 
-class SyntaxTreesCommitter:
-    def __init__(self, org_repo, syntax_trees_dir):
+class SyntaxTreesCommitterBase:
+   def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir
+
+   def is_completed_parse(self, blob):
+        path = os.path.join(self.syntax_trees_dir, blob.hexsha)
+        cmd = ['find', path, '-type', 'f']
+        output = check_output(cmd)
+        if len(output) == 0:
+            #print 'Interface?:', blob.path
+            pass
+        return len(output) > 0
+
+class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
+    def __init__(self, org_repo, syntax_trees_dir):
+        SyntaxTreesCommitterBase.__init__(org_repo, syntax_trees_dir)
 
     def remove_files(self, repo, index, removed_files):
         kwargs = {"r" : True}
@@ -43,15 +56,6 @@ class SyntaxTreesCommitter:
 
         repo.git.add(added_files.keys())
         index.update()
-
-    def is_completed_parse(self, blob):
-        path = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        cmd = ['find', path, '-type', 'f']
-        output = check_output(cmd)
-        if len(output) == 0:
-            #print 'Interface?:', blob.path
-            pass
-        return len(output) > 0
 
     def construct_from_commit(self, repo, commit):
         added_files = {}

@@ -1,15 +1,10 @@
 import os
-from subprocess import check_output
+from committer import SyntaxTreesCommitterBase
 from git import Blob
 from git import Repo
 from itertools import count
 from itertools import izip
 import gittools
-
-from multiprocessing import (
-                                Pool,
-                                cpu_count
-                            )
 
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir):
     repo = Repo(repo_dir)
@@ -17,20 +12,10 @@ def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_t
     committer = FastSyntaxTreesCommitter(org_repo, syntax_trees_dir)
     committer.commit_syntax_trees(repo, changed_commits)
 
-class FastSyntaxTreesCommitter:
+class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
-        self.org_repo = org_repo
-        self.syntax_trees_dir = syntax_trees_dir
+        SyntaxTreesCommitterBase.__init__(org_repo, syntax_trees_dir)
         self.previous_top_tree = {}
-
-    def is_completed_parse(self, blob):
-        path = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        cmd = ['find', path, '-type', 'f']
-        output = check_output(cmd)
-        if len(output) == 0:
-            #print 'Interface?:', blob.path
-            pass
-        return len(output) > 0
 
     def construct_from_commit(self, repo, commit):
         modes = []
@@ -104,24 +89,3 @@ class FastSyntaxTreesCommitter:
         for (name, (mode, binsha)) in self.previous_top_tree.items():
             yield mode, binsha, name
 
-class SyntaxTreesParallelCommitter:
-    def __init__(self, syntax_trees_dir, org_repo_dir, processes=None):
-        self.syntax_trees_dir = syntax_trees_dir
-        self.org_repo_dir = org_repo_dir
-        self.processes = processes if processes else cpu_count()
-        self.pool = Pool(self.processes)
-        self.closed = False
-
-    def commit_syntax_trees_parallel(self, repo_dir, changed_commits):
-        args = [repo_dir, self.org_repo_dir, changed_commits, self.syntax_trees_dir]
-        if(self.closed):
-            self.pool = Pool(self.processes)
-            self.closed = False
-
-        self.pool.apply_async(commit_syntax_trees_worker, args=args)
-
-    def join(self):
-        self.pool.close()
-        self.closed = True
-        self.pool.join()
-        self.pool = None
