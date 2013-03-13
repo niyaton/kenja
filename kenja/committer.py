@@ -31,6 +31,9 @@ class SyntaxTreesCommitterBase:
             pass
         return len(output) > 0
 
+   def get_normalized_path(self, path):
+       return path.replace("/", "_")
+
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
         SyntaxTreesCommitterBase.__init__(org_repo, syntax_trees_dir)
@@ -108,8 +111,6 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
         if len(index.diff(None, staged=True)):
             index.commit(commit.hexsha)
 
-    def get_normalized_path(self, path):
-        return path.replace("/", "_")
 
 class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
@@ -180,9 +181,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         if changed:
             (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
             commit_from_binsha(new_repo, binsha, commit.hexsha)
-
-    def get_normalized_path(self, path):
-        return path.replace("/", "_")
 
     def iter_object_info(self):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
