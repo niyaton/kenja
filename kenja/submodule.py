@@ -43,13 +43,16 @@ def get_reversed_topological_ordered_commits(repo, revs):
 
     return post
 
-def create_submodule_tree(odb, submodule_commit_hexsha):
+def get_submodule_tree_content(commit_hexsha, name):
     submodule_mode = '160000'
+    return (submodule_mode, hex_to_bin(commit_hexsha), name)
+
+def create_submodule_tree(odb, submodule_commit_hexsha):
     submodule_conf = '/Users/kenjif/test_gitmodules'
     conf_mode, conf_binsha = gittools.write_blob(odb, submodule_conf)
     tree_contents = []
     tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
-    tree_contents.append((submodule_mode, hex_to_bin(submodule_commit_hexsha), 'jEdit'))
+    tree_contents.append(get_submodule_tree_content(submodule_commit_hexsha, 'jEdit'))
 
     tree_mode, binsha = gittools.mktree_from_iter(odb, tree_contents)
     return bin_to_hex(binsha)
