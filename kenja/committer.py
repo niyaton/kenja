@@ -34,6 +34,17 @@ class SyntaxTreesCommitterBase:
    def get_normalized_path(self, path):
        return path.replace("/", "_")
 
+   def commit_syntax_trees(self, repo, changed_commits):
+       start_commit = self.org_repo.commit(changed_commits.pop(0))
+       total_commits = len(changed_commits)
+       print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
+       self.construct_from_commit(repo, start_commit)
+
+       for (num, commit_hexsha) in izip(count(1), changed_commits):
+           print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
+           commit = self.org_repo.commit(commit_hexsha)
+           self.apply_change(repo, commit)
+
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
         SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
@@ -73,16 +84,6 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
-
-    def commit_syntax_trees(self, repo, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        self.construct_from_commit(repo, start_commit)
-
-        total_commits = len(changed_commits)
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
 
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
@@ -142,17 +143,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
         return write_tree(repo.odb, src)
-
-    def commit_syntax_trees(self, repo, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        total_commits = len(changed_commits)
-        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-        self.construct_from_commit(repo, start_commit)
-
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
 
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
