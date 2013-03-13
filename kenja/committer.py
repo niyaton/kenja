@@ -36,7 +36,7 @@ class SyntaxTreesCommitterBase:
 
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(org_repo, syntax_trees_dir)
+        SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
 
     def remove_files(self, repo, index, removed_files):
         kwargs = {"r" : True}
@@ -114,7 +114,7 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
 class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(org_repo, syntax_trees_dir)
+        SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
         self.previous_top_tree = {}
 
     def construct_from_commit(self, repo, commit):
