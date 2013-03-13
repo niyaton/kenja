@@ -5,7 +5,12 @@ from git import Blob
 from git import Repo
 from itertools import count
 from itertools import izip
-import gittools
+from gittools import (
+                            commit_from_binsha,
+                            mktree,
+                            mktree_from_iter,
+                            write_tree
+                    )
 
 from multiprocessing import (
                                 Pool,
@@ -136,12 +141,12 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 names.append(path)
                 self.previous_top_tree[path] = (mode, binsha)
 
-        (mode, binsha) = gittools.mktree(repo.odb, modes, binshas, names)
-        gittools.commit_from_binsha(repo, binsha, commit.hexsha)
+        (mode, binsha) = mktree(repo.odb, modes, binshas, names)
+        commit_from_binsha(repo, binsha, commit.hexsha)
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        return gittools.write_tree(repo.odb, src)
+        return write_tree(repo.odb, src)
 
     def commit_syntax_trees(self, repo, changed_commits):
         start_commit = self.org_repo.commit(changed_commits.pop(0))
@@ -173,14 +178,14 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                         continue
                     if self.is_completed_parse(diff.b_blob):
                         path = self.get_normalized_path(diff.b_blob.path)
-                        #gittools.write_tree(repo.odb, )
+                        #write_tree(repo.odb, )
                         (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
                         self.previous_top_tree[path] = (mode, binsha)
                         changed = True
 
         if changed:
-            (mode, binsha) = gittools.mktree_from_iter(new_repo.odb, self.iter_object_info())
-            gittools.commit_from_binsha(new_repo, binsha, commit.hexsha)
+            (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
+            commit_from_binsha(new_repo, binsha, commit.hexsha)
 
     def get_normalized_path(self, path):
         return path.replace("/", "_")
