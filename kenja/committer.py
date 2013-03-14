@@ -119,6 +119,11 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
         self.previous_top_tree = {}
 
+    def add_changed_blob(self, new_repo, blob):
+        (mode, binsha) = self.write_syntax_tree(new_repo, blob)
+        path = self.get_normalized_path(blob.path)
+        self.previous_top_tree[path] = (mode, binsha)
+
     def construct_from_commit(self, repo, commit):
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
@@ -126,9 +131,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
             if not self.is_commit_target(entry):
                 continue
-            (mode, binsha) = self.write_syntax_tree(repo, entry)
-            path = self.get_normalized_path(entry.path)
-            self.previous_top_tree[path] = (mode, binsha)
+            self.add_changed_blob(repo, entry)
 
         (mode, binsha) = mktree_from_iter(repo.odb, self.iter_object_info())
         commit_from_binsha(repo, binsha, commit.hexsha)
@@ -153,9 +156,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 if(diff.b_blob):
                     if not self.is_commit_target(diff.b_blob):
                         continue
-                    path = self.get_normalized_path(diff.b_blob.path)
-                    (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
-                    self.previous_top_tree[path] = (mode, binsha)
+                    self.add_changed_blob(new_repo, diff.b_blob)
                     changed = True
 
         if changed:
