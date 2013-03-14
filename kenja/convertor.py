@@ -88,7 +88,7 @@ class HistorageConverter:
 
 class ParallelHistorageConverter(HistorageConverter):
     def __init__(self, org_git_repo_dir, working_dir):
-        HistorageConverter.__init__(org_git_repo_dir, working_dir)
+        HistorageConverter.__init__(self, org_git_repo_dir, working_dir)
 
         self.num_commit_process = 8
 
@@ -165,5 +165,6 @@ class ParallelHistorageConverter(HistorageConverter):
                 print 'process remote commit: %s' % (commit.hexsha)
                 print 'parent is: %s' % (parent.hexsha)
                 print 'tree is: %s' % (commit.tree.hexsha)
-                parent = Commit.create_from_tree(repo, commit.tree, commit.message,
+                message = commit.message.encode(commit.encoding)
+                parent = Commit.create_from_tree(repo, commit.tree, message,
                         parent_commits = [parent], head=True)
