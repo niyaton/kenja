@@ -7,7 +7,6 @@ from itertools import count
 from itertools import izip
 from gittools import (
                             commit_from_binsha,
-                            mktree,
                             mktree_from_iter,
                             write_tree
                     )
@@ -18,11 +17,11 @@ from multiprocessing import (
                             )
 
 class SyntaxTreesCommitterBase:
-   def __init__(self, org_repo, syntax_trees_dir):
+    def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir
 
-   def is_completed_parse(self, blob):
+    def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
         cmd = ['find', path, '-type', 'f']
         output = check_output(cmd)
@@ -31,8 +30,24 @@ class SyntaxTreesCommitterBase:
             pass
         return len(output) > 0
 
-   def get_normalized_path(self, path):
-       return path.replace("/", "_")
+    def get_normalized_path(self, path):
+        return path.replace("/", "_")
+
+    def commit_syntax_trees(self, repo, changed_commits):
+        start_commit = self.org_repo.commit(changed_commits.pop(0))
+        total_commits = len(changed_commits)
+        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
+        self.construct_from_commit(repo, start_commit)
+
+        for (num, commit_hexsha) in izip(count(1), changed_commits):
+            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
+            commit = self.org_repo.commit(commit_hexsha)
+            self.apply_change(repo, commit)
+
+    def is_commit_target(self, blob):
+        if not blob.name.endswith('.java'):
+            return False
+        return self.is_completed_parse(blob)
 
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
@@ -66,23 +81,12 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
             if not isinstance(entry, Blob):
                 continue
 
-            if not entry.name.endswith('.java'):
+            if not self.is_commit_target(entry):
                 continue
-            if self.is_completed_parse(entry):
-                added_files[self.get_normalized_path(entry.path)] = entry.hexsha
+            added_files[self.get_normalized_path(entry.path)] = entry.hexsha
 
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
-
-    def commit_syntax_trees(self, repo, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        self.construct_from_commit(repo, start_commit)
-
-        total_commits = len(changed_commits)
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
 
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
@@ -93,16 +97,14 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for p in commit.parents:
             for diff in p.diff(commit):
                 if(diff.a_blob):
-                    if not diff.a_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.a_blob):
                         continue
-                    if self.is_completed_parse(diff.a_blob):
-                        removed_files.append(self.get_normalized_path(diff.a_blob.path))
+                    removed_files.append(self.get_normalized_path(diff.a_blob.path))
 
                 if(diff.b_blob):
-                    if not diff.b_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.b_blob):
                         continue
-                    if self.is_completed_parse(diff.b_blob):
-                        added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
+                    added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
 
 
             self.remove_files(new_repo, index, removed_files)
@@ -117,42 +119,29 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
         self.previous_top_tree = {}
 
+    def add_changed_blob(self, new_repo, blob):
+        (mode, binsha) = self.write_syntax_tree(new_repo, blob)
+        path = self.get_normalized_path(blob.path)
+        self.previous_top_tree[path] = (mode, binsha)
+
+    def commit(self, new_repo, message):
+        (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
+        commit_from_binsha(new_repo, binsha, message)
+
     def construct_from_commit(self, repo, commit):
-        modes = []
-        binshas = []
-        names = []
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
                 continue
 
-            if not entry.name.endswith('.java'):
+            if not self.is_commit_target(entry):
                 continue
+            self.add_changed_blob(repo, entry)
 
-            if self.is_completed_parse(entry):
-                (mode, binsha) = self.write_syntax_tree(repo, entry)
-                modes.append(mode)
-                binshas.append(binsha)
-                path = self.get_normalized_path(entry.path)
-                names.append(path)
-                self.previous_top_tree[path] = (mode, binsha)
-
-        (mode, binsha) = mktree(repo.odb, modes, binshas, names)
-        commit_from_binsha(repo, binsha, commit.hexsha)
+        self.commit(repo, commit.hexsha)
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
         return write_tree(repo.odb, src)
-
-    def commit_syntax_trees(self, repo, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        total_commits = len(changed_commits)
-        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-        self.construct_from_commit(repo, start_commit)
-
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
 
     def apply_change(self, new_repo, commit):
         assert len(commit.parents) < 2 # Not support branched repository
@@ -161,26 +150,20 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for p in commit.parents:
             for diff in p.diff(commit):
                 if(diff.a_blob):
-                    if not diff.a_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.a_blob):
                         continue
-                    if self.is_completed_parse(diff.a_blob):
-                        path = self.get_normalized_path(diff.a_blob.path)
-                        self.previous_top_tree.pop(path)
-                        changed = True
+                    path = self.get_normalized_path(diff.a_blob.path)
+                    self.previous_top_tree.pop(path)
+                    changed = True
 
                 if(diff.b_blob):
-                    if not diff.b_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.b_blob):
                         continue
-                    if self.is_completed_parse(diff.b_blob):
-                        path = self.get_normalized_path(diff.b_blob.path)
-                        #write_tree(repo.odb, )
-                        (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
-                        self.previous_top_tree[path] = (mode, binsha)
-                        changed = True
+                    self.add_changed_blob(new_repo, diff.b_blob)
+                    changed = True
 
         if changed:
-            (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
-            commit_from_binsha(new_repo, binsha, commit.hexsha)
+            self.commit(new_repo, commit.hexsha)
 
     def iter_object_info(self):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
