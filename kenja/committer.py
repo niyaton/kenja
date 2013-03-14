@@ -1,9 +1,11 @@
+from __future__ import absolute_import
 import shutil
 import os
 from subprocess import check_output
-from git import (Blob, Repo)
+from git.repo import Repo
+from git.objects import Blob
 from itertools import (count, izip, chain)
-from gittools import (
+from kenja.gittools import (
                             commit_from_binsha,
                             mktree_from_iter,
                             write_tree
@@ -12,7 +14,7 @@ from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
-from submodule import (
+from kenja.submodule import (
                                 store_submodule_config,
                                 get_submodule_tree_content
                     )

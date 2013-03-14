@@ -1,9 +1,9 @@
-from git import Repo
+from git.repo import Repo
 from itertools import izip
 from itertools import count
-from git import Commit
+from git.objects import Commit
 from ConfigParser import RawConfigParser
-import gittools
+import kenja.gittools as gittools
 from gitdb.util import (hex_to_bin,
                         bin_to_hex
                         )

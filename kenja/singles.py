@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from pyrem_torq import *
 from pyrem_torq.expression import *
 from pyrem_torq.treeseq import seq_split_nodes_of_label

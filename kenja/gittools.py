@@ -1,6 +1,7 @@
-from git import Repo
-from git import Commit
-from git import Tree
+from __future__ import absolute_import
+from git.repo import Repo
+from git.objects import (Commit, Tree)
+#from git import Tree
 import io
 import os
 from gitdb import IStream
