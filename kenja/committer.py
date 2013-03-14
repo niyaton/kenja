@@ -124,6 +124,10 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         path = self.get_normalized_path(blob.path)
         self.previous_top_tree[path] = (mode, binsha)
 
+    def commit(self, new_repo, message):
+        (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
+        commit_from_binsha(new_repo, binsha, message)
+
     def construct_from_commit(self, repo, commit):
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
@@ -133,8 +137,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 continue
             self.add_changed_blob(repo, entry)
 
-        (mode, binsha) = mktree_from_iter(repo.odb, self.iter_object_info())
-        commit_from_binsha(repo, binsha, commit.hexsha)
+        self.commit(repo, commit.hexsha)
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -160,8 +163,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                     changed = True
 
         if changed:
-            (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
-            commit_from_binsha(new_repo, binsha, commit.hexsha)
+            self.commit(new_repo, commit.hexsha)
 
     def iter_object_info(self):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
