@@ -84,6 +84,32 @@ def mktree_from_iter(odb, object_info_iter):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+def get_reversed_topological_ordered_commits(repo, revs):
+    revs = [repo.commit(rev).hexsha for rev in revs]
+    nodes = list(revs)
+    visited = set()
+    post = []
+    while nodes:
+        node = nodes[-1]
+        if node in visited:
+            nodes.pop()
+            continue
+        commit = repo.commit(node)
+
+        children = []
+        for parent in commit.parents:
+            if not parent.hexsha in visited:
+                children.append(parent.hexsha)
+
+        if children:
+            nodes.extend(children)
+        else:
+            nodes.pop()
+            visited.add(node)
+            post.append(node)
+
+    return post
+
 if __name__ == '__main__':
     repo = Repo.init('test_git')
     #(mode, binsha) = write_tree(repo.odb, 'temp')
