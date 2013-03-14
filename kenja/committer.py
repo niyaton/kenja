@@ -1,23 +1,21 @@
 import shutil
 import os
 from subprocess import check_output
-from git import Blob
-from git import Repo
-from itertools import count
-from itertools import izip
-from itertools import chain
+from git import (Blob, Repo)
+from itertools import (count, izip, chain)
 from gittools import (
                             commit_from_binsha,
                             mktree_from_iter,
                             write_tree
                     )
-
 from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
-from submodule import store_submodule_config
-from submodule import get_submodule_tree_content
+from submodule import (
+                                store_submodule_config,
+                                get_submodule_tree_content
+                    )
 
 class SyntaxTreesCommitterBase:
     def __init__(self, org_repo, syntax_trees_dir):
