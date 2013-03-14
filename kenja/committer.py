@@ -5,6 +5,7 @@ from git import Blob
 from git import Repo
 from itertools import count
 from itertools import izip
+from itertools import chain
 from gittools import (
                             commit_from_binsha,
                             mktree_from_iter,
@@ -15,6 +16,8 @@ from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
+from submodule import store_submodule_config
+from submodule import get_submodule_tree_content
 
 class SyntaxTreesCommitterBase:
     def __init__(self, org_repo, syntax_trees_dir):
@@ -124,11 +127,18 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         path = self.get_normalized_path(blob.path)
         self.previous_top_tree[path] = (mode, binsha)
 
-    def commit(self, new_repo, message):
-        (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
+    def commit(self, new_repo, message, org_commit_hexsha):
+        submodule_info = []
+        submodule_info.append((self.submodule_conf_mode, self.submodule_conf_binsha, '.gitmodules'))
+        submodule_info.append(get_submodule_tree_content(org_commit_hexsha, 'org_repo'))
+        syntax_trees_tree_contents = self.iter_object_info()
+        (mode, binsha) = mktree_from_iter(new_repo.odb, chain(syntax_trees_tree_contents, submodule_info))
         commit_from_binsha(new_repo, binsha, message)
 
     def construct_from_commit(self, repo, commit):
+        mode, binsha = store_submodule_config(repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
+        self.submodule_conf_binsha = binsha
+        self.submodule_conf_mode = mode
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
                 continue
@@ -137,7 +147,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 continue
             self.add_changed_blob(repo, entry)
 
-        self.commit(repo, commit.hexsha)
+        self.commit(repo, commit.hexsha, commit.hexsha)
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -163,7 +173,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                     changed = True
 
         if changed:
-            self.commit(new_repo, commit.hexsha)
+            self.commit(new_repo, commit.hexsha, commit.hexsha)
 
     def iter_object_info(self):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
