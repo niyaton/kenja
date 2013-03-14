@@ -14,7 +14,7 @@ from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
-from kenja.submodule import (
+from kenja.git.submodule import (
                                 store_submodule_config,
                                 get_submodule_tree_content
                     )
