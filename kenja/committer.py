@@ -7,7 +7,6 @@ from itertools import count
 from itertools import izip
 from gittools import (
                             commit_from_binsha,
-                            mktree,
                             mktree_from_iter,
                             write_tree
                     )
