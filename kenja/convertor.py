@@ -61,9 +61,6 @@ class HistorageConverter:
     def prepare_base_repo(self):
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
         base_repo = Repo.init(base_repo_dir)
-        open(os.path.join(base_repo_dir, 'historage_dummy'), 'w').close()
-        base_repo.index.add(['historage_dummy'])
-        base_repo.index.commit('Initail dummy commit')
         return base_repo
     
     def clone_working_repos(self, base_repo, num_working_repos):
@@ -85,9 +82,9 @@ class HistorageConverter:
 
         self.changed_commits.reverse()
 
-        parallel_committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
+        committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
-        parallel_committer.commit_syntax_trees(base_repo, self.changed_commits)
+        committer.commit_syntax_trees(base_repo, self.changed_commits)
 
 class ParallelHistorageConverter(HistorageConverter):
     def __init__(self, org_git_repo_dir, working_dir):
@@ -122,6 +119,21 @@ class ParallelHistorageConverter(HistorageConverter):
         result.append(self.changed_commits[0:first])
         result.extend( [self.changed_commits[i:i+step] for i in range(first, num_commits, step)])
         return result
+
+    def prepare_base_repo(self):
+        base_repo_dir = os.path.join(self.working_dir, 'base_repo')
+        base_repo = Repo.init(base_repo_dir)
+        open(os.path.join(base_repo_dir, 'historage_dummy'), 'w').close()
+        base_repo.index.add(['historage_dummy'])
+        base_repo.index.commit('Initail dummy commit')
+        return base_repo
+
+    def clone_working_repos(self, base_repo, num_working_repos):
+        self.working_repo_dirs = []
+        for i in range(num_working_repos):
+            working_repo_dir = os.path.join(self.working_dir, 'work_repo%d' % (i))
+            self.working_repo_dirs.append(working_repo_dir)
+            base_repo.clone(working_repo_dir)
 
     def prepare_repositories(self, num_working_repos):
         base_repo = self.prepare_base_repo()
