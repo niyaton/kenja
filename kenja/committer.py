@@ -45,7 +45,10 @@ class SyntaxTreesCommitterBase:
             commit = self.org_repo.commit(commit_hexsha)
             self.apply_change(repo, commit)
 
-
+    def is_commit_target(self, blob):
+        if not blob.name.endswith('.java'):
+            return False
+        return self.is_completed_parse(blob)
 
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
@@ -79,10 +82,9 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
             if not isinstance(entry, Blob):
                 continue
 
-            if not entry.name.endswith('.java'):
+            if not self.is_commit_target(entry):
                 continue
-            if self.is_completed_parse(entry):
-                added_files[self.get_normalized_path(entry.path)] = entry.hexsha
+            added_files[self.get_normalized_path(entry.path)] = entry.hexsha
 
         self.add_files(repo, repo.index, added_files)
         repo.index.commit(commit.hexsha)
@@ -96,16 +98,14 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for p in commit.parents:
             for diff in p.diff(commit):
                 if(diff.a_blob):
-                    if not diff.a_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.a_blob):
                         continue
-                    if self.is_completed_parse(diff.a_blob):
-                        removed_files.append(self.get_normalized_path(diff.a_blob.path))
+                    removed_files.append(self.get_normalized_path(diff.a_blob.path))
 
                 if(diff.b_blob):
-                    if not diff.b_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.b_blob):
                         continue
-                    if self.is_completed_parse(diff.b_blob):
-                        added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
+                    added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
 
 
             self.remove_files(new_repo, index, removed_files)
@@ -125,13 +125,11 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
             if not isinstance(entry, Blob):
                 continue
 
-            if not entry.name.endswith('.java'):
+            if not self.is_commit_target(entry):
                 continue
-
-            if self.is_completed_parse(entry):
-                (mode, binsha) = self.write_syntax_tree(repo, entry)
-                path = self.get_normalized_path(entry.path)
-                self.previous_top_tree[path] = (mode, binsha)
+            (mode, binsha) = self.write_syntax_tree(repo, entry)
+            path = self.get_normalized_path(entry.path)
+            self.previous_top_tree[path] = (mode, binsha)
 
         (mode, binsha) = mktree_from_iter(repo.odb, self.iter_object_info())
         commit_from_binsha(repo, binsha, commit.hexsha)
@@ -147,21 +145,19 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for p in commit.parents:
             for diff in p.diff(commit):
                 if(diff.a_blob):
-                    if not diff.a_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.a_blob):
                         continue
-                    if self.is_completed_parse(diff.a_blob):
-                        path = self.get_normalized_path(diff.a_blob.path)
-                        self.previous_top_tree.pop(path)
-                        changed = True
+                    path = self.get_normalized_path(diff.a_blob.path)
+                    self.previous_top_tree.pop(path)
+                    changed = True
 
                 if(diff.b_blob):
-                    if not diff.b_blob.name.endswith(".java"):
+                    if not self.is_commit_target(diff.b_blob):
                         continue
-                    if self.is_completed_parse(diff.b_blob):
-                        path = self.get_normalized_path(diff.b_blob.path)
-                        (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
-                        self.previous_top_tree[path] = (mode, binsha)
-                        changed = True
+                    path = self.get_normalized_path(diff.b_blob.path)
+                    (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
+                    self.previous_top_tree[path] = (mode, binsha)
+                    changed = True
 
         if changed:
             (mode, binsha) = mktree_from_iter(new_repo.odb, self.iter_object_info())
