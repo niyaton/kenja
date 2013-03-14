@@ -7,6 +7,7 @@ import gittools
 from gitdb.util import (hex_to_bin,
                         bin_to_hex
                         )
+from tempfile import NamedTemporaryFile
 
 def write_submodule_config(f, name, path ,url):
     config = RawConfigParser()
@@ -16,6 +17,12 @@ def write_submodule_config(f, name, path ,url):
     config.set(section, 'url', url)
 
     config.write(f)
+
+def store_submodule_config(odb, name, path, url):
+    with NamedTemporaryFile() as f:
+        write_submodule_config(f, name, path, url)
+        f.flush()
+        return gittools.write_blob(odb, f.name)
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
