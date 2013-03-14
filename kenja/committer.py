@@ -119,9 +119,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         self.previous_top_tree = {}
 
     def construct_from_commit(self, repo, commit):
-        modes = []
-        binshas = []
-        names = []
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
                 continue
@@ -131,13 +128,10 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
             if self.is_completed_parse(entry):
                 (mode, binsha) = self.write_syntax_tree(repo, entry)
-                modes.append(mode)
-                binshas.append(binsha)
                 path = self.get_normalized_path(entry.path)
-                names.append(path)
                 self.previous_top_tree[path] = (mode, binsha)
 
-        (mode, binsha) = mktree(repo.odb, modes, binshas, names)
+        (mode, binsha) = mktree_from_iter(repo.odb, self.iter_object_info())
         commit_from_binsha(repo, binsha, commit.hexsha)
 
     def write_syntax_tree(self, repo, blob):
