@@ -18,11 +18,11 @@ from multiprocessing import (
                             )
 
 class SyntaxTreesCommitterBase:
-   def __init__(self, org_repo, syntax_trees_dir):
+    def __init__(self, org_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.syntax_trees_dir = syntax_trees_dir
 
-   def is_completed_parse(self, blob):
+    def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
         cmd = ['find', path, '-type', 'f']
         output = check_output(cmd)
@@ -31,19 +31,21 @@ class SyntaxTreesCommitterBase:
             pass
         return len(output) > 0
 
-   def get_normalized_path(self, path):
-       return path.replace("/", "_")
+    def get_normalized_path(self, path):
+        return path.replace("/", "_")
 
-   def commit_syntax_trees(self, repo, changed_commits):
-       start_commit = self.org_repo.commit(changed_commits.pop(0))
-       total_commits = len(changed_commits)
-       print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-       self.construct_from_commit(repo, start_commit)
+    def commit_syntax_trees(self, repo, changed_commits):
+        start_commit = self.org_repo.commit(changed_commits.pop(0))
+        total_commits = len(changed_commits)
+        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
+        self.construct_from_commit(repo, start_commit)
 
-       for (num, commit_hexsha) in izip(count(1), changed_commits):
-           print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-           commit = self.org_repo.commit(commit_hexsha)
-           self.apply_change(repo, commit)
+        for (num, commit_hexsha) in izip(count(1), changed_commits):
+            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
+            commit = self.org_repo.commit(commit_hexsha)
+            self.apply_change(repo, commit)
+
+
 
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
