@@ -1,10 +1,10 @@
+from __future__ import absolute_import
 import os
-from git import Repo
-from git import Commit
-from exc import InvalidHistoragePathException
-from parser import ParserExecutor
-from committer import SyntaxTreesParallelCommitter
-from committer import FastSyntaxTreesCommitter
+from git.repo import Repo
+from git.objects import Commit
+from kenja.parser import ParserExecutor
+from kenja.committer import SyntaxTreesParallelCommitter
+from kenja.committer import FastSyntaxTreesCommitter
 
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"

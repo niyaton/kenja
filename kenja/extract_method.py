@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from git import Repo
-import singles
-from historage import *
-from gitdiff import GitDiffParser
+import kenja.singles as singles
+from kenja.historage import *
+from kenja.gitdiff import GitDiffParser
 from collections import defaultdict
 
 def detect_extract_method(historage):
