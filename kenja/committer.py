@@ -5,7 +5,7 @@ from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
 from itertools import (count, izip, chain)
-from kenja.gittools import (
+from kenja.git.util import (
                             commit_from_binsha,
                             mktree_from_iter,
                             write_tree
@@ -14,7 +14,7 @@ from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
-from kenja.submodule import (
+from kenja.git.submodule import (
                                 store_submodule_config,
                                 get_submodule_tree_content
                     )

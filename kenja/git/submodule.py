@@ -3,7 +3,7 @@ from itertools import izip
 from itertools import count
 from git.objects import Commit
 from ConfigParser import RawConfigParser
-import kenja.gittools as gittools
+from kenja.git.util import write_blob, mktree_from_iter
 from gitdb.util import (hex_to_bin,
                         bin_to_hex
                         )
@@ -22,7 +22,7 @@ def store_submodule_config(odb, name, path, url):
     with NamedTemporaryFile() as f:
         write_submodule_config(f, name, path, url)
         f.flush()
-        return gittools.write_blob(odb, f.name)
+        return write_blob(odb, f.name)
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
@@ -56,12 +56,12 @@ def get_submodule_tree_content(commit_hexsha, name):
 
 def create_submodule_tree(odb, submodule_commit_hexsha):
     submodule_conf = '/Users/kenjif/test_gitmodules'
-    conf_mode, conf_binsha = gittools.write_blob(odb, submodule_conf)
+    conf_mode, conf_binsha = write_blob(odb, submodule_conf)
     tree_contents = []
     tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
     tree_contents.append(get_submodule_tree_content(submodule_commit_hexsha, 'jEdit'))
 
-    tree_mode, binsha = gittools.mktree_from_iter(odb, tree_contents)
+    tree_mode, binsha = mktree_from_iter(odb, tree_contents)
     return bin_to_hex(binsha)
 
 if __name__ == '__main__':
