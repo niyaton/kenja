@@ -157,7 +157,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                         continue
                     if self.is_completed_parse(diff.b_blob):
                         path = self.get_normalized_path(diff.b_blob.path)
-                        #write_tree(repo.odb, )
                         (mode, binsha) = self.write_syntax_tree(new_repo, diff.b_blob)
                         self.previous_top_tree[path] = (mode, binsha)
                         changed = True
