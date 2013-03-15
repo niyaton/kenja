@@ -160,7 +160,8 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 continue
             trees[entry.hexsha] = self.add_changed_blob(repo, entry)
 
-        new_commit = self.commit2(repo, commit, trees.values())
+        tree_contents = sorted(trees.values(), key =lambda i:i[2])
+        new_commit = self.commit(repo, commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
         self.top_trees[new_commit.hexsha] = trees
 
@@ -188,7 +189,8 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                     continue
                 trees[diff.b_blob.hexsha] = self.add_changed_blob(repo, diff.b_blob)
 
-        new_commit = self.commit2(repo, commit, trees.values())
+        tree_contents = sorted(trees.values(), key =lambda i:i[2])
+        new_commit = self.commit(repo, commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
         self.top_trees[new_commit.hexsha] = trees
 
