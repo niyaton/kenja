@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+from itertools import count, izip
 from git.repo import Repo
 from git.objects import Commit
 from kenja.parser import ParserExecutor
@@ -20,6 +21,8 @@ class HistorageConverter:
         self.working_dir = working_dir
 
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
+
+        self.num_commits = 0
 
     def get_changed_commits(self):
         changed_commits = []
@@ -42,6 +45,7 @@ class HistorageConverter:
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
+            self.num_commits = self.num_commits + 1
             commit = self.org_repo.commit(commit)
             for p in commit.parents:
                 for diff in p.diff(commit):
@@ -75,7 +79,9 @@ class HistorageConverter:
         committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
         #committer.commit_syntax_trees(base_repo, self.changed_commits)
-        for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
+        num_commits = self.num_commits if self.num_commits != 0 else '???'
+        for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
+            print '[%d/%s] commit to: %s' % (num, num_commits, base_repo.git_dir)
             commit = self.org_repo.commit(commit)
             committer.apply_change(base_repo, commit)
 

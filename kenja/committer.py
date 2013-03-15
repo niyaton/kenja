@@ -170,7 +170,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         return write_tree(repo.odb, src)
 
     def apply_change(self, repo, commit):
-        print '[test] %s commit to: %s' % (commit.hexsha, repo.git_dir)
         if commit.parents:
             parent = commit.parents[0]
             converted_parent_hexsha = self.old2new[parent.hexsha]
