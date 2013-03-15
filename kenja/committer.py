@@ -33,6 +33,11 @@ class SyntaxTreesCommitterBase:
             pass
         return len(output) > 0
 
+    def is_commit_target(self, blob):
+        if not blob.name.endswith('.java'):
+            return False
+        return self.is_completed_parse(blob)
+
     def get_normalized_path(self, path):
         return path.replace("/", "_")
 
@@ -47,10 +52,6 @@ class SyntaxTreesCommitterBase:
             commit = self.org_repo.commit(commit_hexsha)
             self.apply_change(repo, commit)
 
-    def is_commit_target(self, blob):
-        if not blob.name.endswith('.java'):
-            return False
-        return self.is_completed_parse(blob)
 
 class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
