@@ -179,25 +179,28 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         if commit.parents:
             parent = commit.parents[0]
             converted_parent_hexsha = self.old2new[parent.hexsha]
-            trees = deepcopy(self.top_trees[converted_parent_hexsha])
+            trees = self.create_tree_contents(self.top_trees[converted_parent_hexsha], parent, commit)
         else:
             self.construct_from_commit(repo, commit)
             return
-
-        for diff in parent.diff(commit):
-            if (diff.a_blob):
-                if self.is_commit_target(diff.a_blob):
-                    trees.pop(diff.a_blob.hexsha)
-
-            if (diff.b_blob):
-                if not self.is_commit_target(diff.b_blob):
-                    continue
-                trees[diff.b_blob.hexsha] = self.add_changed_blob(repo, diff.b_blob)
 
         tree_contents = sorted(trees.values(), key =lambda i:i[2])
         new_commit = self.commit(repo, commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
         self.top_trees[new_commit.hexsha] = trees
+
+    def create_tree_contents(self, base_tree_contents, parent, commit):
+        tree_contents = deepcopy(base_tree_contents)
+        for diff in parent.diff(commit):
+            if (diff.a_blob):
+                if self.is_commit_target(diff.a_blob):
+                    tree_contents.pop(diff.a_blob.hexsha)
+
+            if (diff.b_blob):
+                if not self.is_commit_target(diff.b_blob):
+                    continue
+                tree_contents[diff.b_blob.hexsha] = self.add_changed_blob(repo, diff.b_blob)
+        return tree_contents
 
     def iter_object_info(self):
         for (name, (mode, binsha)) in self.previous_top_tree.items():
