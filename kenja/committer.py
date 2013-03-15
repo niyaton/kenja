@@ -127,6 +127,8 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         self.top_trees = {}
         self.blob2tree = {}
 
+        self.create_submodule_info()
+
     def add_changed_blob(self, new_repo, blob):
         if blob.hexsha in self.blob2tree:
             return self.blob2tree[blob.hexsha]
@@ -137,15 +139,19 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         return self.blob2tree[blob.hexsha]
 
     def commit(self, new_repo, org_commit, tree_contents):
-        submodule_info = []
-        submodule_info.append((self.submodule_conf_mode, self.submodule_conf_binsha, '.gitmodules'))
+        submodule_info = [self.gitmodules_info]
         submodule_info.append(get_submodule_tree_content(org_commit.hexsha, 'org_repo'))
+
         (mode, binsha) = mktree_from_iter(new_repo.odb, chain(tree_contents, submodule_info))
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 
         message = org_commit.message.encode(org_commit.encoding)
         return commit_from_binsha(new_repo, binsha, message, parents)
+
+    def create_submodule_info(self):
+        mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
+        self.gitmodules_info = (mode, binsha, '.gitmodules')
 
     def construct_from_commit(self, repo, commit):
         mode, binsha = store_submodule_config(repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
