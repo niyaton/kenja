@@ -120,39 +120,40 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
 
 class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
-    def __init__(self, org_repo, syntax_trees_dir):
+    def __init__(self, org_repo, new_repo, syntax_trees_dir):
         SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
         self.old2new = {}
         self.top_trees = {}
         self.blob2tree = {}
+        self.new_repo = new_repo
 
         self.create_submodule_info()
 
-    def add_changed_blob(self, new_repo, blob):
+    def add_changed_blob(self, blob):
         if blob.hexsha in self.blob2tree:
             return self.blob2tree[blob.hexsha]
 
-        (mode, binsha) = self.write_syntax_tree(new_repo, blob)
+        (mode, binsha) = self.write_syntax_tree(self.new_repo, blob)
         path = self.get_normalized_path(blob.path)
         self.blob2tree[blob.hexsha] = (mode, binsha, path)
         return self.blob2tree[blob.hexsha]
 
-    def commit(self, new_repo, org_commit, tree_contents):
+    def commit(self, org_commit, tree_contents):
         submodule_info = [self.gitmodules_info]
         submodule_info.append(get_submodule_tree_content(org_commit.hexsha, 'org_repo'))
 
-        (mode, binsha) = mktree_from_iter(new_repo.odb, chain(tree_contents, submodule_info))
+        (mode, binsha) = mktree_from_iter(self.new_repo.odb, chain(tree_contents, submodule_info))
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 
         message = org_commit.message.encode(org_commit.encoding)
-        return commit_from_binsha(new_repo, binsha, message, parents)
+        return commit_from_binsha(self.new_repo, binsha, message, parents)
 
     def create_submodule_info(self):
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
         self.gitmodules_info = (mode, binsha, '.gitmodules')
 
-    def create_tree_contents_from_commit(self, repo, commit):
+    def create_tree_contents_from_commit(self, commit):
         trees = {}
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
@@ -160,7 +161,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
 
             if not self.is_commit_target(entry):
                 continue
-            trees[entry.hexsha] = self.add_changed_blob(repo, entry)
+            trees[entry.hexsha] = self.add_changed_blob(entry)
 
         return trees
 
@@ -168,16 +169,16 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
         return write_tree(repo.odb, src)
 
-    def apply_change(self, repo, commit):
+    def apply_change(self, commit):
         if commit.parents:
             parent = commit.parents[0]
             converted_parent_hexsha = self.old2new[parent.hexsha]
             trees = self.create_tree_contents(self.top_trees[converted_parent_hexsha], parent, commit)
         else:
-            trees = self.create_tree_contents_from_commit(repo, commit)
+            trees = self.create_tree_contents_from_commit(commit)
 
         tree_contents = sorted(trees.values(), key =lambda i:i[2])
-        new_commit = self.commit(repo, commit, tree_contents)
+        new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
         self.top_trees[new_commit.hexsha] = trees
 
@@ -191,7 +192,7 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
             if (diff.b_blob):
                 if not self.is_commit_target(diff.b_blob):
                     continue
-                tree_contents[diff.b_blob.hexsha] = self.add_changed_blob(repo, diff.b_blob)
+                tree_contents[diff.b_blob.hexsha] = self.add_changed_blob(diff.b_blob)
         return tree_contents
 
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):

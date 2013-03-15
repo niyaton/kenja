@@ -63,13 +63,13 @@ class HistorageConverter:
     def construct_historage(self):
         print 'create historage...'
 
-        committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
+        committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             print '[%d/%s] commit to: %s' % (num, num_commits, base_repo.git_dir)
             commit = self.org_repo.commit(commit)
-            committer.apply_change(base_repo, commit)
+            committer.apply_change(commit)
 
 class ParallelHistorageConverter(HistorageConverter):
     def __init__(self, org_git_repo_dir, working_dir):
