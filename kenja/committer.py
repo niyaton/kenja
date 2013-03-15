@@ -122,7 +122,6 @@ class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
 class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, syntax_trees_dir):
         SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
-        self.previous_top_tree = {}
         self.old2new = {}
         self.top_trees = {}
         self.blob2tree = {}
@@ -194,10 +193,6 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                     continue
                 tree_contents[diff.b_blob.hexsha] = self.add_changed_blob(repo, diff.b_blob)
         return tree_contents
-
-    def iter_object_info(self):
-        for (name, (mode, binsha)) in self.previous_top_tree.items():
-            yield mode, binsha, name
 
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
     repo = Repo(repo_dir)
