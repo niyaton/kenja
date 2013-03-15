@@ -49,18 +49,12 @@ class HistorageConverter:
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             commit = self.org_repo.commit(commit)
             for p in commit.parents:
-                changed = False
                 for diff in p.diff(commit):
-                    if diff.a_blob and diff.a_blob.name.endswith(".java"):
-                        changed = True
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
                         if not diff.b_blob.hexsha in parsed_blob:
                             parser_executor.parse_blob(diff.b_blob)
                             parsed_blob.add(diff.b_blob.hexsha)
 
-                        changed = True
-                if changed:
-                    self.changed_commits.append(commit.hexsha)
         print 'waiting parser processes'
         parser_executor.join()
 
@@ -82,11 +76,6 @@ class HistorageConverter:
 
     def construct_historage(self):
         print 'create historage...'
-
-        #if not self.changed_commits:
-        #    self.changed_commits = self.get_changed_commits()
-
-        #self.changed_commits.reverse()
 
         committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
