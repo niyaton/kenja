@@ -70,9 +70,9 @@ def mktree(odb, modes, binshas, names):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
-def commit_from_binsha(repo, binsha, message):
+def commit_from_binsha(repo, binsha, message, parents=None):
     tree = Tree.new(repo, bin_to_hex(binsha))
-    return Commit.create_from_tree(repo, tree, message, None, True)
+    return Commit.create_from_tree(repo, tree, message, parents, True)
 
 def mktree_from_iter(odb, object_info_iter):
     items = []

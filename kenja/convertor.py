@@ -3,6 +3,7 @@ import os
 from git.repo import Repo
 from git.objects import Commit
 from kenja.parser import ParserExecutor
+from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesParallelCommitter
 from kenja.committer import FastSyntaxTreesCommitter
 
@@ -44,14 +45,19 @@ class HistorageConverter:
         print 'create paresr processes...'
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         self.changed_commits = []
-        for commit in self.org_repo.iter_commits(self.org_repo.head):
+        parsed_blob = set()
+        for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
+            commit = self.org_repo.commit(commit)
             for p in commit.parents:
                 changed = False
                 for diff in p.diff(commit):
                     if diff.a_blob and diff.a_blob.name.endswith(".java"):
                         changed = True
                     if diff.b_blob and diff.b_blob.name.endswith(".java"):
-                        parser_executor.parse_blob(diff.b_blob)
+                        if not diff.b_blob.hexsha in parsed_blob:
+                            parser_executor.parse_blob(diff.b_blob)
+                            parsed_blob.add(diff.b_blob.hexsha)
+
                         changed = True
                 if changed:
                     self.changed_commits.append(commit.hexsha)
@@ -77,14 +83,17 @@ class HistorageConverter:
     def construct_historage(self):
         print 'create historage...'
 
-        if not self.changed_commits:
-            self.changed_commits = self.get_changed_commits()
+        #if not self.changed_commits:
+        #    self.changed_commits = self.get_changed_commits()
 
-        self.changed_commits.reverse()
+        #self.changed_commits.reverse()
 
         committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), self.syntax_trees_dir)
         base_repo = self.prepare_base_repo()
-        committer.commit_syntax_trees(base_repo, self.changed_commits)
+        #committer.commit_syntax_trees(base_repo, self.changed_commits)
+        for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
+            commit = self.org_repo.commit(commit)
+            committer.apply_change(base_repo, commit)
 
 class ParallelHistorageConverter(HistorageConverter):
     def __init__(self, org_git_repo_dir, working_dir):
