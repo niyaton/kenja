@@ -21,8 +21,6 @@ class HistorageConverter:
 
         self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
 
-        self.changed_commits = None
-
     def get_changed_commits(self):
         changed_commits = []
         for commit in self.org_repo.iter_commits(self.org_repo.head):
@@ -42,7 +40,6 @@ class HistorageConverter:
     def parse_all_java_files(self):
         print 'create paresr processes...'
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
-        self.changed_commits = []
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             commit = self.org_repo.commit(commit)
