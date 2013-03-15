@@ -24,19 +24,6 @@ class HistorageConverter:
 
         self.num_commits = 0
 
-    def get_changed_commits(self):
-        changed_commits = []
-        for commit in self.org_repo.iter_commits(self.org_repo.head):
-            assert len(commit.parents) < 2
-            for p in commit.parents:
-                for diff in p.diff(commit):
-                    if self.is_target_blob(diff.a_blob, ".java") \
-                        or self.is_target_blob(diff.b_blob, ".java"):
-                            changed_commits.append(commit.hexsha)
-                            break
-
-        return changed_commits
-
     def is_target_blob(self, blob, ext):
         return blob and blob.name.endswith(ext)
 
