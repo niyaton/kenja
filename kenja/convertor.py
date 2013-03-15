@@ -37,9 +37,7 @@ class HistorageConverter:
         return changed_commits
 
     def is_target_blob(self, blob, ext):
-        if not blob:
-            return False
-        return blob.name.endswith(ext)
+        return blob and blob.name.endswith(ext)
 
     def parse_all_java_files(self):
         print 'create paresr processes...'
