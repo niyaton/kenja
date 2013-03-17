@@ -24,32 +24,6 @@ def store_submodule_config(odb, name, path, url):
         f.flush()
         return write_blob(odb, f.name)
 
-def get_reversed_topological_ordered_commits(repo, revs):
-    revs = [repo.commit(rev).hexsha for rev in revs]
-    nodes = list(revs)
-    visited = set()
-    post = []
-    while nodes:
-        node = nodes[-1]
-        if node in visited:
-            nodes.pop()
-            continue
-        commit = repo.commit(node)
-
-        children = []
-        for parent in commit.parents:
-            if not parent.hexsha in visited:
-                children.append(parent.hexsha)
-
-        if children:
-            nodes.extend(children)
-        else:
-            nodes.pop()
-            visited.add(node)
-            post.append(node)
-
-    return post
-
 def get_submodule_tree_content(commit_hexsha, name):
     submodule_mode = '160000'
     return (submodule_mode, hex_to_bin(commit_hexsha), name)
@@ -65,6 +39,7 @@ def create_submodule_tree(odb, submodule_commit_hexsha):
     return bin_to_hex(binsha)
 
 if __name__ == '__main__':
+    from kenja.git.util import get_reversed_topological_ordered_commits
     repo = Repo('/Users/kenjif/msr_repos/git/jEdit')
 
     commits = get_reversed_topological_ordered_commits(repo, repo.refs)
