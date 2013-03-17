@@ -195,6 +195,18 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
                 tree_contents[diff.b_blob.hexsha] = self.add_changed_blob(diff.b_blob)
         return tree_contents
 
+    def create_heads(self):
+        for head in self.org_repo.heads:
+            hexsha = head.commit.hexsha
+            if hexsha in self.old2new:
+                self.new_repo.create_head(head.name, commit=self.old2new[hexsha])
+
+    def create_tags(self):
+        for tag_ref in self.org_repo.tags:
+            hexsha = tag_ref.commit.hexsha
+            if hexsha in self.old2new:
+                self.new_repo.create_tag(tag_ref.name, ref=self.old2new[hexsha])
+
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
