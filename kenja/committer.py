@@ -20,11 +20,16 @@ from kenja.git.submodule import (
                                 get_submodule_tree_content
                     )
 
-class SyntaxTreesCommitterBase:
+class SyntaxTreesCommitter:
     def __init__(self, org_repo, new_repo, syntax_trees_dir):
         self.org_repo = org_repo
         self.new_repo = new_repo
         self.syntax_trees_dir = syntax_trees_dir
+        self.old2new = {}
+        self.top_trees = {}
+        self.blob2tree = {}
+
+        self.create_submodule_info()
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -53,16 +58,6 @@ class SyntaxTreesCommitterBase:
             print '[%d/%d] commit to: %s' % (num, total_commits, self.new_repo.git_dir)
             commit = self.org_repo.commit(commit_hexsha)
             self.apply_change(self.new_repo, commit)
-
-
-class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
-    def __init__(self, org_repo, new_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(self, org_repo, new_repo, syntax_trees_dir)
-        self.old2new = {}
-        self.top_trees = {}
-        self.blob2tree = {}
-
-        self.create_submodule_info()
 
     def add_changed_blob(self, blob):
         if blob.hexsha in self.blob2tree:

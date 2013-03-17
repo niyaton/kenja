@@ -6,7 +6,7 @@ from git.objects import Commit
 from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesParallelCommitter
-from kenja.committer import FastSyntaxTreesCommitter
+from kenja.committer import SyntaxTreesCommitter
 
 class HistorageConverter:
     parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
@@ -64,7 +64,7 @@ class HistorageConverter:
         print 'create historage...'
 
         base_repo = self.prepare_base_repo()
-        committer = FastSyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
+        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             print '[%d/%s] commit to: %s' % (num, num_commits, base_repo.git_dir)
@@ -84,7 +84,7 @@ class ParallelHistorageConverter(HistorageConverter):
         self.prepare_repositories(self.num_commit_process)
 
         divided_commits = self.divide_commits(self.num_commit_process)
-        parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.org_repo.git_dir, FastSyntaxTreesCommitter)
+        parallel_committer = SyntaxTreesParallelCommitter(self.syntax_trees_dir, self.org_repo.git_dir, SyntaxTreesCommitter)
 
         for (commits, working_repo_dir) in zip(divided_commits, self.working_repo_dirs):
             parallel_committer.commit_syntax_trees_parallel(working_repo_dir, commits)
