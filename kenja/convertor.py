@@ -50,7 +50,7 @@ class HistorageConverter:
             commit = self.org_repo.commit(commit)
             for p in commit.parents:
                 for diff in p.diff(commit):
-                    if diff.b_blob and diff.b_blob.name.endswith(".java"):
+                    if self.is_target_blob(diff.b_blob, '.java'):
                         if not diff.b_blob.hexsha in parsed_blob:
                             parser_executor.parse_blob(diff.b_blob)
                             parsed_blob.add(diff.b_blob.hexsha)
