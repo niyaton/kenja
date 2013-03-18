@@ -199,7 +199,11 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
         for head in self.org_repo.heads:
             hexsha = head.commit.hexsha
             if hexsha in self.old2new:
-                self.new_repo.create_head(head.name, commit=self.old2new[hexsha])
+                if head.name == 'master':
+                    master = self.new_repo.heads.master
+                    master.set_reference(self.old2new[hexsha])
+                else:
+                    self.new_repo.create_head(head.name, commit=self.old2new[hexsha])
 
     def create_tags(self):
         for tag_ref in self.org_repo.tags:
