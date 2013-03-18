@@ -1,23 +1,20 @@
 from __future__ import absolute_import
-import shutil
 import os
 from copy import deepcopy
-from bisect import bisect_left
 from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
-from itertools import (count, izip, chain)
-from kenja.git.util import (
-                            tree_mode,
-                            commit_from_binsha,
-                            mktree_from_iter,
-                            write_tree
-                    )
-from kenja.git.tree_contents import SortedTreeContents
+from itertools import (chain)
 from multiprocessing import (
                                 Pool,
                                 cpu_count
                             )
+from kenja.git.tree_contents import SortedTreeContents
+from kenja.git.util import (
+                            commit_from_binsha,
+                            mktree_from_iter,
+                            write_tree
+                    )
 from kenja.git.submodule import (
                                 store_submodule_config,
                                 get_submodule_tree_content
@@ -44,11 +41,16 @@ class SyntaxTreesCommitter:
         return len(output) > 0
 
     def is_commit_target(self, blob):
-        if not blob.name.endswith('.java'):
+        if blob is None or not blob.name.endswith('.java'):
             return False
         return self.is_completed_parse(blob)
 
     def get_normalized_path(self, path):
+        # TODO We cannot avoid conflict of normalized path such as following patterns:
+        # a: foo/bar_/hoge.java
+        # b: foo/bar/_hoge.java
+        # but we consider that strange name pattern is rarely case.
+        path = path.replace("_", "__")
         return path.replace("/", "_")
 
     def add_changed_blob(self, blob):
@@ -58,6 +60,10 @@ class SyntaxTreesCommitter:
         binsha = self.write_syntax_tree(self.new_repo, blob)
         self.blob2tree[blob.hexsha] = binsha
         return self.blob2tree[blob.hexsha]
+
+    def write_syntax_tree(self, repo, blob):
+        src = os.path.join(self.syntax_trees_dir, blob.hexsha)
+        return write_tree(repo.odb, src)[1]
 
     def commit(self, org_commit, tree_contents):
         submodule_info = [self.gitmodules_info]
@@ -70,31 +76,9 @@ class SyntaxTreesCommitter:
         message = org_commit.message.encode(org_commit.encoding)
         return commit_from_binsha(self.new_repo, binsha, message, parents)
 
-    def iter_tree_contents(self, binshas, names):
-        for binsha, name in izip(binshas, names):
-            yield (tree_mode, binsha, name)
-
     def create_submodule_info(self):
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
         self.gitmodules_info = (mode, binsha, '.gitmodules')
-
-    def create_tree_contents_from_commit(self, commit):
-        tree_contents = SortedTreeContents()
-        for entry in commit.tree.traverse():
-            if not isinstance(entry, Blob):
-                continue
-
-            if not self.is_commit_target(entry):
-                continue
-            path = self.get_normalized_path(entry.path)
-            binsha = self.add_changed_blob(entry)
-            tree_contents.insert(path, binsha)
-
-        return tree_contents
-
-    def write_syntax_tree(self, repo, blob):
-        src = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        return write_tree(repo.odb, src)[1]
 
     def apply_change(self, commit):
         if commit.parents:
@@ -106,26 +90,35 @@ class SyntaxTreesCommitter:
         self.old2new[commit.hexsha] = new_commit.hexsha
         self.sorted_tree_contents[new_commit.hexsha] = tree_contents
 
+    def create_tree_contents_from_commit(self, commit):
+        tree_contents = SortedTreeContents()
+        for entry in commit.tree.traverse():
+            if isinstance(entry, Blob) and self.is_commit_target(entry):
+                path = self.get_normalized_path(entry.path)
+                binsha = self.add_changed_blob(entry)
+                tree_contents.insert(path, binsha)
+
+        return tree_contents
+
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
         for diff in parent.diff(commit):
-            if (diff.a_blob):
-                if self.is_commit_target(diff.a_blob):
-                    name = self.get_normalized_path(diff.a_blob.path)
-                    if not diff.b_blob:
-                        tree_contents.remove(name)
-                    else:
-                        binsha = self.add_changed_blob(diff.b_blob)
-                        tree_contents.replace(name, binsha)
-                        continue
-
-            if (diff.b_blob):
-                if not self.is_commit_target(diff.b_blob):
-                    continue
-                path = self.get_normalized_path(diff.b_blob.path)
+            is_a_target = self.is_commit_target(diff.a_blob)
+            is_b_target = self.is_commit_target(diff.b_blob)
+            if is_a_target and not is_b_target:
+                # Blob was removed
+                name = self.get_normalized_path(diff.a_blob.path)
+                tree_contents.remove(name)
+            elif is_b_target:
+                name = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
-                tree_contents.insert(path, binsha)
+                if is_a_target:
+                    # Blob was changed
+                    tree_contents.replace(name, binsha)
+                else:
+                    # Blob was created
+                    tree_contents.insert(name, binsha)
         return tree_contents
 
     def create_heads(self):
