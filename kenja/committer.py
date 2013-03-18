@@ -79,8 +79,8 @@ class SyntaxTreesCommitter:
         self.gitmodules_info = (mode, binsha, '.gitmodules')
 
     def create_tree_contents_from_commit(self, commit):
-        trees = []
-        keys = []
+        binshas = []
+        names = []
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
                 continue
@@ -89,11 +89,11 @@ class SyntaxTreesCommitter:
                 continue
             path = self.get_normalized_path(entry.path)
             binsha = self.add_changed_blob(entry)
-            pos = bisect_left(keys, path)
-            trees.insert(pos, binsha)
-            keys.insert(pos, path)
+            pos = bisect_left(names, path)
+            binshas.insert(pos, binsha)
+            names.insert(pos, path)
 
-        return (trees, keys)
+        return (binshas, names)
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -103,15 +103,15 @@ class SyntaxTreesCommitter:
         if commit.parents:
             parent = commit.parents[0]
             converted_parent_hexsha = self.old2new[parent.hexsha]
-            trees, keys = self.create_tree_contents(self.top_tree_binshas[converted_parent_hexsha], parent, commit)
+            binshas, names = self.create_tree_contents(self.top_tree_binshas[converted_parent_hexsha], parent, commit)
         else:
-            trees, keys = self.create_tree_contents_from_commit(commit)
+            binshas, names = self.create_tree_contents_from_commit(commit)
 
-        tree_iter = self.iter_tree_contents(trees, keys)
+        tree_iter = self.iter_tree_contents(binshas, names)
         new_commit = self.commit(commit, tree_iter)
         self.old2new[commit.hexsha] = new_commit.hexsha
-        self.top_tree_binshas[new_commit.hexsha] = trees
-        self.top_tree_names[new_commit.hexsha] = keys
+        self.top_tree_binshas[new_commit.hexsha] = binshas
+        self.top_tree_names[new_commit.hexsha] = names
 
     def create_tree_contents(self, base_tree_contents, parent, commit):
         tree_contents = deepcopy(base_tree_contents)
