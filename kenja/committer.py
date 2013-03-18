@@ -76,6 +76,16 @@ class SyntaxTreesCommitter:
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
         self.gitmodules_info = (mode, binsha, '.gitmodules')
 
+    def apply_change(self, commit):
+        if commit.parents:
+            tree_contents = self.create_tree_contents(commit.parents[0], commit)
+        else:
+            tree_contents = self.create_tree_contents_from_commit(commit)
+
+        new_commit = self.commit(commit, tree_contents)
+        self.old2new[commit.hexsha] = new_commit.hexsha
+        self.sorted_tree_contents[new_commit.hexsha] = tree_contents
+
     def create_tree_contents_from_commit(self, commit):
         tree_contents = SortedTreeContents()
         for entry in commit.tree.traverse():
@@ -89,16 +99,6 @@ class SyntaxTreesCommitter:
             tree_contents.insert(path, binsha)
 
         return tree_contents
-
-    def apply_change(self, commit):
-        if commit.parents:
-            tree_contents = self.create_tree_contents(commit.parents[0], commit)
-        else:
-            tree_contents = self.create_tree_contents_from_commit(commit)
-
-        new_commit = self.commit(commit, tree_contents)
-        self.old2new[commit.hexsha] = new_commit.hexsha
-        self.sorted_tree_contents[new_commit.hexsha] = tree_contents
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
