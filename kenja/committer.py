@@ -4,9 +4,8 @@ from copy import deepcopy
 from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
-from itertools import (izip, chain)
+from itertools import (chain)
 from kenja.git.util import (
-                            tree_mode,
                             commit_from_binsha,
                             mktree_from_iter,
                             write_tree
