@@ -57,6 +57,10 @@ class SyntaxTreesCommitter:
         self.blob2tree[blob.hexsha] = binsha
         return self.blob2tree[blob.hexsha]
 
+    def write_syntax_tree(self, repo, blob):
+        src = os.path.join(self.syntax_trees_dir, blob.hexsha)
+        return write_tree(repo.odb, src)[1]
+
     def commit(self, org_commit, tree_contents):
         submodule_info = [self.gitmodules_info]
         submodule_info.append(get_submodule_tree_content(org_commit.hexsha, 'org_repo'))
@@ -89,10 +93,6 @@ class SyntaxTreesCommitter:
             tree_contents.insert(path, binsha)
 
         return tree_contents
-
-    def write_syntax_tree(self, repo, blob):
-        src = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        return write_tree(repo.odb, src)[1]
 
     def apply_change(self, commit):
         if commit.parents:
