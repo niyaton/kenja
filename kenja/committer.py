@@ -42,7 +42,7 @@ class SyntaxTreesCommitter:
         return len(output) > 0
 
     def is_commit_target(self, blob):
-        if not blob.name.endswith('.java'):
+        if blob is None or not blob.name.endswith('.java'):
             return False
         return self.is_completed_parse(blob)
 
@@ -108,22 +108,21 @@ class SyntaxTreesCommitter:
         converted_parent_hexsha = self.old2new[parent.hexsha]
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
         for diff in parent.diff(commit):
-            if (diff.a_blob):
-                if self.is_commit_target(diff.a_blob):
-                    name = self.get_normalized_path(diff.a_blob.path)
-                    if not diff.b_blob:
-                        tree_contents.remove(name)
-                    else:
-                        binsha = self.add_changed_blob(diff.b_blob)
-                        tree_contents.replace(name, binsha)
-                        continue
-
-            if (diff.b_blob):
-                if not self.is_commit_target(diff.b_blob):
-                    continue
-                path = self.get_normalized_path(diff.b_blob.path)
+            is_a_target = self.is_commit_target(diff.a_blob)
+            is_b_target = self.is_commit_target(diff.b_blob)
+            if is_a_target and not is_b_target:
+                # Blob was removed
+                name = self.get_normalized_path(diff.a_blob.path)
+                tree_contents.remove(name)
+            elif is_b_target:
+                name = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
-                tree_contents.insert(path, binsha)
+                if is_a_target:
+                    # Blob was changed
+                    tree_contents.replace(name, binsha)
+                else:
+                    # Blob was created
+                    tree_contents.insert(name, binsha)
         return tree_contents
 
     def create_heads(self):
