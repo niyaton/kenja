@@ -93,14 +93,10 @@ class SyntaxTreesCommitter:
     def create_tree_contents_from_commit(self, commit):
         tree_contents = SortedTreeContents()
         for entry in commit.tree.traverse():
-            if not isinstance(entry, Blob):
-                continue
-
-            if not self.is_commit_target(entry):
-                continue
-            path = self.get_normalized_path(entry.path)
-            binsha = self.add_changed_blob(entry)
-            tree_contents.insert(path, binsha)
+            if isinstance(entry, Blob) and self.is_commit_target(entry):
+                path = self.get_normalized_path(entry.path)
+                binsha = self.add_changed_blob(entry)
+                tree_contents.insert(path, binsha)
 
         return tree_contents
 
