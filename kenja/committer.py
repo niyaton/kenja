@@ -48,17 +48,6 @@ class SyntaxTreesCommitter:
     def get_normalized_path(self, path):
         return path.replace("/", "_")
 
-    def commit_syntax_trees(self, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        total_commits = len(changed_commits)
-        print '[00/%d] first commit to: %s' % (total_commits, self.new_repo.git_dir)
-        self.construct_from_commit(self.new_repo, start_commit)
-
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, self.new_repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(self.new_repo, commit)
-
     def add_changed_blob(self, blob):
         if blob.hexsha in self.blob2tree:
             return self.blob2tree[blob.hexsha]
