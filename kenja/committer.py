@@ -114,19 +114,19 @@ class SyntaxTreesCommitter:
         self.top_tree_names[new_commit.hexsha] = names
 
     def create_tree_contents(self, base_tree_contents, parent, commit):
-        tree_contents = deepcopy(base_tree_contents)
+        binshas = deepcopy(base_tree_contents)
         converted_parent_hexsha = self.old2new[parent.hexsha]
-        keys = deepcopy(self.top_tree_names[converted_parent_hexsha])
+        names = deepcopy(self.top_tree_names[converted_parent_hexsha])
         for diff in parent.diff(commit):
             pos = None
             if (diff.a_blob):
                 if self.is_commit_target(diff.a_blob):
                     name = self.get_normalized_path(diff.a_blob.path)
-                    pos = bisect_left(keys, name)
-                    pos = pos if pos != len(keys) and keys[pos] == name else None
+                    pos = bisect_left(names, name)
+                    pos = pos if pos != len(names) and names[pos] == name else None
                     if not diff.b_blob:
-                        del keys[pos]
-                        del tree_contents[pos]
+                        del names[pos]
+                        del binshas[pos]
 
             if (diff.b_blob):
                 if not self.is_commit_target(diff.b_blob):
@@ -134,13 +134,13 @@ class SyntaxTreesCommitter:
                 path = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
                 if not pos:
-                    pos = bisect_left(keys, path)
-                    tree_contents.insert(pos, binsha)
-                    keys.insert(pos, path)
+                    pos = bisect_left(names, path)
+                    binshas.insert(pos, binsha)
+                    names.insert(pos, path)
                 else:
-                    tree_contents[pos] = binsha
-                    keys[pos] = path
-        return tree_contents, keys
+                    binshas[pos] = binsha
+                    names[pos] = path
+        return binshas, names
 
     def create_heads(self):
         for head in self.org_repo.heads:
