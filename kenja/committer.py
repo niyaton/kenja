@@ -13,6 +13,7 @@ from kenja.git.util import (
                             mktree_from_iter,
                             write_tree
                     )
+from kenja.git.tree_contents import SortedTreeContents
 from multiprocessing import (
                                 Pool,
                                 cpu_count
@@ -28,8 +29,7 @@ class SyntaxTreesCommitter:
         self.new_repo = new_repo
         self.syntax_trees_dir = syntax_trees_dir
         self.old2new = {}
-        self.top_tree_binshas = {} # sorted tree contents of previous commits
-        self.top_tree_names = {} # sorted paths of top tree.
+        self.sorted_tree_contents = {}
         self.blob2tree = {}
 
         self.create_submodule_info()
@@ -79,8 +79,7 @@ class SyntaxTreesCommitter:
         self.gitmodules_info = (mode, binsha, '.gitmodules')
 
     def create_tree_contents_from_commit(self, commit):
-        binshas = []
-        names = []
+        tree_contents = SortedTreeContents()
         for entry in commit.tree.traverse():
             if not isinstance(entry, Blob):
                 continue
@@ -89,11 +88,9 @@ class SyntaxTreesCommitter:
                 continue
             path = self.get_normalized_path(entry.path)
             binsha = self.add_changed_blob(entry)
-            pos = bisect_left(names, path)
-            binshas.insert(pos, binsha)
-            names.insert(pos, path)
+            tree_contents.insert(path, binsha)
 
-        return (binshas, names)
+        return tree_contents
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -101,44 +98,35 @@ class SyntaxTreesCommitter:
 
     def apply_change(self, commit):
         if commit.parents:
-            binshas, names = self.create_tree_contents(commit.parents[0], commit)
+            tree_contents = self.create_tree_contents(commit.parents[0], commit)
         else:
-            binshas, names = self.create_tree_contents_from_commit(commit)
+            tree_contents = self.create_tree_contents_from_commit(commit)
 
-        tree_iter = self.iter_tree_contents(binshas, names)
-        new_commit = self.commit(commit, tree_iter)
+        new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
-        self.top_tree_binshas[new_commit.hexsha] = binshas
-        self.top_tree_names[new_commit.hexsha] = names
+        self.sorted_tree_contents[new_commit.hexsha] = tree_contents
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
-        binshas = deepcopy(self.top_tree_binshas[converted_parent_hexsha])
-        names = deepcopy(self.top_tree_names[converted_parent_hexsha])
+        tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
         for diff in parent.diff(commit):
-            pos = None
             if (diff.a_blob):
                 if self.is_commit_target(diff.a_blob):
                     name = self.get_normalized_path(diff.a_blob.path)
-                    pos = bisect_left(names, name)
-                    pos = pos if pos != len(names) and names[pos] == name else None
                     if not diff.b_blob:
-                        del names[pos]
-                        del binshas[pos]
+                        tree_contents.remove(name)
+                    else:
+                        binsha = self.add_changed_blob(diff.b_blob)
+                        tree_contents.replace(name, binsha)
+                        continue
 
             if (diff.b_blob):
                 if not self.is_commit_target(diff.b_blob):
                     continue
                 path = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
-                if not pos:
-                    pos = bisect_left(names, path)
-                    binshas.insert(pos, binsha)
-                    names.insert(pos, path)
-                else:
-                    binshas[pos] = binsha
-                    names[pos] = path
-        return binshas, names
+                tree_contents.insert(path, binsha)
+        return tree_contents
 
     def create_heads(self):
         for head in self.org_repo.heads:
