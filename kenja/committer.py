@@ -101,9 +101,7 @@ class SyntaxTreesCommitter:
 
     def apply_change(self, commit):
         if commit.parents:
-            parent = commit.parents[0]
-            converted_parent_hexsha = self.old2new[parent.hexsha]
-            binshas, names = self.create_tree_contents(self.top_tree_binshas[converted_parent_hexsha], parent, commit)
+            binshas, names = self.create_tree_contents(commit.parents[0], commit)
         else:
             binshas, names = self.create_tree_contents_from_commit(commit)
 
@@ -113,9 +111,9 @@ class SyntaxTreesCommitter:
         self.top_tree_binshas[new_commit.hexsha] = binshas
         self.top_tree_names[new_commit.hexsha] = names
 
-    def create_tree_contents(self, base_tree_contents, parent, commit):
-        binshas = deepcopy(base_tree_contents)
+    def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
+        binshas = deepcopy(self.top_tree_binshas[converted_parent_hexsha])
         names = deepcopy(self.top_tree_names[converted_parent_hexsha])
         for diff in parent.diff(commit):
             pos = None
