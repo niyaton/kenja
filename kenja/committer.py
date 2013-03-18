@@ -1,12 +1,10 @@
 from __future__ import absolute_import
-import shutil
 import os
 from copy import deepcopy
-from bisect import bisect_left
 from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
-from itertools import (count, izip, chain)
+from itertools import (izip, chain)
 from kenja.git.util import (
                             tree_mode,
                             commit_from_binsha,
