@@ -21,8 +21,9 @@ from kenja.git.submodule import (
                     )
 
 class SyntaxTreesCommitterBase:
-    def __init__(self, org_repo, syntax_trees_dir):
+    def __init__(self, org_repo, new_repo, syntax_trees_dir):
         self.org_repo = org_repo
+        self.new_repo = new_repo
         self.syntax_trees_dir = syntax_trees_dir
 
     def is_completed_parse(self, blob):
@@ -42,25 +43,24 @@ class SyntaxTreesCommitterBase:
     def get_normalized_path(self, path):
         return path.replace("/", "_")
 
-    def commit_syntax_trees(self, repo, changed_commits):
+    def commit_syntax_trees(self, changed_commits):
         start_commit = self.org_repo.commit(changed_commits.pop(0))
         total_commits = len(changed_commits)
-        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-        self.construct_from_commit(repo, start_commit)
+        print '[00/%d] first commit to: %s' % (total_commits, self.new_repo.git_dir)
+        self.construct_from_commit(self.new_repo, start_commit)
 
         for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
+            print '[%d/%d] commit to: %s' % (num, total_commits, self.new_repo.git_dir)
             commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
+            self.apply_change(self.new_repo, commit)
 
 
 class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
     def __init__(self, org_repo, new_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
+        SyntaxTreesCommitterBase.__init__(self, org_repo, new_repo, syntax_trees_dir)
         self.old2new = {}
         self.top_trees = {}
         self.blob2tree = {}
-        self.new_repo = new_repo
 
         self.create_submodule_info()
 
@@ -149,8 +149,8 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
-    committer = syntax_trees_committer(org_repo, syntax_trees_dir)
-    committer.commit_syntax_trees(repo, changed_commits)
+    committer = syntax_trees_committer(org_repo, repo, syntax_trees_dir)
+    committer.commit_syntax_trees(changed_commits)
 
 class SyntaxTreesParallelCommitter:
     def __init__(self, syntax_trees_dir, org_repo_dir, syntax_trees_committer, processes=None):
