@@ -72,10 +72,6 @@ class SyntaxTreesCommitter:
         message = org_commit.message.encode(org_commit.encoding)
         return commit_from_binsha(self.new_repo, binsha, message, parents)
 
-    def iter_tree_contents(self, binshas, names):
-        for binsha, name in izip(binshas, names):
-            yield (tree_mode, binsha, name)
-
     def create_submodule_info(self):
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
         self.gitmodules_info = (mode, binsha, '.gitmodules')
