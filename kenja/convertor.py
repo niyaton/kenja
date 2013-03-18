@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import os
 from itertools import count, izip
 from git.repo import Repo
-from git.objects import Commit
+from git.objects import Commit, Blob
 from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesParallelCommitter
@@ -34,13 +34,19 @@ class HistorageConverter:
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
             commit = self.org_repo.commit(commit)
-            for p in commit.parents:
-                for diff in p.diff(commit):
-                    if self.is_target_blob(diff.b_blob, '.java'):
-                        if not diff.b_blob.hexsha in parsed_blob:
-                            parser_executor.parse_blob(diff.b_blob)
-                            parsed_blob.add(diff.b_blob.hexsha)
-
+            if commit.parents:
+                for p in commit.parents:
+                    for diff in p.diff(commit):
+                        if self.is_target_blob(diff.b_blob, '.java'):
+                            if not diff.b_blob.hexsha in parsed_blob:
+                                parser_executor.parse_blob(diff.b_blob)
+                                parsed_blob.add(diff.b_blob.hexsha)
+            else:
+                for entry in commit.tree.traverse():
+                    if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
+                        if not entry.hexsha in parsed_blob:
+                            parser_executor.parse_blob(entry)
+                            parsed_blob.add(entry.hexsha)
         print 'waiting parser processes'
         parser_executor.join()
 
