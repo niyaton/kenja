@@ -70,6 +70,8 @@ class HistorageConverter:
             print '[%d/%s] commit to: %s' % (num, num_commits, base_repo.git_dir)
             commit = self.org_repo.commit(commit)
             committer.apply_change(commit)
+        committer.create_heads()
+        committer.create_tags()
 
 class ParallelHistorageConverter(HistorageConverter):
     def __init__(self, org_git_repo_dir, working_dir):
