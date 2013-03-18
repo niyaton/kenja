@@ -20,10 +20,16 @@ from kenja.git.submodule import (
                                 get_submodule_tree_content
                     )
 
-class SyntaxTreesCommitterBase:
-    def __init__(self, org_repo, syntax_trees_dir):
+class SyntaxTreesCommitter:
+    def __init__(self, org_repo, new_repo, syntax_trees_dir):
         self.org_repo = org_repo
+        self.new_repo = new_repo
         self.syntax_trees_dir = syntax_trees_dir
+        self.old2new = {}
+        self.top_trees = {}
+        self.blob2tree = {}
+
+        self.create_submodule_info()
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -41,93 +47,6 @@ class SyntaxTreesCommitterBase:
 
     def get_normalized_path(self, path):
         return path.replace("/", "_")
-
-    def commit_syntax_trees(self, repo, changed_commits):
-        start_commit = self.org_repo.commit(changed_commits.pop(0))
-        total_commits = len(changed_commits)
-        print '[00/%d] first commit to: %s' % (total_commits, repo.git_dir)
-        self.construct_from_commit(repo, start_commit)
-
-        for (num, commit_hexsha) in izip(count(1), changed_commits):
-            print '[%d/%d] commit to: %s' % (num, total_commits, repo.git_dir)
-            commit = self.org_repo.commit(commit_hexsha)
-            self.apply_change(repo, commit)
-
-
-class SyntaxTreesCommitter(SyntaxTreesCommitterBase):
-    def __init__(self, org_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
-
-    def remove_files(self, repo, index, removed_files):
-        kwargs = {"r" : True}
-        if len(removed_files) == 0:
-            return
-        index.remove(removed_files, **kwargs)
-        index.write()
-
-        for p in removed_files:
-            shutil.rmtree(os.path.join(repo.working_dir, p))
-
-    def add_files(self, repo, index, added_files):
-        if len(added_files) == 0:
-            return
-
-        for path, hexsha in added_files.items():
-            src = os.path.join(self.syntax_trees_dir, hexsha)
-            dst = os.path.join(repo.working_dir, path)
-            shutil.copytree(src, dst)
-
-        repo.git.add(added_files.keys())
-        index.update()
-
-    def construct_from_commit(self, repo, commit):
-        added_files = {}
-        for entry in commit.tree.traverse():
-            if not isinstance(entry, Blob):
-                continue
-
-            if not self.is_commit_target(entry):
-                continue
-            added_files[self.get_normalized_path(entry.path)] = entry.hexsha
-
-        self.add_files(repo, repo.index, added_files)
-        repo.index.commit(commit.hexsha)
-
-    def apply_change(self, new_repo, commit):
-        assert len(commit.parents) < 2 # Not support branched repository
-
-        index = new_repo.index
-        removed_files = []
-        added_files = {}
-        for p in commit.parents:
-            for diff in p.diff(commit):
-                if(diff.a_blob):
-                    if not self.is_commit_target(diff.a_blob):
-                        continue
-                    removed_files.append(self.get_normalized_path(diff.a_blob.path))
-
-                if(diff.b_blob):
-                    if not self.is_commit_target(diff.b_blob):
-                        continue
-                    added_files[self.get_normalized_path(diff.b_blob.path)] = diff.b_blob.hexsha
-
-
-            self.remove_files(new_repo, index, removed_files)
-            self.add_files(new_repo, index, added_files)
-
-        if len(index.diff(None, staged=True)):
-            index.commit(commit.hexsha)
-
-
-class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
-    def __init__(self, org_repo, new_repo, syntax_trees_dir):
-        SyntaxTreesCommitterBase.__init__(self, org_repo, syntax_trees_dir)
-        self.old2new = {}
-        self.top_trees = {}
-        self.blob2tree = {}
-        self.new_repo = new_repo
-
-        self.create_submodule_info()
 
     def add_changed_blob(self, blob):
         if blob.hexsha in self.blob2tree:
@@ -214,8 +133,8 @@ class FastSyntaxTreesCommitter(SyntaxTreesCommitterBase):
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
-    committer = syntax_trees_committer(org_repo, syntax_trees_dir)
-    committer.commit_syntax_trees(repo, changed_commits)
+    committer = syntax_trees_committer(org_repo, repo, syntax_trees_dir)
+    committer.commit_syntax_trees(changed_commits)
 
 class SyntaxTreesParallelCommitter:
     def __init__(self, syntax_trees_dir, org_repo_dir, syntax_trees_committer, processes=None):
