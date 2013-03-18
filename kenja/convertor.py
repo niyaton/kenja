@@ -67,8 +67,8 @@ class HistorageConverter:
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
-            print '[%d/%s] commit to: %s' % (num, num_commits, base_repo.git_dir)
             commit = self.org_repo.commit(commit)
+            print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
