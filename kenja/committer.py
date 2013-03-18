@@ -46,6 +46,11 @@ class SyntaxTreesCommitter:
         return self.is_completed_parse(blob)
 
     def get_normalized_path(self, path):
+        # TODO We cannot avoid conflict of normalized path such as following patterns:
+        # a: foo/bar_/hoge.java
+        # b: foo/bar/_hoge.java
+        # but we consider that strange name pattern is rarely case.
+        path = path.replace("_", "__")
         return path.replace("/", "_")
 
     def add_changed_blob(self, blob):
