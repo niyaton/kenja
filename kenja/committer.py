@@ -28,8 +28,8 @@ class SyntaxTreesCommitter:
         self.new_repo = new_repo
         self.syntax_trees_dir = syntax_trees_dir
         self.old2new = {}
-        self.top_trees = {} # sorted tree contents of previous commits
-        self.top_keys = {} # sorted paths of top tree.
+        self.top_tree_binshas = {} # sorted tree contents of previous commits
+        self.top_tree_names = {} # sorted paths of top tree.
         self.blob2tree = {}
 
         self.create_submodule_info()
@@ -103,20 +103,20 @@ class SyntaxTreesCommitter:
         if commit.parents:
             parent = commit.parents[0]
             converted_parent_hexsha = self.old2new[parent.hexsha]
-            trees, keys = self.create_tree_contents(self.top_trees[converted_parent_hexsha], parent, commit)
+            trees, keys = self.create_tree_contents(self.top_tree_binshas[converted_parent_hexsha], parent, commit)
         else:
             trees, keys = self.create_tree_contents_from_commit(commit)
 
         tree_iter = self.iter_tree_contents(trees, keys)
         new_commit = self.commit(commit, tree_iter)
         self.old2new[commit.hexsha] = new_commit.hexsha
-        self.top_trees[new_commit.hexsha] = trees
-        self.top_keys[new_commit.hexsha] = keys
+        self.top_tree_binshas[new_commit.hexsha] = trees
+        self.top_tree_names[new_commit.hexsha] = keys
 
     def create_tree_contents(self, base_tree_contents, parent, commit):
         tree_contents = deepcopy(base_tree_contents)
         converted_parent_hexsha = self.old2new[parent.hexsha]
-        keys = deepcopy(self.top_keys[converted_parent_hexsha])
+        keys = deepcopy(self.top_tree_names[converted_parent_hexsha])
         for diff in parent.diff(commit):
             pos = None
             if (diff.a_blob):
