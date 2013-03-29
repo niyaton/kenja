@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import jp.naist.sd.kenja.factextractor.Blob;
 import jp.naist.sd.kenja.factextractor.Tree;
 import jp.naist.sd.kenja.factextractor.Treeable;
 
@@ -14,7 +15,7 @@ public class ASTCompilation implements Treeable {
 
 	private Tree root;
 
-	ASTPackage pack;
+	private ASTPackage pack;
 
 	private final String CLASS_ROOT_NAME = "[CN]";
 
@@ -36,10 +37,14 @@ public class ASTCompilation implements Treeable {
 	
 	public ASTCompilation(CompilationUnit unit, Tree root) {
 		this.root = root;
-		//if (unit.getPackage() != null) {
-		//	pack = ASTPackage.fromPackageDeclaration(unit.getPackage());
+		if (unit.getPackage() != null) {
+			pack = ASTPackage.fromPackageDeclaration(unit.getPackage());
+			//root.append(pack.)
+			for(Blob blob: pack.getBlobs()){
+				root.append(blob);
+			}
 		//	root.append(pack.getTree());
-		//}
+		}
 
 //		Tree typeRoot = root;
 //		if (pack != null)
@@ -68,27 +73,28 @@ public class ASTCompilation implements Treeable {
 	private Tree getClassRoot(){
 		if(classRoot == null){
 			classRoot = new Tree(CLASS_ROOT_NAME);
-			getTypeRoot().append(classRoot);
+			//getTypeRoot().append(classRoot);
+			root.append(classRoot);
 		}
 		
 		return classRoot;
 			
 	}
 	
-	private Tree getInterfaceRoot(){
-		if(interfaceRoot == null){
-			interfaceRoot = new Tree(INTERFACE_ROOT_NAME);
-			getTypeRoot().append(interfaceRoot);
-		}
+	//private Tree getInterfaceRoot(){
+	//	if(interfaceRoot == null){
+	//		interfaceRoot = new Tree(INTERFACE_ROOT_NAME);
+	//		getTypeRoot().append(interfaceRoot);
+	//	}
+	//	
+	//	return interfaceRoot;
+	//}
 		
-		return interfaceRoot;
-	}
-		
-	private Tree getTypeRoot(){
-		if(pack == null)
-			return root;
-		return pack.getLeaf();
-	}
+	//private Tree getTypeRoot(){
+	//	if(pack == null)
+	//		return root;
+	//	return pack.getLeaf();
+	//}
 
 	public void addTypes(CompilationUnit unit) {
 		for (Object o : unit.types()) {
