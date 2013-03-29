@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 import os
+from gitdb.util import bin_to_hex
+from git.objects.fun import tree_entries_from_data
 
 def is_method_body(path):
     if os.path.basename(path) != 'body':
@@ -25,3 +27,9 @@ def get_method(path):
     assert mt_index +1 <= len(split_path)
     return split_path[mt_index + 1]
 
+def get_org_commit(commit):
+    tree_entries = tree_entries_from_data(commit.tree.data_stream.read())
+    for binsha, mode, name in tree_entries:
+        if name == 'org_repo':
+            return bin_to_hex(binsha)
+    return None
