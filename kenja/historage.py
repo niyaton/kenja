@@ -33,3 +33,12 @@ def get_org_commit(commit):
         if name == 'org_repo':
             return bin_to_hex(binsha)
     return None
+
+def get_package(path, commit):
+    split_path = path.split('/')
+    path = os.path.join(split_path[0], 'package')
+    try:
+        package_blob = commit.tree / path
+    except KeyError:
+        return None
+    return package_blob.data_stream.read()
