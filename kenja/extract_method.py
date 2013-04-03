@@ -1,14 +1,12 @@
 from __future__ import absolute_import
 from git.repo import Repo
-import kenja.singles as singles
-from kenja.historage import *
-from kenja.git.diff import GitDiffParser
-from kenja.singles import tokenizer
 from collections import defaultdict
 from pyrem_torq.expression import Search
-from pyrem_torq import script
 from pyrem_torq.treeseq import seq_split_nodes_of_label
-from kenja.singles import split_to_str
+from pyrem_torq import script
+from kenja.historage import *
+from kenja.git.diff import GitDiffParser
+from kenja.singles import tokenizer, split_to_str, calculate_similarity
 
 def seq_outermost_node_iter(seq, label):
     # This function is fixed version of seq_outermost_node_iter.
@@ -114,7 +112,7 @@ def detect_extract_method(historage):
                         for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                             extracted_lines = extracted_lines[1:-1]
                             script2 = '\n'.join([l[1] for l in extracted_lines])
-                            sim = singles.calculate_similarity(script, script2)
+                            sim = calculate_similarity(script, script2)
                             org_commit = get_org_commit(commit)
                             extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
                             #print deleted_lines, added_lines_dict[(c, method, num_args)]
