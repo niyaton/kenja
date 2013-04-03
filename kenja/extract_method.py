@@ -6,48 +6,63 @@ from kenja.git.diff import GitDiffParser
 from kenja.singles import tokenize
 from kenja.singles import tokenizing_expr
 from collections import defaultdict
+from pyrem_torq.expression import Search
+from pyrem_torq import script
+from pyrem_torq.treeseq import seq_split_nodes_of_label
+from pyrem_torq.treeseq import seq_pretty, seq_remove_strattrs, seq_outermost_node_iter
 from itertools import count, izip
+from kenja.singles import split_to_str
 
 tokenizer = tokenizing_expr()
 
+def seq_outermost_node_iter(seq, label):
+    def soni_i(curPos, item):
+        if item.__class__ is list:
+            assert len(item) >= 1
+            if item[0] == label:
+                yield curPos, item
+            else:
+                for i in xrange(1, len(item)):
+                    for v in soni_i(curPos + [i], item[i]): yield v  # need PEP380
+    return soni_i([], seq)
+
+def parsing_method_parameter_list():
+    # TODO Support {... , ...} and <A,B>
+    simple_exp = script.compile("""
+        ( block <- (null <- LP), *(req^(RP), @0), (null <- RP)) | any
+    ;""")
+    complex_script = script.compile("""
+        ( method_invoke <- target_method, (null <- LP), *(req^(RP), @simpleExp), (null <- RP))
+    ;""", replaces={ 'simpleExp': simple_exp})
+    return Search(complex_script)
+
+def parsing_parameter():
+    return Search(script.compile("""
+        ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
+    ;"""))
+
+parser = parsing_method_parameter_list()
+parser2 = parsing_parameter()
+
+def search_method(method_name):
+    return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
+
 def parse_added_lines(added_lines, method_name):
     tmp = '\n'.join([line for lineno, line in added_lines])
-    tokens = tokenize(tokenizer, tmp)
+    seq = split_to_str(tmp)
+    seq = tokenizer.parse(seq)
+    seq = search_method(method_name).parse(seq)
+    seq = seq_split_nodes_of_label(seq, "null")[0]
+    if len(list(seq_outermost_node_iter(seq, 'target_method'))) == 0:
+        return []
+    seq = parser.parse(seq)
+    seq = seq_split_nodes_of_label(seq, "null")[0]
+    seq = parser2.parse(seq)
+    seq = seq_split_nodes_of_label(seq, "null")[0]
     num_args_list = set()
-
-    i = 1 # tokens[0] contains 'code'
-    while i + 2 < len(tokens):
-        type, num, str = tokens[i]
-        if type != 'id':
-            i = i + 1
-            continue
-        if str == method_name:
-            i = i + 1
-            type, num, str = tokens[i]
-            if type != 'LP':
-                continue
-            i = i + 1
-            type, num, str = tokens[i]
-            if type == 'RP':
-                num_args_list.add(0)
-                continue
-            lp = 1
-            num_args = 1
-            while i < len(tokens):
-                type, num, str = tokens[i]
-                if type == 'LP':
-                    lp = lp + 1
-                elif type == 'RP':
-                    lp = lp - 1
-                    if lp == 0:
-                        break
-                elif type == 'comma' and lp == 1:
-                    num_args = num_args + 1
-                elif type == 'op_lt' or type == 'LB':
-                    # TODO Support {... , ...} and <A,B>
-                    # However it's rarely case.
-                    pass
-            num_args_list.add(num_args)
+    for pos, invoke_seq in seq_outermost_node_iter(seq, 'method_invoke'):
+        params = len(list(seq_outermost_node_iter(invoke_seq, 'param')))
+        num_args_list.add(params)
 
     return num_args_list
 

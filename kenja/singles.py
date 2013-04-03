@@ -103,8 +103,9 @@ def tokenize(tokenizer, script):
     seq = tokenizer.parse(seq)
     return seq_split_nodes_of_label(seq, "null")[0]
 
+tokenizer = tokenizing_expr()
+
 def calculate_similarity(script1, script2):
-    tokenizer = tokenizing_expr()
     try:
         seq = tokenize(tokenizer, script1)
         seq2 = tokenize(tokenizer, script2)
