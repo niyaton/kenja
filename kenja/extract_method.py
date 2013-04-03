@@ -11,6 +11,8 @@ from pyrem_torq.treeseq import seq_split_nodes_of_label
 from kenja.singles import split_to_str
 
 def seq_outermost_node_iter(seq, label):
+    # This function is fixed version of seq_outermost_node_iter.
+    # Original version of this code is in the pyrem_torq.treeseq
     def soni_i(curPos, item):
         if item.__class__ is list:
             assert len(item) >= 1
