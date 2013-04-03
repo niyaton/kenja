@@ -3,14 +3,12 @@ from git.repo import Repo
 import kenja.singles as singles
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
-from kenja.singles import tokenizing_expr
+from kenja.singles import tokenizer
 from collections import defaultdict
 from pyrem_torq.expression import Search
 from pyrem_torq import script
 from pyrem_torq.treeseq import seq_split_nodes_of_label
 from kenja.singles import split_to_str
-
-tokenizer = tokenizing_expr()
 
 def seq_outermost_node_iter(seq, label):
     def soni_i(curPos, item):
