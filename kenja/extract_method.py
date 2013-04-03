@@ -42,7 +42,7 @@ def parsing_parameter():
         ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
     ;"""))
 
-parsers = list(parsing_method_parameter_list_iter())
+parsing_expressions = list(parsing_method_parameter_list_iter())
 
 def search_method(method_name):
     return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
@@ -55,7 +55,7 @@ def parse_added_lines(added_lines, method_name):
     seq = seq_split_nodes_of_label(seq, "null")[0]
     if len(list(seq_outermost_node_iter(seq, 'target_method'))) == 0:
         return []
-    for expression in parsers:
+    for expression in parsing_expressions:
         seq = expression.parse(seq)
         seq = seq_split_nodes_of_label(seq, "null")[0]
 
