@@ -23,7 +23,7 @@ def seq_outermost_node_iter(seq, label):
                     for v in soni_i(curPos + [i], item[i]): yield v  # need PEP380
     return soni_i([], seq)
 
-def parsing_method_parameter_list():
+def parsing_method_parameter_list_iter():
     # TODO Support {... , ...} and <A,B>
     simple_exp = script.compile("""
         ( block <- (null <- LP), *(req^(RP), @0), (null <- RP)) | any
@@ -31,15 +31,18 @@ def parsing_method_parameter_list():
     complex_script = script.compile("""
         ( method_invoke <- target_method, (null <- LP), *(req^(RP), @simpleExp), (null <- RP))
     ;""", replaces={ 'simpleExp': simple_exp})
-    return Search(complex_script)
+    yield Search(complex_script)
+
+    yield Search(script.compile("""
+        ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
+    ;"""))
 
 def parsing_parameter():
     return Search(script.compile("""
         ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
     ;"""))
 
-parser = parsing_method_parameter_list()
-parser2 = parsing_parameter()
+parsers = list(parsing_method_parameter_list_iter())
 
 def search_method(method_name):
     return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
@@ -52,10 +55,10 @@ def parse_added_lines(added_lines, method_name):
     seq = seq_split_nodes_of_label(seq, "null")[0]
     if len(list(seq_outermost_node_iter(seq, 'target_method'))) == 0:
         return []
-    seq = parser.parse(seq)
-    seq = seq_split_nodes_of_label(seq, "null")[0]
-    seq = parser2.parse(seq)
-    seq = seq_split_nodes_of_label(seq, "null")[0]
+    for expression in parsers:
+        seq = expression.parse(seq)
+        seq = seq_split_nodes_of_label(seq, "null")[0]
+
     num_args_list = set()
     for pos, invoke_seq in seq_outermost_node_iter(seq, 'method_invoke'):
         params = len(list(seq_outermost_node_iter(invoke_seq, 'param')))
