@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from git import Repo
+from git.repo import Repo
 import kenja.singles as singles
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
@@ -58,7 +58,8 @@ def detect_extract_method(historage):
                             if (c, method, num_args) not in added_lines_dict.keys():
                                 # TODO support method overloads completely
                                 #print "can't calculate similarity"
-                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, -1))
+                                org_commit = get_org_commit(commit)
+                                extract_method_information.append((commit.hexsha, org_commit, c, m, method, -1))
                             else:
                                 script = '\n'.join([l[1] for l in deleted_lines])
 
@@ -69,7 +70,8 @@ def detect_extract_method(historage):
                                 #print script, script2
                                 #print commit.hexsha, commit.message
                                 sim = singles.calculate_similarity(script, script2)
-                                extract_method_information.append((commit.hexsha, commit.message, c, m, method, sim))
+                                org_commit = get_org_commit(commit)
+                                extract_method_information.append((commit.hexsha, org_commit, c, m, method, sim))
                                 #print deleted_lines, added_lines_dict[(c, method, num_args)]
                             break # One method call is enough to judge as a candidate
 
