@@ -32,25 +32,6 @@ public class ASTPackage implements Blobable{
 		blobs.add(blob);
 	}
 
-	private void addPackage() {
-		//separatedPackageName = packageName.split("\\.");
-
-		//String packagePrefix = separatedPackageName[0];
-		//root = new Tree(packagePrefix);
-
-		//leaf = root;
-		//for (int i = 1; i < separatedPackageName.length; i++) {
-		//	if (leaf.hasTree(separatedPackageName[i])) {
-		//		leaf = leaf.getChild(separatedPackageName[i]);
-		//		continue;
-		//	}
-//
-//			Tree tree = new Tree(separatedPackageName[i]);
-//			leaf.append(tree);
-//			leaf = tree;
-//		}
-	}
-
 	public static ASTPackage fromPackageDeclaration(
 			PackageDeclaration packageDec) {
 		return new ASTPackage(packageDec);
