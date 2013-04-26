@@ -1,53 +1,66 @@
 from __future__ import absolute_import
 from git.repo import Repo
-import kenja.singles as singles
+from collections import defaultdict
+from pyrem_torq.expression import Search
+from pyrem_torq.treeseq import seq_split_nodes_of_label
+from pyrem_torq import script
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
-from kenja.singles import tokenize
-from kenja.singles import tokenizing_expr
-from collections import defaultdict
-from itertools import count, izip
+from kenja.singles import tokenizer, split_to_str, calculate_similarity
 
-tokenizer = tokenizing_expr()
+def seq_outermost_node_iter(seq, label):
+    # This function is fixed version of seq_outermost_node_iter.
+    # Original version of this code is in the pyrem_torq.treeseq
+    def soni_i(curPos, item):
+        if item.__class__ is list:
+            assert len(item) >= 1
+            if item[0] == label:
+                yield curPos, item
+            else:
+                for i in xrange(1, len(item)):
+                    for v in soni_i(curPos + [i], item[i]): yield v  # need PEP380
+    return soni_i([], seq)
+
+def parsing_method_parameter_list_iter():
+    # TODO Support {... , ...} and <A,B>
+    simple_exp = script.compile("""
+        ( block <- (null <- LP), *(req^(RP), @0), (null <- RP)) | any
+    ;""")
+    complex_script = script.compile("""
+        ( method_invoke <- target_method, (null <- LP), *(req^(RP), @simpleExp), (null <- RP))
+    ;""", replaces={ 'simpleExp': simple_exp})
+    yield Search(complex_script)
+
+    yield Search(script.compile("""
+        ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
+    ;"""))
+
+def parsing_parameter():
+    return Search(script.compile("""
+        ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
+    ;"""))
+
+parsing_expressions = list(parsing_method_parameter_list_iter())
+
+def search_method(method_name):
+    return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
 
 def parse_added_lines(added_lines, method_name):
     tmp = '\n'.join([line for lineno, line in added_lines])
-    tokens = tokenize(tokenizer, tmp)
-    num_args_list = set()
+    seq = split_to_str(tmp)
+    seq = tokenizer.parse(seq)
+    seq = search_method(method_name).parse(seq)
+    seq = seq_split_nodes_of_label(seq, "null")[0]
+    if len(list(seq_outermost_node_iter(seq, 'target_method'))) == 0:
+        return []
+    for expression in parsing_expressions:
+        seq = expression.parse(seq)
+        seq = seq_split_nodes_of_label(seq, "null")[0]
 
-    i = 1 # tokens[0] contains 'code'
-    while i + 2 < len(tokens):
-        type, num, str = tokens[i]
-        if type != 'id':
-            i = i + 1
-            continue
-        if str == method_name:
-            i = i + 1
-            type, num, str = tokens[i]
-            if type != 'LP':
-                continue
-            i = i + 1
-            type, num, str = tokens[i]
-            if type == 'RP':
-                num_args_list.add(0)
-                continue
-            lp = 1
-            num_args = 1
-            while i < len(tokens):
-                type, num, str = tokens[i]
-                if type == 'LP':
-                    lp = lp + 1
-                elif type == 'RP':
-                    lp = lp - 1
-                    if lp == 0:
-                        break
-                elif type == 'comma' and lp == 1:
-                    num_args = num_args + 1
-                elif type == 'op_lt' or type == 'LB':
-                    # TODO Support {... , ...} and <A,B>
-                    # However it's rarely case.
-                    pass
-            num_args_list.add(num_args)
+    num_args_list = set()
+    for pos, invoke_seq in seq_outermost_node_iter(seq, 'method_invoke'):
+        params = len(list(seq_outermost_node_iter(invoke_seq, 'param')))
+        num_args_list.add(params)
 
     return num_args_list
 
@@ -99,7 +112,7 @@ def detect_extract_method(historage):
                         for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                             extracted_lines = extracted_lines[1:-1]
                             script2 = '\n'.join([l[1] for l in extracted_lines])
-                            sim = singles.calculate_similarity(script, script2)
+                            sim = calculate_similarity(script, script2)
                             org_commit = get_org_commit(commit)
                             extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
                             #print deleted_lines, added_lines_dict[(c, method, num_args)]
