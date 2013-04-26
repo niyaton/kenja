@@ -6,7 +6,7 @@ from pyrem_torq.treeseq import seq_split_nodes_of_label
 from pyrem_torq import script
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
-from kenja.singles import tokenizer, split_to_str, calculate_similarity
+from kenja.shingles import tokenizer, split_to_str, calculate_similarity
 
 def seq_outermost_node_iter(seq, label):
     # This function is fixed version of seq_outermost_node_iter.
