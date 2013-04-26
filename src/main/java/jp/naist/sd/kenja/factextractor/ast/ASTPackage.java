@@ -12,15 +12,10 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 public class ASTPackage implements Blobable{
 
-	//private Tree root;
-
-	//private Tree leaf;
 	public static final String PACKAGE_BLOB_NAME = "package";
 
 	private String packageName;
 
-	//private String[] separatedPackageName;
-	
 	private Blob blob;
 	
 	private List<Blob> blobs = new ArrayList<Blob>();
@@ -32,7 +27,6 @@ public class ASTPackage implements Blobable{
 	protected ASTPackage(PackageDeclaration packageDec) {
 		packageName = packageDec.getName().toString();
 
-		//addPackage();
 		blob = new Blob(PACKAGE_BLOB_NAME);
 		blob.setBody(packageName);
 		blobs.add(blob);
@@ -66,14 +60,5 @@ public class ASTPackage implements Blobable{
 	public Iterable<Blob> getBlobs() {
 		return blobs;
 	}
-
-//	@Override
-//	public Tree getTree() {
-//		return root;
-//	}
-
-//	public Tree getLeaf() {
-//		return leaf;
-//	}
 
 }
