@@ -53,7 +53,6 @@ def parse_added_lines(added_lines, method_name):
 
 def detect_extract_method(historage):
     extract_method_information = []
-    extract_method_revisions = set()
 
     parser = GitDiffParser()
     for commit in historage.iter_commits(historage.head):
@@ -91,7 +90,6 @@ def detect_extract_method(historage):
                 a_package = get_package(diff.a_blob.path, p)
                 b_package = get_package(diff.b_blob.path, commit)
                 m = get_method(diff.b_blob.path)
-                method_name = m[:m.index(r'(')]
                 script = '\n'.join([l[1] for l in deleted_lines])
                 for method in extracted_method_candidates[c]:
                     num_args_list = parse_added_lines(added_lines, method)
