@@ -4,6 +4,10 @@ import kenja.singles as singles
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
 from collections import defaultdict
+def parse_added_lines(added_lines, method_name):
+    num_args_list = []
+
+    return num_args_list
 
 def detect_extract_method(historage):
     extract_method_information = []
@@ -12,25 +16,25 @@ def detect_extract_method(historage):
     parser = GitDiffParser()
     for commit in historage.iter_commits(historage.head):
         for p in commit.parents:
-            extracted_method_candidates = defaultdict(list)
+            extracted_method_candidates = defaultdict(set)
 
             diff_index = p.diff(commit, create_patch=True)
 
-            added_lines_dict = {}
+            added_lines_dict = defaultdict(list)
 
             for diff in diff_index.iter_change_type('A'):
                 if is_method_body(diff.b_blob.path):
                     method = get_method(diff.b_blob.path)
                     method_name = method[:method.index(r'(')]
-                    num_args = len(method[method.index(r'('):].split(r','))
+                    args = method[method.index(r'('):].split(r',')
+                    num_args = len(args)
+                    if num_args == 1:
+                        num_args = 0 if args[0] == '()' else 1
+
                     c = get_class(diff.b_blob.path)
-                    extracted_method_candidates[c].append(method_name)
+                    extracted_method_candidates[c].add(method_name)
                     (deleted_lines, added_lines) = parser.parse(diff.diff)
-                    if (c, method_name, num_args) in added_lines_dict.keys():
-                        # TODO support method overloads completely
-                        #print "Oops!"
-                        continue
-                    added_lines_dict[(c, method_name, num_args)] = added_lines
+                    added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
             for diff in diff_index.iter_change_type('M'):
                 if not is_method_body(diff.b_blob.path):
@@ -46,37 +50,19 @@ def detect_extract_method(historage):
                 b_package = get_package(diff.b_blob.path, commit)
                 m = get_method(diff.b_blob.path)
                 method_name = m[:m.index(r'(')]
+                script = '\n'.join([l[1] for l in deleted_lines])
                 for method in extracted_method_candidates[c]:
-                    for lineno, line in added_lines:
-                        if method in line:
-                            #extract_method_information.append((commit.hexsha, commit.message, c, m, method, line))
-                            extract_method_revisions.add(commit.hexsha)
-                            extracted_method_name = line[line.rindex(method):]
-                            try:
-                                num_args = len(extracted_method_name[extracted_method_name.index(r'('):extracted_method_name.index(r')')].split(r','))
-                            except:
-                                continue # probably extracted_method_name is not a method invocation
-
-                            #print c, method, num_args
-                            if (c, method, num_args) not in added_lines_dict.keys():
-                                # TODO support method overloads completely
-                                #print "can't calculate similarity"
-                                org_commit = get_org_commit(commit)
-                                extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, method, -1))
-                            else:
-                                script = '\n'.join([l[1] for l in deleted_lines])
-
-                                extracted_lines = added_lines_dict[(c, method, num_args)]
-                                extracted_lines = extracted_lines[1:-1]
-                                script2 = '\n'.join([l[1] for l in extracted_lines])
-
-                                #print script, script2
-                                #print commit.hexsha, commit.message
-                                sim = singles.calculate_similarity(script, script2)
-                                org_commit = get_org_commit(commit)
-                                extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, method, sim))
-                                #print deleted_lines, added_lines_dict[(c, method, num_args)]
-                            break # One method call is enough to judge as a candidate
+                    num_args_list = parse_added_lines(added_lines, method)
+                    for num_args in num_args_list:
+                        if (c, method, num_args) not in added_lines_dict.keys():
+                            continue
+                        for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
+                            extracted_lines = extracted_lines[1:-1]
+                            script2 = '\n'.join([l[1] for l in extracted_lines])
+                            sim = singles.calculate_similarity(script, script2)
+                            org_commit = get_org_commit(commit)
+                            extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
+                            #print deleted_lines, added_lines_dict[(c, method, num_args)]
 
     return extract_method_information
 
