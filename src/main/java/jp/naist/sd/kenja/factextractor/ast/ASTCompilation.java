@@ -39,28 +39,16 @@ public class ASTCompilation implements Treeable {
 		this.root = root;
 		if (unit.getPackage() != null) {
 			pack = ASTPackage.fromPackageDeclaration(unit.getPackage());
-			//root.append(pack.)
 			for(Blob blob: pack.getBlobs()){
 				root.append(blob);
 			}
-		//	root.append(pack.getTree());
 		}
 
-//		Tree typeRoot = root;
-//		if (pack != null)
-//			typeRoot = pack.getLeaf();
-//		
-//		if (typeRoot.has(CLASS_ROOT_NAME))
-//			classRoot = typeRoot.getChild(CLASS_ROOT_NAME);
-//		else
-//			classRoot = new Tree(CLASS_ROOT_NAME);
-//
 //		if (typeRoot.has(INTERFACE_ROOT_NAME))
 //			interfaceRoot = typeRoot.getChild(INTERFACE_ROOT_NAME);
 //		else
 //			interfaceRoot = new Tree(INTERFACE_ROOT_NAME);
 //
-//		typeRoot.append(classRoot);
 //		typeRoot.append(interfaceRoot);
 
 		addTypes(unit);
