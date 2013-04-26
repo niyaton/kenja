@@ -38,9 +38,12 @@ def detect_extract_method(historage):
                 c = get_class(diff.b_blob.path)
                 if c not in extracted_method_candidates.keys():
                     continue
+
                 (deleted_lines, added_lines) = parser.parse(diff.diff)
                 if not(deleted_lines and added_lines):
                     continue
+                a_package = get_package(diff.a_blob.path, p)
+                b_package = get_package(diff.b_blob.path, commit)
                 m = get_method(diff.b_blob.path)
                 method_name = m[:m.index(r'(')]
                 for method in extracted_method_candidates[c]:
@@ -59,7 +62,7 @@ def detect_extract_method(historage):
                                 # TODO support method overloads completely
                                 #print "can't calculate similarity"
                                 org_commit = get_org_commit(commit)
-                                extract_method_information.append((commit.hexsha, org_commit, c, m, method, -1))
+                                extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, method, -1))
                             else:
                                 script = '\n'.join([l[1] for l in deleted_lines])
 
@@ -71,7 +74,7 @@ def detect_extract_method(historage):
                                 #print commit.hexsha, commit.message
                                 sim = singles.calculate_similarity(script, script2)
                                 org_commit = get_org_commit(commit)
-                                extract_method_information.append((commit.hexsha, org_commit, c, m, method, sim))
+                                extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, method, sim))
                                 #print deleted_lines, added_lines_dict[(c, method, num_args)]
                             break # One method call is enough to judge as a candidate
 
@@ -91,7 +94,7 @@ if __name__ == '__main__':
     candidate_revisions = set()
     for info in extract_method_information:
         candidate_revisions.add(info[0])
-        print '"%s","%s","%s","%s","%s","%s"' % info
+        print '"%s","%s","%s","%s","%s","%s","%s","%s"' % info
 
     print 'candidates:', len(extract_method_information)
     print 'candidate revisions:', len(candidate_revisions)
