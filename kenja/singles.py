@@ -89,6 +89,8 @@ def tokenizing_expr():
 #| < VOID: "void" >
 #| < WHILE: "while" >
 
+tokenizer = tokenizing_expr()
+
 def create_two_singles(seq):
     singles = set()
     prev = seq.pop(0)
@@ -102,8 +104,6 @@ def tokenize(tokenizer, script):
     seq = split_to_str(script)
     seq = tokenizer.parse(seq)
     return seq_split_nodes_of_label(seq, "null")[0]
-
-tokenizer = tokenizing_expr()
 
 def calculate_similarity(script1, script2):
     try:

@@ -1,18 +1,16 @@
 from __future__ import absolute_import
 from git.repo import Repo
-import kenja.singles as singles
-from kenja.historage import *
-from kenja.git.diff import GitDiffParser
-from kenja.singles import tokenizing_expr
 from collections import defaultdict
 from pyrem_torq.expression import Search
-from pyrem_torq import script
 from pyrem_torq.treeseq import seq_split_nodes_of_label
-from kenja.singles import split_to_str
-
-tokenizer = tokenizing_expr()
+from pyrem_torq import script
+from kenja.historage import *
+from kenja.git.diff import GitDiffParser
+from kenja.singles import tokenizer, split_to_str, calculate_similarity
 
 def seq_outermost_node_iter(seq, label):
+    # This function is fixed version of seq_outermost_node_iter.
+    # Original version of this code is in the pyrem_torq.treeseq
     def soni_i(curPos, item):
         if item.__class__ is list:
             assert len(item) >= 1
@@ -42,7 +40,7 @@ def parsing_parameter():
         ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
     ;"""))
 
-parsers = list(parsing_method_parameter_list_iter())
+parsing_expressions = list(parsing_method_parameter_list_iter())
 
 def search_method(method_name):
     return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
@@ -55,7 +53,7 @@ def parse_added_lines(added_lines, method_name):
     seq = seq_split_nodes_of_label(seq, "null")[0]
     if len(list(seq_outermost_node_iter(seq, 'target_method'))) == 0:
         return []
-    for expression in parsers:
+    for expression in parsing_expressions:
         seq = expression.parse(seq)
         seq = seq_split_nodes_of_label(seq, "null")[0]
 
@@ -114,7 +112,7 @@ def detect_extract_method(historage):
                         for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                             extracted_lines = extracted_lines[1:-1]
                             script2 = '\n'.join([l[1] for l in extracted_lines])
-                            sim = singles.calculate_similarity(script, script2)
+                            sim = calculate_similarity(script, script2)
                             org_commit = get_org_commit(commit)
                             extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
                             #print deleted_lines, added_lines_dict[(c, method, num_args)]
