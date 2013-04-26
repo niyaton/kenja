@@ -3,9 +3,51 @@ from git.repo import Repo
 import kenja.singles as singles
 from kenja.historage import *
 from kenja.git.diff import GitDiffParser
+from kenja.singles import tokenize
+from kenja.singles import tokenizing_expr
 from collections import defaultdict
+from itertools import count, izip
+
+tokenizer = tokenizing_expr()
+
 def parse_added_lines(added_lines, method_name):
-    num_args_list = []
+    tmp = '\n'.join([line for lineno, line in added_lines])
+    tokens = tokenize(tokenizer, tmp)
+    num_args_list = set()
+
+    i = 1 # tokens[0] contains 'code'
+    while i + 2 < len(tokens):
+        type, num, str = tokens[i]
+        if type != 'id':
+            i = i + 1
+            continue
+        if str == method_name:
+            i = i + 1
+            type, num, str = tokens[i]
+            if type != 'LP':
+                continue
+            i = i + 1
+            type, num, str = tokens[i]
+            if type == 'RP':
+                num_args_list.add(0)
+                continue
+            lp = 1
+            num_args = 1
+            while i < len(tokens):
+                type, num, str = tokens[i]
+                if type == 'LP':
+                    lp = lp + 1
+                elif type == 'RP':
+                    lp = lp - 1
+                    if lp == 0:
+                        break
+                elif type == 'comma' and lp == 1:
+                    num_args = num_args + 1
+                elif type == 'op_lt' or type == 'LB':
+                    # TODO Support {... , ...} and <A,B>
+                    # However it's rarely case.
+                    pass
+            num_args_list.add(num_args)
 
     return num_args_list
 
