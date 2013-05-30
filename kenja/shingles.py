@@ -91,14 +91,14 @@ def tokenizing_expr():
 
 tokenizer = tokenizing_expr()
 
-def create_two_singles(seq):
-    singles = set()
+def create_two_shingles(seq):
+    shingles = set()
     prev = seq.pop(0)
     for tok in seq:
-        singles.add((prev[0], prev[2], tok[0], tok[2]))
+        shingles.add((prev[0], prev[2], tok[0], tok[2]))
         prev = tok
 
-    return singles
+    return shingles
 
 def tokenize(tokenizer, script):
     seq = split_to_str(script)
@@ -114,15 +114,15 @@ def calculate_similarity(script1, script2):
         print script2
         raise
 
-    singles1 = create_two_singles(seq)
-    singles2 = create_two_singles(seq2)
-    return len( singles1 & singles2) / float(len(singles1 | singles2))
+    shingles1 = create_two_shingles(seq)
+    shingles2 = create_two_shingles(seq2)
+    return len( shingles1 & shingles2) / float(len(shingles1 | shingles2))
 
 def main():
     import sys
     
     if len(sys.argv) == 1:
-        print "usage: singles <script> [ <input> ]\nAn calculator of method similarity for Java."
+        print "usage: shingles <script> [ <input> ]\nAn calculator of method similarity for Java."
         return
     
     assert len(sys.argv) in (2, 3)
