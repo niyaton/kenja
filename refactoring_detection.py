@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from git.repo import Repo
-from kenja.extract_method import detect_extract_method
+from kenja.detection.extract_method import detect_extract_method
 import argparse
 
 if __name__ == '__main__':
