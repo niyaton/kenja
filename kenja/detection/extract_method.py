@@ -8,6 +8,8 @@ from kenja.historage import *
 from kenja.git.diff import GitDiffParser
 from kenja.shingles import tokenizer, split_to_str, calculate_similarity
 
+diff_parser = GitDiffParser()
+
 def seq_outermost_node_iter(seq, label):
     # This function is fixed version of seq_outermost_node_iter.
     # Original version of this code is in the pyrem_torq.treeseq
@@ -67,7 +69,6 @@ def parse_added_lines(added_lines, method_name):
 def detect_extract_method(historage):
     extract_method_information = []
 
-    parser = GitDiffParser()
     for commit in historage.iter_commits(historage.head):
         for p in commit.parents:
             extract_method_information.extend(detect_extract_method_from_commit(p, commit))
@@ -93,7 +94,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
 
             c = get_class(diff.b_blob.path)
             extracted_method_candidates[c].add(method_name)
-            (deleted_lines, added_lines) = parser.parse(diff.diff)
+            (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
     for diff in diff_index.iter_change_type('M'):
@@ -103,7 +104,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
         if c not in extracted_method_candidates.keys():
             continue
 
-        (deleted_lines, added_lines) = parser.parse(diff.diff)
+        (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
         if not (deleted_lines and added_lines):
             continue
         a_package = get_package(diff.a_blob.path, old_commit)
