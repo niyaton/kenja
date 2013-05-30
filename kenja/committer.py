@@ -13,7 +13,8 @@ from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
                             commit_from_binsha,
                             mktree_from_iter,
-                            write_tree
+                            write_tree,
+                            tree_mode
                     )
 from kenja.git.submodule import (
                                 store_submodule_config,
@@ -96,7 +97,7 @@ class SyntaxTreesCommitter:
             if isinstance(entry, Blob) and self.is_commit_target(entry):
                 path = self.get_normalized_path(entry.path)
                 binsha = self.add_changed_blob(entry)
-                tree_contents.insert(path, binsha)
+                tree_contents.insert(tree_mode, binsha, path)
 
         return tree_contents
 
@@ -115,10 +116,10 @@ class SyntaxTreesCommitter:
                 binsha = self.add_changed_blob(diff.b_blob)
                 if is_a_target:
                     # Blob was changed
-                    tree_contents.replace(name, binsha)
+                    tree_contents.replace(tree_mode, binsha, name)
                 else:
                     # Blob was created
-                    tree_contents.insert(name, binsha)
+                    tree_contents.insert(tree_mode, binsha, name)
         return tree_contents
 
     def create_heads(self):
