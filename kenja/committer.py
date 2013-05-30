@@ -13,7 +13,8 @@ from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
                             commit_from_binsha,
                             mktree_from_iter,
-                            write_tree
+                            write_tree,
+                            tree_mode
                     )
 from kenja.git.submodule import (
                                 store_submodule_config,
@@ -66,10 +67,7 @@ class SyntaxTreesCommitter:
         return write_tree(repo.odb, src)[1]
 
     def commit(self, org_commit, tree_contents):
-        submodule_info = [self.gitmodules_info]
-        submodule_info.append(get_submodule_tree_content(org_commit.hexsha, 'org_repo'))
-
-        (mode, binsha) = mktree_from_iter(self.new_repo.odb, chain(tree_contents, submodule_info))
+        (mode, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 
@@ -78,7 +76,7 @@ class SyntaxTreesCommitter:
 
     def create_submodule_info(self):
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
-        self.gitmodules_info = (mode, binsha, '.gitmodules')
+        self.submodule_info = (mode, binsha, '.gitmodules')
 
     def apply_change(self, commit):
         if commit.parents:
@@ -92,17 +90,24 @@ class SyntaxTreesCommitter:
 
     def create_tree_contents_from_commit(self, commit):
         tree_contents = SortedTreeContents()
+
+        tree_contents.insert(*(self.submodule_info))
+        tree_contents.insert(*(get_submodule_tree_content(commit.hexsha, 'org_repo')))
+
         for entry in commit.tree.traverse():
             if isinstance(entry, Blob) and self.is_commit_target(entry):
                 path = self.get_normalized_path(entry.path)
                 binsha = self.add_changed_blob(entry)
-                tree_contents.insert(path, binsha)
+                tree_contents.insert(tree_mode, binsha, path)
 
         return tree_contents
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
+
+        tree_contents.replace(*(get_submodule_tree_content(commit.hexsha, 'org_repo')))
+
         for diff in parent.diff(commit):
             is_a_target = self.is_commit_target(diff.a_blob)
             is_b_target = self.is_commit_target(diff.b_blob)
@@ -115,10 +120,10 @@ class SyntaxTreesCommitter:
                 binsha = self.add_changed_blob(diff.b_blob)
                 if is_a_target:
                     # Blob was changed
-                    tree_contents.replace(name, binsha)
+                    tree_contents.replace(tree_mode, binsha, name)
                 else:
                     # Blob was created
-                    tree_contents.insert(name, binsha)
+                    tree_contents.insert(tree_mode, binsha, name)
         return tree_contents
 
     def create_heads(self):

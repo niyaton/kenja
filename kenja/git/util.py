@@ -29,7 +29,7 @@ def write_tree(odb, src_path):
     assert os.path.isdir(src_path) and not os.path.islink(src_path)
 
     items = []
-    for file in os.listdir(src_path):
+    for file in sorted(os.listdir(src_path)):
         (mode, binsha) = write_path(odb, os.path.join(src_path, file))
 
         if mode[0] == '0':
