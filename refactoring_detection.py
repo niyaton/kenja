@@ -13,8 +13,8 @@ if __name__ == '__main__':
     extract_method_information = detect_extract_method(historage)
 
     candidate_revisions = set()
-    for commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-        candidate_revisions.add(commit)
+    for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
+        candidate_revisions.add(b_commit)
         target_method_info = ['jedit']
         if a_package:
             target_method_info.append(a_package)
@@ -25,7 +25,7 @@ if __name__ == '__main__':
             extracted_method_info.append(b_package)
         extracted_method_info.extend((c, method))
         extracted_method = '.'.join(extracted_method_info)
-        print '"%s","%s","%s","%s","%s"' % (commit, org_commit, target_method, extracted_method, sim)
+        print '"%s","%s","%s","%s","%s","%s"' % (a_commit, b_commit, org_commit, target_method, extracted_method, sim)
         #print '"%s","%s","%s","%s","%s","%s","%s","%s"' % info
 
     print 'candidates:', len(extract_method_information)

@@ -122,7 +122,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                     sim = calculate_similarity(script, script2)
                     org_commit = get_org_commit(new_commit)
                     result.append(
-                        (new_commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
+                        (old_commit.hexsha, new_commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
                     #print deleted_lines, added_lines_dict[(c, method, num_args)]
 
     return result
