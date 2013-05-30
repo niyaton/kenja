@@ -70,54 +70,62 @@ def detect_extract_method(historage):
     parser = GitDiffParser()
     for commit in historage.iter_commits(historage.head):
         for p in commit.parents:
-            extracted_method_candidates = defaultdict(set)
-
-            diff_index = p.diff(commit, create_patch=True)
-
-            added_lines_dict = defaultdict(list)
-
-            for diff in diff_index.iter_change_type('A'):
-                if is_method_body(diff.b_blob.path):
-                    method = get_method(diff.b_blob.path)
-                    method_name = method[:method.index(r'(')]
-                    args = method[method.index(r'('):].split(r',')
-                    num_args = len(args)
-                    if num_args == 1:
-                        num_args = 0 if args[0] == '()' else 1
-
-                    c = get_class(diff.b_blob.path)
-                    extracted_method_candidates[c].add(method_name)
-                    (deleted_lines, added_lines) = parser.parse(diff.diff)
-                    added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
-
-            for diff in diff_index.iter_change_type('M'):
-                if not is_method_body(diff.b_blob.path):
-                    continue
-                c = get_class(diff.b_blob.path)
-                if c not in extracted_method_candidates.keys():
-                    continue
-
-                (deleted_lines, added_lines) = parser.parse(diff.diff)
-                if not(deleted_lines and added_lines):
-                    continue
-                a_package = get_package(diff.a_blob.path, p)
-                b_package = get_package(diff.b_blob.path, commit)
-                m = get_method(diff.b_blob.path)
-                script = '\n'.join([l[1] for l in deleted_lines])
-                for method in extracted_method_candidates[c]:
-                    num_args_list = parse_added_lines(added_lines, method)
-                    for num_args in num_args_list:
-                        if (c, method, num_args) not in added_lines_dict.keys():
-                            continue
-                        for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
-                            extracted_lines = extracted_lines[1:-1]
-                            script2 = '\n'.join([l[1] for l in extracted_lines])
-                            sim = calculate_similarity(script, script2)
-                            org_commit = get_org_commit(commit)
-                            extract_method_information.append((commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
-                            #print deleted_lines, added_lines_dict[(c, method, num_args)]
+            extract_method_information.extend(detect_extract_method_from_commit(p, commit))
 
     return extract_method_information
+
+def detect_extract_method_from_commit(old_commit, new_commit):
+    result = []
+    extracted_method_candidates = defaultdict(set)
+
+    diff_index = old_commit.diff(new_commit, create_patch=True)
+
+    added_lines_dict = defaultdict(list)
+
+    for diff in diff_index.iter_change_type('A'):
+        if is_method_body(diff.b_blob.path):
+            method = get_method(diff.b_blob.path)
+            method_name = method[:method.index(r'(')]
+            args = method[method.index(r'('):].split(r',')
+            num_args = len(args)
+            if num_args == 1:
+                num_args = 0 if args[0] == '()' else 1
+
+            c = get_class(diff.b_blob.path)
+            extracted_method_candidates[c].add(method_name)
+            (deleted_lines, added_lines) = parser.parse(diff.diff)
+            added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
+
+    for diff in diff_index.iter_change_type('M'):
+        if not is_method_body(diff.b_blob.path):
+            continue
+        c = get_class(diff.b_blob.path)
+        if c not in extracted_method_candidates.keys():
+            continue
+
+        (deleted_lines, added_lines) = parser.parse(diff.diff)
+        if not (deleted_lines and added_lines):
+            continue
+        a_package = get_package(diff.a_blob.path, old_commit)
+        b_package = get_package(diff.b_blob.path, new_commit)
+        m = get_method(diff.b_blob.path)
+        script = '\n'.join([l[1] for l in deleted_lines])
+        for method in extracted_method_candidates[c]:
+            num_args_list = parse_added_lines(added_lines, method)
+            for num_args in num_args_list:
+                if (c, method, num_args) not in added_lines_dict.keys():
+                    continue
+                for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
+                    extracted_lines = extracted_lines[1:-1]
+                    script2 = '\n'.join([l[1] for l in extracted_lines])
+                    sim = calculate_similarity(script, script2)
+                    org_commit = get_org_commit(new_commit)
+                    result.append(
+                        (new_commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
+                    #print deleted_lines, added_lines_dict[(c, method, num_args)]
+
+    return result
+
 
 if __name__ == '__main__':
     import argparse
