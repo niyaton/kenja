@@ -3,6 +3,7 @@ from git.repo import Repo
 from kenja.detection.extract_method import detect_extract_method
 import argparse
 
+
 def format_for_umldiff(package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim):
     target_method_info = [package_prefix]
     if a_package:
