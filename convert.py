@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import argparse
 from kenja.convertor import HistorageConverter
-from kenja.convertor import ParallelHistorageConverter
 
 if __name__ == '__main__':
     class ConvertorCommandParser:
@@ -24,9 +23,6 @@ if __name__ == '__main__':
                     help='path of original git repository')
             sub_parser.add_argument('working_dir', 
                     help='path of working directory')
-            sub_parser.add_argument('--non-parallel',
-                    action='store_true'
-                    )
             sub_parser.add_argument('--parser-processes',
                     type=int,
                     help='set parser processes (default value is number of processers of your machine)',
@@ -40,10 +36,7 @@ if __name__ == '__main__':
         def convert(self, args):
             print args
 
-            if args.non_parallel:
-                hc = HistorageConverter(args.org_git_dir, args.working_dir)
-            else:
-                hc = ParallelHistorageConverter(args.org_git_dir, args.working_dir)
+            hc = HistorageConverter(args.org_git_dir, args.working_dir)
 
             if args.parser_processes:
                 hc.parser_processes = args.parser_processes
@@ -76,16 +69,10 @@ if __name__ == '__main__':
                     help='path of working dir')
             sub_parser.add_argument('--syntax-trees-dir',
                     help='path of syntax treses dir')
-            sub_parser.add_argument('--non-parallel',
-                    action='store_true'
-                    )
             sub_parser.set_defaults(func=self.construct)
 
         def construct(self, args):
-            if args.non_parallel:
-                hc = HistorageConverter(args.org_git_dir, args.working_dir)
-            else:
-                hc = ParallelHistorageConverter(args.org_git_dir, args.working_dir)
+            hc = HistorageConverter(args.org_git_dir, args.working_dir)
 
             if args.syntax_trees_dir:
                 hc.syntax_trees_dir = args.syntax_trees_dir
