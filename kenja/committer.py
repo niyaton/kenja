@@ -4,7 +4,6 @@ from copy import deepcopy
 from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
-from itertools import (chain)
 from multiprocessing import (
                                 Pool,
                                 cpu_count
