@@ -13,23 +13,21 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
-public class TextFormatTreeWriter extends TreeWriter {
+public class TextFormatTreeWriter implements TreeWriter {
 	private File outputFile;
 
-	public TextFormatTreeWriter(File baseDir) {
-		outputFile = baseDir;
-		if (!outputFile.getParentFile().exists()) {
+	public TextFormatTreeWriter(File outputFile) {
+		this.outputFile = outputFile;
+		if (!this.outputFile.getParentFile().exists()) {
 			try {
-				Files.createParentDirs(outputFile);
+				Files.createParentDirs(this.outputFile);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		// TODO Auto-generated constructor stub
 	}
 
-	@Override
 	public void writeTree(Tree tree) {
 		if (tree.isRoot()) {
 			try {
@@ -105,7 +103,6 @@ public class TextFormatTreeWriter extends TreeWriter {
 		return result;
 	}
 
-	@Override
 	public void writeBlob(Blob blob) {
 		int lines = blob.getBody().split("\n").length;
 		try {
