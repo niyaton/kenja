@@ -64,6 +64,18 @@ public class TextFormatTreeWriter extends TreeWriter {
 
 	}
 
+	@Override
+	public void writeBlob(Blob blob) {
+		int lines = blob.getBody().split("\n").length;
+		try {
+			Files.append(lines + " lines" + "\n", outputFile, Charsets.US_ASCII);
+			Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private List<Pair<String, String>> createTreeContents(Tree tree) {
 		List<Pair<String, String>> contents = new ArrayList<Pair<String, String>>();
 
