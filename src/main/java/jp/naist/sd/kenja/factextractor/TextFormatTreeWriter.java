@@ -17,7 +17,7 @@ public class TextFormatTreeWriter implements TreeWriter {
 	private File outputFile;
 
 	public TextFormatTreeWriter(File outputFile) {
-		this.outputFile = outputFile;
+		this.outputFile = outputFile.getAbsoluteFile();
 		if (!this.outputFile.getParentFile().exists()) {
 			try {
 				Files.createParentDirs(this.outputFile);
