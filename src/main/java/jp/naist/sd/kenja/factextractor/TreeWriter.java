@@ -25,6 +25,10 @@ public class TreeWriter {
 		}
 		currentDir = baseDir;
 	}
+	
+	protected TreeWriter() {
+		
+	}
 
 	public void writeTree(Tree tree) {
 		File parentDir = currentDir;
