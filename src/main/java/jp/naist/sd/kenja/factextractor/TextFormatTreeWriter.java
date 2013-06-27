@@ -42,11 +42,7 @@ public class TextFormatTreeWriter extends TreeWriter {
 		}
 
 		HashMap<String, Tree> treeMap = createTreeMap(tree);
-
-		HashMap<String, Blob> blobMap = new HashMap<String, Blob>();
-		for (Blob b : tree.getBlobs()) {
-			blobMap.put(b.getName(), b);
-		}
+		HashMap<String, Blob> blobMap = createBlobMap(tree);
 
 		for (Pair<String, String> content : createTreeContents(tree)) {
 			StringBuilder builder = new StringBuilder();
@@ -90,6 +86,14 @@ public class TextFormatTreeWriter extends TreeWriter {
 		HashMap<String, Tree> result = new HashMap<String, Tree>();
 		for (Tree childTree : tree.getChildTrees()) {
 			result.put(childTree.getName(), childTree);
+		}
+		return result;
+	}
+
+	private HashMap<String, Blob> createBlobMap(Tree tree) {
+		HashMap<String, Blob> result = new HashMap<String, Blob>();
+		for (Blob blob : tree.getBlobs()) {
+			result.put(blob.getName(), blob);
 		}
 		return result;
 	}
