@@ -41,10 +41,7 @@ public class TextFormatTreeWriter extends TreeWriter {
 			}
 		}
 
-		HashMap<String, Tree> treeMap = new HashMap<String, Tree>();
-		for (Tree t : tree.getChildTrees()) {
-			treeMap.put(t.getName(), t);
-		}
+		HashMap<String, Tree> treeMap = createTreeMap(tree);
 
 		HashMap<String, Blob> blobMap = new HashMap<String, Blob>();
 		for (Blob b : tree.getBlobs()) {
@@ -87,6 +84,14 @@ public class TextFormatTreeWriter extends TreeWriter {
 				e1.printStackTrace();
 			}
 		}
+	}
+
+	private HashMap<String, Tree> createTreeMap(Tree tree) {
+		HashMap<String, Tree> result = new HashMap<String, Tree>();
+		for (Tree childTree : tree.getChildTrees()) {
+			result.put(childTree.getName(), childTree);
+		}
+		return result;
 	}
 
 	@Override
