@@ -26,7 +26,6 @@ public class TextFormatTreeWriter implements TreeWriter {
 				e.printStackTrace();
 			}
 		}
-		// TODO Auto-generated constructor stub
 	}
 
 	public void writeTree(Tree tree) {
