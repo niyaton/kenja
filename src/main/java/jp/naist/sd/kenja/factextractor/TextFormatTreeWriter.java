@@ -52,22 +52,31 @@ public class TextFormatTreeWriter extends TreeWriter {
 		}
 
 		for (Pair<String, String> content : createTreeContents(tree)) {
-			if (content.getLeft() == "Blob") {
-				writeBlob(blobMap.get(content.getRight()));
-			} else if (content.getLeft() == "Tree") {
-				writeTree(treeMap.get(content.getRight()));
-			}
 			StringBuilder builder = new StringBuilder();
 			builder.append(content.getLeft());
 			builder.append(" ");
 			builder.append(content.getRight());
 			builder.append("\n");
-			try {
-				Files.append(builder.toString(), outputFile, Charsets.US_ASCII);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (content.getLeft() == "Blob") {
+				try {
+					Files.append(builder.toString(), outputFile,
+							Charsets.US_ASCII);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				writeBlob(blobMap.get(content.getRight()));
+			} else if (content.getLeft() == "Tree") {
+				writeTree(treeMap.get(content.getRight()));
+				try {
+					Files.append(builder.toString(), outputFile,
+							Charsets.US_ASCII);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+
 		}
 		if (!tree.isRoot()) {
 			String line = "End" + tree.getName() + "\n";
