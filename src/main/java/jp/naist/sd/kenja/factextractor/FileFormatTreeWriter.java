@@ -7,11 +7,9 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 public class FileFormatTreeWriter implements TreeWriter {
-	private File baseDir;
 	private File currentDir;
 	
 	public FileFormatTreeWriter(File baseDir) {
-		this.baseDir = baseDir;
 		if (!baseDir.exists()) {
 			try {
 				Files.createParentDirs(baseDir);
