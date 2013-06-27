@@ -6,7 +6,7 @@ import java.io.IOException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
-public class FileFormatTreeWriter extends TreeWriter {
+public class FileFormatTreeWriter implements TreeWriter {
 	private File baseDir;
 	private File currentDir;
 	
@@ -24,7 +24,6 @@ public class FileFormatTreeWriter extends TreeWriter {
 		currentDir = baseDir;
 	}
 	
-	@Override
 	public void writeTree(Tree tree) {
 		File parentDir = currentDir;
 		if (!tree.isRoot()) {
@@ -43,7 +42,6 @@ public class FileFormatTreeWriter extends TreeWriter {
 		currentDir = parentDir;
 	}	
 	
-	@Override
 	public void writeBlob(Blob blob) {
 		if (!currentDir.exists())
 			try {
