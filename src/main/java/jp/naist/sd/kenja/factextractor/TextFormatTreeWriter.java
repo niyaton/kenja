@@ -17,7 +17,6 @@ public class TextFormatTreeWriter extends TreeWriter {
 	private File outputFile;
 
 	public TextFormatTreeWriter(File baseDir) {
-		super(baseDir);
 		outputFile = baseDir;
 		if (!outputFile.getParentFile().exists()) {
 			try {
