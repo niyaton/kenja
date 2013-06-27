@@ -19,6 +19,14 @@ public class TextFormatTreeWriter extends TreeWriter {
 	public TextFormatTreeWriter(File baseDir) {
 		super(baseDir);
 		outputFile = baseDir;
+		if (!outputFile.getParentFile().exists()) {
+			try {
+				Files.createParentDirs(outputFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// TODO Auto-generated constructor stub
 	}
 
