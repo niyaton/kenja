@@ -31,7 +31,7 @@ public class GitTreeCreator{
 	}
 	
 	public void writeASTAsFileTree(File outputDir){
-		TreeWriter writer = new TreeWriter(outputDir);
+		TreeWriter writer = new TextFormatTreeWriter(outputDir);
 		writer.writeTree(compilation.getTree());
 		//compilation.getTree().writeTree(outputDir);
 	}
