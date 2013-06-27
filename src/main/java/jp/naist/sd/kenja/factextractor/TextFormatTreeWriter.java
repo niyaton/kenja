@@ -16,8 +16,16 @@ import com.google.common.io.Files;
 public class TextFormatTreeWriter implements TreeWriter {
 	private File outputFile;
 
+	private static final String BLOB = "[Blob]";
+	private static final String TREE = "[Tree]";
+
+	private static final String BLOB_LINEINFO = "[BlobInfo]";
+
+	private static final String START_TREE = "[StartTree]";
+	private static final String END_TREE = "[EndTree]";
+
 	public TextFormatTreeWriter(File outputFile) {
-		this.outputFile = outputFile;
+		this.outputFile = outputFile.getAbsoluteFile();
 		if (!this.outputFile.getParentFile().exists()) {
 			try {
 				Files.createParentDirs(this.outputFile);
@@ -37,7 +45,7 @@ public class TextFormatTreeWriter implements TreeWriter {
 				e.printStackTrace();
 			}
 		} else {
-			String line = "Start" + tree.getName() + "\n";
+			String line = START_TREE + tree.getName() + "\n";
 			try {
 				Files.append(line, outputFile, Charsets.US_ASCII);
 			} catch (IOException e1) {
@@ -55,7 +63,7 @@ public class TextFormatTreeWriter implements TreeWriter {
 			builder.append(" ");
 			builder.append(content.getRight());
 			builder.append("\n");
-			if (content.getLeft() == "Blob") {
+			if (content.getLeft() == BLOB) {
 				try {
 					Files.append(builder.toString(), outputFile,
 							Charsets.US_ASCII);
@@ -64,7 +72,7 @@ public class TextFormatTreeWriter implements TreeWriter {
 					e.printStackTrace();
 				}
 				writeBlob(blobMap.get(content.getRight()));
-			} else if (content.getLeft() == "Tree") {
+			} else if (content.getLeft() == TREE) {
 				writeTree(treeMap.get(content.getRight()));
 				try {
 					Files.append(builder.toString(), outputFile,
@@ -77,7 +85,7 @@ public class TextFormatTreeWriter implements TreeWriter {
 
 		}
 		if (!tree.isRoot()) {
-			String line = "End" + tree.getName() + "\n";
+			String line = END_TREE + tree.getName() + "\n";
 			try {
 				Files.append(line, outputFile, Charsets.US_ASCII);
 			} catch (IOException e1) {
@@ -106,7 +114,8 @@ public class TextFormatTreeWriter implements TreeWriter {
 	public void writeBlob(Blob blob) {
 		int lines = blob.getBody().split("\n").length;
 		try {
-			Files.append(lines + " lines" + "\n", outputFile, Charsets.US_ASCII);
+			Files.append(BLOB_LINEINFO + lines + " lines" + "\n", outputFile,
+					Charsets.US_ASCII);
 			Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -118,11 +127,11 @@ public class TextFormatTreeWriter implements TreeWriter {
 		List<Pair<String, String>> contents = new ArrayList<Pair<String, String>>();
 
 		for (Blob blbo : tree.getBlobs()) {
-			contents.add(Pair.of("Blob", blbo.getName()));
+			contents.add(Pair.of(BLOB, blbo.getName()));
 		}
 
 		for (Tree childTree : tree.getChildTrees()) {
-			contents.add(Pair.of("Tree", childTree.getName()));
+			contents.add(Pair.of(TREE, childTree.getName()));
 		}
 
 		Comparator<Pair<String, String>> comparator = new Comparator<Pair<String, String>>() {
