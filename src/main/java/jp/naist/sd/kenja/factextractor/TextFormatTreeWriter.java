@@ -32,6 +32,14 @@ public class TextFormatTreeWriter extends TreeWriter {
 				e.printStackTrace();
 			}
 		}
+		
+		String line = "Start" + tree.getName();
+		try {
+			Files.append(line, outputFile, Charsets.US_ASCII);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		HashMap<String, Tree> treeMap = new HashMap<String, Tree>();
 		for (Tree t : tree.getChildTrees()) {
@@ -61,7 +69,13 @@ public class TextFormatTreeWriter extends TreeWriter {
 				e.printStackTrace();
 			}
 		}
-
+		line = "End" + tree.getName();
+		try {
+			Files.append(line, outputFile, Charsets.US_ASCII);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 
 	@Override
