@@ -23,11 +23,13 @@ public class TreeWriter {
 				e.printStackTrace();
 			}
 		}
+		currentDir = baseDir;
 	}
 
 	public void writeTree(Tree tree) {
+		File parentDir = currentDir;
 		if (!tree.isRoot()) {
-			currentDir = new File(baseDir, tree.getName());
+			currentDir = new File(currentDir, tree.getName());
 			if (!currentDir.exists())
 				currentDir.mkdir();
 		}
@@ -39,6 +41,7 @@ public class TreeWriter {
 		for (Tree childTree : tree.getChildTrees()) {
 			writeTree(childTree);
 		}
+		currentDir = parentDir;
 	}
 
 	public void writeBlob(Blob blob) {
