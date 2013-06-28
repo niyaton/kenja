@@ -27,6 +27,8 @@ def write_syntax_tree_from_file(odb, src_path):
     while line:
         header, info = line[0:4], line[5:].rstrip()
         if header == '[BN]':
+            # Blob entry format is following:
+            # [BN] blob_name
             blob_name = info
             line = f.readline()
             header, info = line[0:4], line[5:].rstrip()
@@ -34,10 +36,16 @@ def write_syntax_tree_from_file(odb, src_path):
             (mode, binsha) = write_blob_from_file(odb, f, int(info))
             trees[-1].append('%s %s\0%s' % (mode, blob_name, binsha))
         elif header == '[TN]':
+            # Tree entry format is following:
+            # [TN] tree_name
             pass
         elif header == '[TS]':
+            # Contents of tree start from [TS].
+            # [TS] tree_name
             trees.append([])
         elif header == '[TE]':
+            # Contents of tree end by [TE].
+            # [TE] tree_name
             tree = trees.pop()
             tree_name = info
             items_str = ''.join(tree)
