@@ -11,6 +11,11 @@ from StringIO import StringIO
 blob_mode = '100644'
 tree_mode = '040000'
 
+def tree_item_str(mode, file_name, binsha):
+    if mode[0] == 0:
+        mode = mode[1:]
+    return '%s %s\0%s' % (mode, file_name, binsha)
+
 def write_blob(odb, src_path):
     assert os.path.isfile(src_path) and not os.path.islink(src_path)
     istream = IStream("blob", os.path.getsize(src_path), io.open(src_path))
@@ -34,7 +39,7 @@ def write_syntax_tree_from_file(odb, src_path):
             header, info = line[0:4], line[5:].rstrip()
             assert header == '[BI]'
             (mode, binsha) = write_blob_from_file(odb, f, int(info))
-            trees[-1].append('%s %s\0%s' % (mode, blob_name, binsha))
+            trees[-1].append(tree_item_str(mode, blob_name, binsha))
         elif header == '[TN]':
             # Tree entry format is following:
             # [TN] tree_name
@@ -52,7 +57,7 @@ def write_syntax_tree_from_file(odb, src_path):
             istream = IStream("tree", len(items_str), StringIO(items_str))
             odb.store(istream)
             (mode, binsha) = (tree_mode[1:], istream.binsha)
-            trees[-1].append('%s %s\0%s' % (mode, tree_name, binsha))
+            trees[-1].append(tree_item_str(mode, tree_name, binsha))
 
         line = f.readline()
 
@@ -89,10 +94,7 @@ def write_tree(odb, src_path):
     for file in sorted(os.listdir(src_path)):
         (mode, binsha) = write_path(odb, os.path.join(src_path, file))
 
-        if mode[0] == '0':
-            mode = mode[1:]
-
-        items.append('%s %s\0%s' % (mode, file, binsha))
+        items.append(tree_item_str(mode, file, binsha))
 
     items_str = ''.join(items)
     istream = IStream("tree", len(items_str), StringIO(items_str))
@@ -104,10 +106,7 @@ def write_paths(odb, paths, names):
     for (path, name) in zip(paths, names):
         (mode, binsha) = write_path(odb, path)
 
-        if mode[0] == '0':
-            mode = mode[1:]
-
-        items.append('%s %s\0%s' % (mode, name, binsha))
+        items.append(tree_item_str(mode, name, binsha))
 
     items_str = ''.join(items)
     istream = IStream("tree", len(items_str), StringIO(items_str))
@@ -117,9 +116,7 @@ def write_paths(odb, paths, names):
 def mktree(odb, modes, binshas, names):
     items = []
     for (mode, binsha, name) in zip(modes, binshas, names):
-        if mode[0] == '0':
-            mode = mode[1:]
-        items.append('%s %s\0%s' % (mode, name, binsha))
+        items.append(tree_item_str(mode, name, binsha))
 
 
     items_str = ''.join(items)
