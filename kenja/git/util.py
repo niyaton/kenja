@@ -114,10 +114,6 @@ def mktree(odb, modes, binshas, names):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
-def commit_from_binsha(repo, binsha, message, parents=None):
-    tree = Tree.new(repo, bin_to_hex(binsha))
-    return Commit.create_from_tree(repo, tree, message, parents, True)
-
 def mktree_from_iter(odb, object_info_iter):
     items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
     items_str = ''.join(items)
@@ -125,6 +121,10 @@ def mktree_from_iter(odb, object_info_iter):
     istream = IStream("tree", len(items_str), StringIO(items_str))
     odb.store(istream)
     return (tree_mode, istream.binsha)
+
+def commit_from_binsha(repo, binsha, message, parents=None):
+    tree = Tree.new(repo, bin_to_hex(binsha))
+    return Commit.create_from_tree(repo, tree, message, parents, True)
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
