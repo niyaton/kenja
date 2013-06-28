@@ -107,12 +107,9 @@ def write_paths(odb, paths, names):
     return (tree_mode, istream.binsha)
 
 def mktree(odb, modes, binshas, names):
-    items = []
-    for (mode, binsha, name) in zip(modes, binshas, names):
-        items.append(tree_item_str(mode, name, binsha))
-
-
+    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in zip(modes, binshas, names)]
     items_str = ''.join(items)
+
     istream = IStream("tree", len(items_str), StringIO(items_str))
     odb.store(istream)
     return (tree_mode, istream.binsha)
