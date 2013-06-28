@@ -73,13 +73,6 @@ public class TextFormatTreeWriter implements TreeWriter {
 				writeBlob(blobMap.get(content.getRight()));
 			} else if (content.getLeft() == TREE) {
 				writeTree(treeMap.get(content.getRight()));
-				try {
-					Files.append(builder.toString(), outputFile,
-							Charsets.US_ASCII);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 
 		}
