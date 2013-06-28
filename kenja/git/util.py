@@ -17,6 +17,55 @@ def write_blob(odb, src_path):
     odb.store(istream)
     return (blob_mode, istream.binsha)
 
+def write_syntax_tree_from_file(odb, src_path):
+    if not os.path.isfile(src_path):
+        raise Exception
+
+    f = open(src_path)
+    line = f.readline()
+    trees = [[]]
+    while line:
+        header, info = line[0:4], line[5:].rstrip()
+        if header == '[BN]':
+            blob_name = info
+            line = f.readline()
+            header, info = line[0:4], line[5:].rstrip()
+            assert header == '[BI]'
+            (mode, binsha) = write_blob_from_file(odb, f, int(info))
+            trees[-1].append('%s %s\0%s' % (mode, blob_name, binsha))
+        elif header == '[TN]':
+            pass
+        elif header == '[TS]':
+            trees.append([])
+        elif header == '[TE]':
+            tree = trees.pop()
+            tree_name = info
+            items_str = ''.join(tree)
+            istream = IStream("tree", len(items_str), StringIO(items_str))
+            odb.store(istream)
+            (mode, binsha) = (tree_mode[1:], istream.binsha)
+            trees[-1].append('%s %s\0%s' % (mode, tree_name, binsha))
+
+        line = f.readline()
+
+    tree = trees.pop()
+    items_str = ''.join(tree)
+    istream = IStream("tree", len(items_str), StringIO(items_str))
+    odb.store(istream)
+    return (tree_mode, istream.binsha)
+
+def write_blob_from_file(odb, f, line_size):
+    lines = []
+
+    for i in range(line_size):
+        lines.append(f.readline())
+
+    blob_body = ''.join(lines) if line_size != 0 else ''
+    istream = IStream("blob", len(blob_body), StringIO(blob_body))
+    odb.store(istream)
+
+    return (blob_mode, istream.binsha)
+
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
         return write_blob(odb, src_path)
