@@ -8,7 +8,7 @@ import com.google.common.io.Files;
 
 public class FileFormatTreeWriter implements TreeWriter {
 	private File currentDir;
-	
+
 	public FileFormatTreeWriter(File baseDir) {
 		if (!baseDir.exists()) {
 			try {
@@ -21,8 +21,8 @@ public class FileFormatTreeWriter implements TreeWriter {
 		}
 		currentDir = baseDir;
 	}
-	
-	public void writeTree(Tree tree) {
+
+	public void writeTree(Tree tree) throws IOException {
 		File parentDir = currentDir;
 		if (!tree.isRoot()) {
 			currentDir = new File(currentDir, tree.getName());
@@ -38,24 +38,14 @@ public class FileFormatTreeWriter implements TreeWriter {
 			writeTree(childTree);
 		}
 		currentDir = parentDir;
-	}	
-	
-	public void writeBlob(Blob blob) {
+	}
+
+	public void writeBlob(Blob blob) throws IOException {
 		if (!currentDir.exists())
-			try {
-				Files.createParentDirs(currentDir);
-				currentDir.mkdir();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Files.createParentDirs(currentDir);
+		currentDir.mkdir();
 		File blobFile = new File(currentDir, blob.getName());
-		try {
-			blobFile.createNewFile();
-			Files.write(blob.getBody(), blobFile, Charsets.US_ASCII);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		blobFile.createNewFile();
+		Files.write(blob.getBody(), blobFile, Charsets.US_ASCII);
 	}
 }

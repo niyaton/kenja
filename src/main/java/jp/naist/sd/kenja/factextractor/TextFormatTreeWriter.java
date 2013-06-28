@@ -16,42 +16,27 @@ import com.google.common.io.Files;
 public class TextFormatTreeWriter implements TreeWriter {
 	private File outputFile;
 
-	private static final String BLOB = "[Blob]";
-	private static final String TREE = "[Tree]";
+	private static final String BLOB = "[BN] ";
+	private static final String TREE = "[TN] ";
 
-	private static final String BLOB_LINEINFO = "[BlobInfo]";
+	private static final String BLOB_LINEINFO = "[BI] ";
 
-	private static final String START_TREE = "[StartTree]";
-	private static final String END_TREE = "[EndTree]";
+	private static final String START_TREE = "[TS] ";
+	private static final String END_TREE = "[TE] ";
 
-	public TextFormatTreeWriter(File outputFile) {
+	public TextFormatTreeWriter(File outputFile) throws IOException{
 		this.outputFile = outputFile.getAbsoluteFile();
 		if (!this.outputFile.getParentFile().exists()) {
-			try {
-				Files.createParentDirs(this.outputFile);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Files.createParentDirs(this.outputFile);
 		}
 	}
 
-	public void writeTree(Tree tree) {
+	public void writeTree(Tree tree) throws IOException{
 		if (tree.isRoot()) {
-			try {
-				Files.touch(outputFile);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Files.touch(outputFile);
 		} else {
 			String line = START_TREE + tree.getName() + "\n";
-			try {
-				Files.append(line, outputFile, Charsets.US_ASCII);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			Files.append(line, outputFile, Charsets.US_ASCII);
 		}
 
 		HashMap<String, Tree> treeMap = createTreeMap(tree);
@@ -60,38 +45,20 @@ public class TextFormatTreeWriter implements TreeWriter {
 		for (Pair<String, String> content : createTreeContents(tree)) {
 			StringBuilder builder = new StringBuilder();
 			builder.append(content.getLeft());
-			builder.append(" ");
 			builder.append(content.getRight());
 			builder.append("\n");
 			if (content.getLeft() == BLOB) {
-				try {
 					Files.append(builder.toString(), outputFile,
 							Charsets.US_ASCII);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				writeBlob(blobMap.get(content.getRight()));
 			} else if (content.getLeft() == TREE) {
 				writeTree(treeMap.get(content.getRight()));
-				try {
-					Files.append(builder.toString(), outputFile,
-							Charsets.US_ASCII);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 
 		}
 		if (!tree.isRoot()) {
 			String line = END_TREE + tree.getName() + "\n";
-			try {
 				Files.append(line, outputFile, Charsets.US_ASCII);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 		}
 	}
 
@@ -111,16 +78,16 @@ public class TextFormatTreeWriter implements TreeWriter {
 		return result;
 	}
 
-	public void writeBlob(Blob blob) {
-		int lines = blob.getBody().split("\n").length;
-		try {
-			Files.append(BLOB_LINEINFO + lines + " lines" + "\n", outputFile,
-					Charsets.US_ASCII);
-			Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void writeBlob(Blob blob) throws IOException{
+		int lines = 0;
+		if (blob.getBody() != ""){
+			lines = blob.getBody().split("\n").length;
 		}
+			Files.append(BLOB_LINEINFO + lines + "\n", outputFile,
+					Charsets.US_ASCII);
+			if(lines != 0){
+				Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
+			}
 	}
 
 	private List<Pair<String, String>> createTreeContents(Tree tree) {

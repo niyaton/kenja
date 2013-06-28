@@ -13,7 +13,7 @@ from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
                             commit_from_binsha,
                             mktree_from_iter,
-                            write_tree,
+                            write_syntax_tree_from_file,
                             tree_mode
                     )
 from kenja.git.submodule import (
@@ -64,7 +64,7 @@ class SyntaxTreesCommitter:
 
     def write_syntax_tree(self, repo, blob):
         src = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        return write_tree(repo.odb, src)[1]
+        return write_syntax_tree_from_file(repo.odb, src)[1]
 
     def commit(self, org_commit, tree_contents):
         (mode, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
