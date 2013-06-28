@@ -1,15 +1,11 @@
 package jp.naist.sd.kenja.factextractor;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.io.Files;
 
 public class Tree {
 
@@ -89,32 +85,6 @@ public class Tree {
 				return true;
 		}
 		return false;
-	}
-
-	public void writeTree(File baseDir) {
-		if (!baseDir.exists()){
-			try {
-				Files.createParentDirs(baseDir);
-				baseDir.mkdir();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		if (!isRoot()) {
-			baseDir = new File(baseDir, this.name);
-			if (!baseDir.exists())
-				baseDir.mkdir();
-		}
-
-		for (Blob blob : blobs) {
-			blob.writeBlob(baseDir);
-		}
-
-		for (Tree t : trees) {
-			t.writeTree(baseDir);
-		}
 	}
 
 	public List<String> getObjectsPath(String prefix){
