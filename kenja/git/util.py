@@ -39,7 +39,7 @@ def write_syntax_tree_from_file(odb, src_path):
             header, info = line[0:4], line[5:].rstrip()
             assert header == '[BI]'
             (mode, binsha) = write_blob_from_file(odb, f, int(info))
-            trees[-1].append(tree_item_str(mode, blob_name, binsha))
+            trees[-1].append(mode, binsha, blob_name)
         elif header == '[TN]':
             # Tree entry format is following:
             # [TN] tree_name
@@ -53,19 +53,14 @@ def write_syntax_tree_from_file(odb, src_path):
             # [TE] tree_name
             tree = trees.pop()
             tree_name = info
-            items_str = ''.join(tree)
-            istream = IStream("tree", len(items_str), StringIO(items_str))
-            odb.store(istream)
-            (mode, binsha) = (tree_mode[1:], istream.binsha)
-            trees[-1].append(tree_item_str(mode, tree_name, binsha))
+            (mode, binsha) = mktree_from_iter(odb, tree)
+            trees[-1].append(mode, binsha, tree_name)
 
         line = f.readline()
 
     tree = trees.pop()
-    items_str = ''.join(tree)
-    istream = IStream("tree", len(items_str), StringIO(items_str))
-    odb.store(istream)
-    return (tree_mode, istream.binsha)
+    (mode, binsha) = mktree_from_iter(odb, tree)
+    return (mode, binsha)
 
 def write_blob_from_file(odb, f, line_size):
     lines = []
