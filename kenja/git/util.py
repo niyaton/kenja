@@ -51,10 +51,6 @@ def write_syntax_tree_from_file(odb, src_path):
             assert header == '[BI]'
             (mode, binsha) = write_blob_from_file(odb, f, int(info))
             trees[-1].append(mode, binsha, blob_name)
-        elif header == '[TN]':
-            # Tree entry format is following:
-            # [TN] tree_name
-            pass
         elif header == '[TS]':
             # Contents of tree start from [TS].
             # [TS] tree_name
