@@ -23,12 +23,12 @@ def write_blob(odb, src_path):
     return (blob_mode, istream.binsha)
 
 def write_blob_from_file(odb, f, line_size):
-    lines = []
+    if line_size == 0:
+        blob_body = ''
+    else:
+        lines = [ f.readline() for i in range(line_size) ]
+        blob_body = ''.join(lines)
 
-    for i in range(line_size):
-        lines.append(f.readline())
-
-    blob_body = ''.join(lines) if line_size != 0 else ''
     istream = IStream("blob", len(blob_body), StringIO(blob_body))
     odb.store(istream)
 
