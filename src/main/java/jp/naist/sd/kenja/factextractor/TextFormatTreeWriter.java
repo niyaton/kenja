@@ -16,13 +16,13 @@ import com.google.common.io.Files;
 public class TextFormatTreeWriter implements TreeWriter {
 	private File outputFile;
 
-	private static final String BLOB = "[Blob]";
-	private static final String TREE = "[Tree]";
+	private static final String BLOB = "[BN] ";
+	private static final String TREE = "[TN] ";
 
-	private static final String BLOB_LINEINFO = "[BlobInfo]";
+	private static final String BLOB_LINEINFO = "[BI] ";
 
-	private static final String START_TREE = "[StartTree]";
-	private static final String END_TREE = "[EndTree]";
+	private static final String START_TREE = "[TS] ";
+	private static final String END_TREE = "[TE] ";
 
 	public TextFormatTreeWriter(File outputFile) {
 		this.outputFile = outputFile.getAbsoluteFile();
@@ -60,7 +60,6 @@ public class TextFormatTreeWriter implements TreeWriter {
 		for (Pair<String, String> content : createTreeContents(tree)) {
 			StringBuilder builder = new StringBuilder();
 			builder.append(content.getLeft());
-			builder.append(" ");
 			builder.append(content.getRight());
 			builder.append("\n");
 			if (content.getLeft() == BLOB) {
@@ -112,11 +111,16 @@ public class TextFormatTreeWriter implements TreeWriter {
 	}
 
 	public void writeBlob(Blob blob) {
-		int lines = blob.getBody().split("\n").length;
+		int lines = 0;
+		if (blob.getBody() != ""){
+			lines = blob.getBody().split("\n").length;
+		}
 		try {
-			Files.append(BLOB_LINEINFO + lines + " lines" + "\n", outputFile,
+			Files.append(BLOB_LINEINFO + lines + "\n", outputFile,
 					Charsets.US_ASCII);
-			Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
+			if(lines != 0){
+				Files.append(blob.getBody(), outputFile, Charsets.US_ASCII);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
