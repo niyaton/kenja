@@ -51,15 +51,13 @@ def write_syntax_tree_from_file(odb, src_path):
         elif header == '[TE]':
             # Contents of tree end by [TE].
             # [TE] tree_name
-            tree = trees.pop()
             tree_name = info
-            (mode, binsha) = mktree_from_iter(odb, tree)
+            (mode, binsha) = mktree_from_iter(odb, trees.pop())
             trees[-1].append(mode, binsha, tree_name)
 
         line = f.readline()
 
-    tree = trees.pop()
-    (mode, binsha) = mktree_from_iter(odb, tree)
+    (mode, binsha) = mktree_from_iter(odb, trees.pop())
     return (mode, binsha)
 
 def write_blob_from_file(odb, f, line_size):
