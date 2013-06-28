@@ -71,14 +71,6 @@ def write_syntax_tree_from_file(odb, src_path):
     (mode, binsha) = mktree_from_iter(odb, trees.pop())
     return (mode, binsha)
 
-def write_path(odb, src_path):
-    if os.path.isfile(src_path):
-        return write_blob(odb, src_path)
-    elif os.path.isdir(src_path):
-        return write_tree(odb, src_path)
-
-    raise Exception
-
 def write_tree(odb, src_path):
     assert os.path.isdir(src_path) and not os.path.islink(src_path)
 
@@ -92,6 +84,14 @@ def write_tree(odb, src_path):
     istream = IStream("tree", len(items_str), StringIO(items_str))
     odb.store(istream)
     return (tree_mode, istream.binsha)
+
+def write_path(odb, src_path):
+    if os.path.isfile(src_path):
+        return write_blob(odb, src_path)
+    elif os.path.isdir(src_path):
+        return write_tree(odb, src_path)
+
+    raise Exception
 
 def write_paths(odb, paths, names):
     items = []
