@@ -50,7 +50,7 @@ def write_syntax_tree_from_file(odb, src_path):
             header, info = line[0:4], line[5:].rstrip()
             assert header == '[BI]'
             (mode, binsha) = write_blob_from_file(odb, f, int(info))
-            trees[-1].append(mode, binsha, blob_name)
+            trees[-1].append((mode, binsha, blob_name))
         elif header == '[TS]':
             # Contents of tree start from [TS].
             # [TS] tree_name
@@ -60,7 +60,7 @@ def write_syntax_tree_from_file(odb, src_path):
             # [TE] tree_name
             tree_name = info
             (mode, binsha) = mktree_from_iter(odb, trees.pop())
-            trees[-1].append(mode, binsha, tree_name)
+            trees[-1].append((mode, binsha, tree_name))
 
         line = f.readline()
 
