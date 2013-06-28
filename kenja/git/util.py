@@ -122,11 +122,9 @@ def commit_from_binsha(repo, binsha, message, parents=None):
     return Commit.create_from_tree(repo, tree, message, parents, True)
 
 def mktree_from_iter(odb, object_info_iter):
-    items = []
-    for (mode, binsha, name) in object_info_iter:
-        items.append('%s %s\0%s' % (mode, name, binsha))
-
+    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
     items_str = ''.join(items)
+
     istream = IStream("tree", len(items_str), StringIO(items_str))
     odb.store(istream)
     return (tree_mode, istream.binsha)
