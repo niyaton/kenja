@@ -22,6 +22,18 @@ def write_blob(odb, src_path):
     odb.store(istream)
     return (blob_mode, istream.binsha)
 
+def write_blob_from_file(odb, f, line_size):
+    lines = []
+
+    for i in range(line_size):
+        lines.append(f.readline())
+
+    blob_body = ''.join(lines) if line_size != 0 else ''
+    istream = IStream("blob", len(blob_body), StringIO(blob_body))
+    odb.store(istream)
+
+    return (blob_mode, istream.binsha)
+
 def write_syntax_tree_from_file(odb, src_path):
     if not os.path.isfile(src_path):
         raise Exception
@@ -59,18 +71,6 @@ def write_syntax_tree_from_file(odb, src_path):
 
     (mode, binsha) = mktree_from_iter(odb, trees.pop())
     return (mode, binsha)
-
-def write_blob_from_file(odb, f, line_size):
-    lines = []
-
-    for i in range(line_size):
-        lines.append(f.readline())
-
-    blob_body = ''.join(lines) if line_size != 0 else ''
-    istream = IStream("blob", len(blob_body), StringIO(blob_body))
-    odb.store(istream)
-
-    return (blob_mode, istream.binsha)
 
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
