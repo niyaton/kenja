@@ -2,10 +2,12 @@ package jp.naist.sd.kenja.factextractor.ast;
 
 import java.util.HashSet;
 
+import jp.naist.sd.kenja.factextractor.Blob;
 import jp.naist.sd.kenja.factextractor.Tree;
 
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class ASTClass extends ASTType {
@@ -15,9 +17,19 @@ public class ASTClass extends ASTType {
 
 	private Tree fieldRoot = new Tree(FIELD_ROOT_NAME);
 	private Tree constructorRoot = new Tree(CONSTURCTOR_ROOT_NAME);
+	
+	private Blob superClass = null;
 
 	protected ASTClass(TypeDeclaration typeDec) {
 		super(typeDec.getName().toString());
+		
+		//System.out.println(typeDec.getSuperclass());
+		if(typeDec.getSuperclassType() != null){
+			//System.out.println(typeDec.getSuperclassType().toString());
+			superClass = new Blob("extend");
+			superClass.setBody(typeDec.getSuperclassType().toString() + "\n");
+			root.append(superClass);
+		}
 		
 		root.append(fieldRoot);
 		root.append(constructorRoot);
