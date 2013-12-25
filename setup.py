@@ -8,7 +8,20 @@ setup(name='kenja',
     url='https://github.com/niyaton/kenja',
     packages=find_packages(),
     data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"])],
-    #entry_points=
+    entry_points = {
+        'console_scripts': [ 
+            'kenja.convert = kenja.convert:main',
+            'kenja.detection = kenja.refactoring_detection:main'
+        ]
+    },
+    install_requires = [
+        "pyrem_torq",
+        "GitPython"
+    ],
+    dependency_links = [
+            'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
+            'https://github.com/gitpython-developers/GitPython/tarball/0.3#egg=GitPython'
+        ],
 
     license="MIT license",
     classifiers=[
