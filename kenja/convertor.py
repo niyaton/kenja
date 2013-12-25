@@ -9,7 +9,7 @@ from kenja.committer import SyntaxTreesParallelCommitter
 from kenja.committer import SyntaxTreesCommitter
 
 class HistorageConverter:
-    parser_jar_path = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+    parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
 
     def __init__(self, org_git_repo_dir, working_dir):
         if org_git_repo_dir:
