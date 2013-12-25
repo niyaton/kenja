@@ -2,10 +2,9 @@ from __future__ import absolute_import
 import os
 from itertools import count, izip
 from git.repo import Repo
-from git.objects import Commit, Blob
+from git.objects import Blob
 from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
-from kenja.committer import SyntaxTreesParallelCommitter
 from kenja.committer import SyntaxTreesCommitter
 
 class HistorageConverter:
