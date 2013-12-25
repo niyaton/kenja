@@ -79,7 +79,13 @@ class RefactoringDetectionCommandParser:
         for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
             print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                                           sim)
-if __name__ == '__main__':
+
+
+def main():
     parser = RefactoringDetectionCommandParser()
     parser.parse_and_execute_command()
+
+
+if __name__ == '__main__':
+    main()
 
