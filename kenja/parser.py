@@ -1,19 +1,21 @@
 from __future__ import absolute_import
 import os
 from subprocess import (
-                            Popen,
-                            PIPE,
-                        )
+    Popen,
+    PIPE,
+    )
 from multiprocessing import (
-                                Pool,
-                                cpu_count
-                            )
+    Pool,
+    cpu_count
+    )
+
 
 def execute_parser(cmd, src):
     p = Popen(cmd, stdin=PIPE)
     p.stdin.write(src)
     p.communicate()
     return True
+
 
 class ParserExecutor:
     parser_class = "jp.naist.sd.kenja.factextractor.GitTreeCreator"
@@ -37,11 +39,11 @@ class ParserExecutor:
 
     def make_cmd(self, hexsha):
         cmd = ["java",
-                "-cp",
-                self.parser_path,
-                self.parser_class,
-                os.path.join(self.output_dir, hexsha)
-                ]
+               "-cp",
+               self.parser_path,
+               self.parser_class,
+               os.path.join(self.output_dir, hexsha)
+        ]
         return cmd
 
     def join(self):
