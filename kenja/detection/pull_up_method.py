@@ -40,6 +40,10 @@ class Method(object):
         else:
             return '.'.join([self.class_name, self.method_name])
 
+    def get_parameter_types(self):
+        index = self.method_name.index('(')
+        return self.method_name[index:-1].split(',')
+
     @classmethod
     def create_from_blob(cls, blob, commit):
         if is_method_body(blob.path):
@@ -60,6 +64,11 @@ class SubclassMethod(Method):
 
         split_path = blob.path.split('/')
         self.extend = get_extends(commit, split_path[0], self.class_name)
+
+def match_type(a_method, b_method):
+    a_types = a_method.get_parameter_types()
+    b_types = b_method.get_parameter_types()
+    return a_types == b_types
 
 def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
@@ -92,9 +101,18 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                 for src_method in v[src_class]:
                     src_body = src_method.get_body()
                     dst_body = dst_method.get_body()
+
+                    is_same_parameters = match_type(src_method, dst_method)
                     if dst_body:
-                        sim = calculate_similarity(src_body, dst_body)
-                        pull_up_method_candidates.append((str(src_method), str(dst_method), sim))
+                        dst_body = '\n'.join(dst_body.split('\n')[1:-2])
+                        if src_body:
+                            src_body = '\n'.join(src_body.split('\n')[1:-2])
+
+                        if src_body or dst_body:
+                            sim = calculate_similarity(src_body, dst_body)
+                        else:
+                            sim = 0
+                        pull_up_method_candidates.append((old_commit.hexsha, new_commit.hexsha, str(src_method), str(dst_method), sim, is_same_parameters))
 
     return pull_up_method_candidates
 
