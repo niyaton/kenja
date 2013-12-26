@@ -48,6 +48,13 @@ class Method(object):
     def __str__(self):
         return self.get_full_name()
 
+class SubclassMethod(Method):
+    def __init__(self, blob, commit):
+        super(SubclassMethod, self).__init__(blob, commit)
+
+        split_path = blob.path.split('/')
+        self.extend = get_extends(commit, split_path[0], self.class_name)
+
 
 
 def detect_shingle_pullup_method(old_commit, new_commit):
@@ -67,17 +74,16 @@ def detect_shingle_pullup_method(old_commit, new_commit):
 
     for diff in diff_index.iter_change_type('D'):
         deleted_blob_path = diff.a_blob.path
-        if is_method_body(deleted_blob_path):
-            c = get_class(deleted_blob_path)
-            split_path =deleted_blob_path.split('/')
-            extend = get_extends(new_commit, split_path[0], c)
-            if not extend:
+
+        subclass_method = SubclassMethod.create_from_blob(diff.a_blob, old_commit)
+
+        if subclass_method:
+            if not subclass_method.extend:
                 continue
 
-            extend = extend.rstrip()
-            if extend in added_methods.keys():
+            if subclass_method.extend in added_methods.keys():
                 #print extend
-                delted_methods[extend][c].append(get_method(deleted_blob_path))
+                delted_methods[subclass_method.extend][subclass_method.class_name].append(subclass_method)
 
     for super_class, v in delted_methods.iteritems():
         if super_class not in added_methods:
