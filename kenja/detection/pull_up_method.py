@@ -136,7 +136,9 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                             sim = calculate_similarity(src_body, dst_body)
                         else:
                             sim = 0
-                        pull_up_method_candidates.append((old_commit.hexsha, new_commit.hexsha, str(src_method), str(dst_method), sim, is_same_parameters))
+                        old_org_commit = get_org_commit(old_commit)
+                        new_org_commit = get_org_commit(new_commit)
+                        pull_up_method_candidates.append((old_commit.hexsha, new_commit.hexsha, old_org_commit, new_org_commit, str(src_method), str(dst_method), sim, is_same_parameters))
 
     return pull_up_method_candidates
 
