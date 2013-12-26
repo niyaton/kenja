@@ -12,7 +12,7 @@ def get_extends(commit, org_file_name, class_name):
     except KeyError:
         return None
 
-    return extend.data_stream.read()
+    return extend.data_stream.read().rstrip()
 
 def detect_pull_up_method(historage):
     pull_up_method_information = []
