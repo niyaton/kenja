@@ -40,6 +40,12 @@ class Method(object):
         else:
             return '.'.join([self.class_name, self.method_name])
 
+    def get_full_class_name(self):
+        if self.package_name:
+            return '.'.join([self.package_name, self.class_name])
+        else:
+            return '.'.join([self.class_name])
+
     def get_parameter_types(self):
         index = self.method_name.index('(')
         return self.method_name[index:-1].split(',')
@@ -56,6 +62,16 @@ class Method(object):
 
     def __str__(self):
         return self.get_full_name()
+
+def exist_class(blob, commit):
+    split_path = blob.path.split('/')
+    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2 ])
+
+    try:
+        commit.tree / class_path
+    except KeyError:
+        return False
+    return True
 
 
 class SubclassMethod(Method):
@@ -81,11 +97,19 @@ def detect_shingle_pullup_method(old_commit, new_commit):
         if new_method:
             added_methods[new_method.class_name].append(new_method)
 
+    deleted_classes = set()
     for diff in diff_index.iter_change_type('D'):
         subclass_method = SubclassMethod.create_from_blob(diff.a_blob, old_commit)
 
         if subclass_method:
             if not subclass_method.extend:
+                continue
+
+            if subclass_method.get_full_class_name() in deleted_classes:
+                continue
+
+            if  not exist_class(diff.a_blob, new_commit):
+                deleted_classes.add(subclass_method.get_full_class_name())
                 continue
 
             if subclass_method.extend in added_methods.keys():
