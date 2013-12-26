@@ -82,7 +82,6 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                 continue
 
             if subclass_method.extend in added_methods.keys():
-                #print extend
                 delted_methods[subclass_method.extend][subclass_method.class_name].append(subclass_method)
 
     for super_class, v in delted_methods.iteritems():
