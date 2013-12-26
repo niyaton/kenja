@@ -73,8 +73,6 @@ def detect_shingle_pullup_method(old_commit, new_commit):
             added_methods[new_method.class_name].append(new_method)
 
     for diff in diff_index.iter_change_type('D'):
-        deleted_blob_path = diff.a_blob.path
-
         subclass_method = SubclassMethod.create_from_blob(diff.a_blob, old_commit)
 
         if subclass_method:
