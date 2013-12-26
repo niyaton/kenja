@@ -11,7 +11,8 @@ setup(name='kenja',
     entry_points = {
         'console_scripts': [ 
             'kenja.convert = kenja.convert:main',
-            'kenja.detection = kenja.refactoring_detection:main'
+            'kenja.detection.extract_method = kenja.refactoring_detection:main',
+            'kenja.detection.pull_up_method = kenja.pull_up_method:main'
         ]
     },
     install_requires = [
