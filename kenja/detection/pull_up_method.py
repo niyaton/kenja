@@ -3,6 +3,7 @@ from itertools import product, combinations
 from git.objects import Blob
 from collections import defaultdict
 from kenja.historage import *
+from kenja.shingles import calculate_similarity
 
 def get_extends(commit, org_file_name, class_name):
     extends_path = '/'.join([org_file_name, '[CN]', class_name, 'extend'])
@@ -46,6 +47,9 @@ class Method(object):
         else:
             return None
 
+    def get_body(self):
+        return self.blob.data_stream.read()
+
     def __str__(self):
         return self.get_full_name()
 
@@ -60,7 +64,6 @@ class SubclassMethod(Method):
 def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
-    #method_added_classes =
     added_methods = defaultdict(list)
     delted_methods = defaultdict(lambda : defaultdict(list))
     for diff in diff_index.iter_change_type('A'):
@@ -87,7 +90,12 @@ def detect_shingle_pullup_method(old_commit, new_commit):
         for dst_method in added_methods[super_class]:
             for src_class in v.keys():
                 for src_method in v[src_class]:
-                    print '[from] %s [to] %s' % (src_method, dst_method)
+                    src_body = src_method.get_body()
+                    dst_body = dst_method.get_body()
+                    if dst_body:
+                        sim = calculate_similarity(src_body, dst_body)
+                        pull_up_method_candidates.append((str(src_method), str(dst_method), sim))
+
     return pull_up_method_candidates
 
 def detect_pullup_method_from_commit(old_commit, new_commit):
