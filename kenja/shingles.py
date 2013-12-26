@@ -7,7 +7,7 @@ from pyrem_torq.treeseq import seq_split_nodes_of_label
 #      such as ^= ++ --
 def split_to_str(text):
     p = re.compile("|".join([
-        r'"([^"\\\r\n]|\\\")*"', r"'([^'\\\r\n]|\\\')*'", # literals(string, char)
+        r'"([^"\\\r\n]|\\"|\\\\)*"', r"'([^'\\\r\n]|\\'|\\\\)*'", # literals(string, char)
         r"\d+[.]\d+", # literals (float)
         r"0x[0-9A-F]+", r"\d+", # literals (integers)
         r"//[^\r\n]*", # comment
