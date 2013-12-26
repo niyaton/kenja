@@ -24,6 +24,32 @@ def detect_pull_up_method(historage):
 
     return pull_up_method_information
 
+class Method(object):
+    def __init__(self, blob, commit):
+        self.blob = blob
+
+        self.package_name = get_package(blob.path, commit)
+        self.class_name = get_class(blob.path)
+        self.method_name = get_method(blob.path)
+
+    def get_full_name(self):
+        if self.package_name:
+            return '.'.join([self.package_name, self.class_name, self.method_name])
+        else:
+            return '.'.join([self.class_name, self.method_name])
+
+    @classmethod
+    def create_from_blob(cls, blob, commit):
+        if is_method_body(blob.path):
+            return cls(blob, commit)
+        else:
+            return None
+
+    def __str__(self):
+        return self.get_full_name()
+
+
+
 def detect_shingle_pullup_method(old_commit, new_commit):
     result = []
     #pullup_method_candidates = default
@@ -35,9 +61,9 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     delted_methods = defaultdict(lambda : defaultdict(list))
     for diff in diff_index.iter_change_type('A'):
         new_blob_path = diff.b_blob.path
-        if is_method_body(new_blob_path):
-            c = get_class(new_blob_path)
-            added_methods[c].append(get_method(new_blob_path))
+        new_method = Method.create_from_blob(diff.b_blob, new_commit)
+        if new_method:
+            added_methods[new_method.class_name].append(new_method)
 
     for diff in diff_index.iter_change_type('D'):
         deleted_blob_path = diff.a_blob.path
@@ -60,7 +86,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
         for dst_method in added_methods[super_class]:
             for src_class in v.keys():
                 for src_method in v[src_class]:
-                    print '[from] %s.%s [to] %s.%s' % (src_class, src_method, super_class, dst_method)
+                    print '[from] %s [to] %s' % (src_method, dst_method)
     return result
 
 def detect_pullup_method_from_commit(old_commit, new_commit):
