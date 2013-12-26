@@ -24,6 +24,7 @@ def detect_pull_up_method(historage):
 
     return pull_up_method_information
 
+
 class Method(object):
     def __init__(self, blob, commit):
         self.blob = blob
@@ -48,14 +49,13 @@ class Method(object):
     def __str__(self):
         return self.get_full_name()
 
+
 class SubclassMethod(Method):
     def __init__(self, blob, commit):
         super(SubclassMethod, self).__init__(blob, commit)
 
         split_path = blob.path.split('/')
         self.extend = get_extends(commit, split_path[0], self.class_name)
-
-
 
 def detect_shingle_pullup_method(old_commit, new_commit):
     result = []
