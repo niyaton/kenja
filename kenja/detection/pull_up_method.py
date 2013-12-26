@@ -15,6 +15,18 @@ def get_extends(commit, org_file_name, class_name):
 
     return extend.data_stream.read().rstrip()
 
+
+def exist_class(blob, commit):
+    split_path = blob.path.split('/')
+    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2 ])
+
+    try:
+        commit.tree / class_path
+    except KeyError:
+        return False
+    return True
+
+
 def detect_pull_up_method(historage):
     pull_up_method_information = []
 
@@ -63,16 +75,6 @@ class Method(object):
     def __str__(self):
         return self.get_full_name()
 
-def exist_class(blob, commit):
-    split_path = blob.path.split('/')
-    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2 ])
-
-    try:
-        commit.tree / class_path
-    except KeyError:
-        return False
-    return True
-
 
 class SubclassMethod(Method):
     def __init__(self, blob, commit):
@@ -81,10 +83,12 @@ class SubclassMethod(Method):
         split_path = blob.path.split('/')
         self.extend = get_extends(commit, split_path[0], self.class_name)
 
+
 def match_type(a_method, b_method):
     a_types = a_method.get_parameter_types()
     b_types = b_method.get_parameter_types()
     return a_types == b_types
+
 
 def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
@@ -142,6 +146,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
 
     return pull_up_method_candidates
 
+
 def detect_pullup_method_from_commit(old_commit, new_commit):
     result = []
     #pullup_method_candidates = default
@@ -181,9 +186,6 @@ def detect_pullup_method_from_commit(old_commit, new_commit):
                 print p
                 for p2 in product(v[p[0]], v[p[1]]):
                     print p, p2
-
-
-
 
     return result
 
