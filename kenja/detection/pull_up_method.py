@@ -58,9 +58,6 @@ class SubclassMethod(Method):
         self.extend = get_extends(commit, split_path[0], self.class_name)
 
 def detect_shingle_pullup_method(old_commit, new_commit):
-    result = []
-    #pullup_method_candidates = default
-
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
     #method_added_classes =
@@ -82,6 +79,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
             if subclass_method.extend in added_methods.keys():
                 delted_methods[subclass_method.extend][subclass_method.class_name].append(subclass_method)
 
+    pull_up_method_candidates = []
     for super_class, v in delted_methods.iteritems():
         if super_class not in added_methods:
             print '%s does\'nt have a deleted method' % (super_class)
@@ -90,7 +88,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
             for src_class in v.keys():
                 for src_method in v[src_class]:
                     print '[from] %s [to] %s' % (src_method, dst_method)
-    return result
+    return pull_up_method_candidates
 
 def detect_pullup_method_from_commit(old_commit, new_commit):
     result = []
