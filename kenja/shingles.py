@@ -107,8 +107,8 @@ def tokenize(tokenizer, script):
 
 def calculate_similarity(script1, script2):
     try:
-        seq = tokenize(tokenizer, script1)
-        seq2 = tokenize(tokenizer, script2)
+        seq = tokenize(tokenizer, script1)[1:]
+        seq2 = tokenize(tokenizer, script2)[1:]
     except Exception:
         print script1
         print script2
