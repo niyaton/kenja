@@ -3,6 +3,7 @@ from kenja.shingles import create_two_shingles
 from kenja.shingles import tokenize
 from kenja.shingles import tokenizer
 from kenja.shingles import calculate_similarity
+from nose.tools import raises
 
 def for_split_to_str(test_data, estimated_words):
     result = split_to_str(test_data)
@@ -47,3 +48,9 @@ def test_calculate_similarity():
     script2 = "public int main()"
     result = calculate_similarity(script1, script2)
     assert result == (1.0 / 3.0)
+
+@raises(ZeroDivisionError)
+def test_calculate_similarity():
+    script1 = ""
+    script2 = ""
+    calculate_similarity(script1, script2)
