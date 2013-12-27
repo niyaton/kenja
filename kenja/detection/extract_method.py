@@ -119,7 +119,10 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                 for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                     extracted_lines = extracted_lines[1:-1]
                     script2 = '\n'.join([l[1] for l in extracted_lines])
-                    sim = calculate_similarity(script, script2)
+                    try:
+                        sim = calculate_similarity(script, script2)
+                    except ZeroDivisionError:
+                        sim = "N/A"
                     org_commit = get_org_commit(new_commit)
                     result.append(
                         (old_commit.hexsha, new_commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))

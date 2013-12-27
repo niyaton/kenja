@@ -137,7 +137,10 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                             src_body = '\n'.join(src_body.split('\n')[1:-2])
 
                         if src_body or dst_body:
-                            sim = calculate_similarity(src_body, dst_body)
+                            try:
+                                sim = calculate_similarity(src_body, dst_body)
+                            except ZeroDivisionError:
+                                sim = "N/A"
                         else:
                             sim = 0
                         old_org_commit = get_org_commit(old_commit)

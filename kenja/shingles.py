@@ -93,6 +93,8 @@ tokenizer = tokenizing_expr()
 
 def create_two_shingles(seq):
     shingles = set()
+    if len(seq) == 0:
+        return shingles
     prev = seq.pop(0)
     for tok in seq:
         shingles.add((prev[0], prev[2], tok[0], tok[2]))
