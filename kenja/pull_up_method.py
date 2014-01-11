@@ -4,6 +4,7 @@ from gitdb.exc import BadObject
 #from kenja.detection.extract_method import detect_extract_method
 #from kenja.detection.extract_method import detect_extract_method_from_commit
 from kenja.detection.pull_up_method import detect_pullup_method_from_commit
+from kenja.detection.pull_up_method import detect_shingle_pullup_method
 from kenja.detection.pull_up_method import detect_pull_up_method
 import argparse
 import csv
@@ -35,15 +36,6 @@ class RefactoringDetectionCommandParser:
         for old_commit, new_commit, old_org_commit, new_org_commit, src, dst, sim, is_same_parameter in pull_up_method_candidates:
             print '"%s","%s","%s","%s","%s","%s","%s","%s"' % (old_commit, new_commit, old_org_commit, new_org_commit, src, dst, str(sim), is_same_parameter)
 
-        #candidate_revisions = set()
-        #for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-        #    candidate_revisions.add(b_commit)
-        #    print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-        #                                  sim)
-
-        #print 'candidates:', len(extract_method_information)
-        #print 'candidate revisions:', len(candidate_revisions)
-
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
         target_method_info = [package_prefix]
@@ -69,21 +61,28 @@ class RefactoringDetectionCommandParser:
 
     def detect_from_commits_list(self, args):
         historage = Repo(args.historage_dir)
-        extract_method_information = []
+        #extract_method_information = []
+        pull_up_method_information = []
         try:
             for a_commit_hash, b_commit_hash in csv.reader(open(args.commits_list)):
                 a_commit = historage.commit(a_commit_hash)
                 b_commit = historage.commit(b_commit_hash)
-                extract_method_information.extend(detect_extract_method_from_commit(a_commit, b_commit))
+                #extract_method_information.extend(detect_extract_method_from_commit(a_commit, b_commit))
+                pull_up_method_information.extend(detect_shingle_pullup_method(a_commit, b_commit))
+
         except ValueError:
             print "Invalid input."
             return
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-            print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-                                          sim)
+
+        print '"old_commit","new_commit","old_org_commit","new_org_commit","src_method","dst_method","similarity","isSamePrameters"'
+        for old_commit, new_commit, old_org_commit, new_org_commit, src, dst, sim, is_same_parameter in pull_up_method_information:
+            print '"%s","%s","%s","%s","%s","%s","%s","%s"' % (old_commit, new_commit, old_org_commit, new_org_commit, src, dst, str(sim), is_same_parameter)
+
+    #    for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
+    #        print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim)
 
 
 def main():
