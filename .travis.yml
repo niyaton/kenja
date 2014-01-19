@@ -2,5 +2,6 @@ language: python
 python:
         - "2.7"
 install:
-        - "pip isntall ."
+        - "pip install ."
+>>>>>>> added .travis.yml
 scripts: nosetests
