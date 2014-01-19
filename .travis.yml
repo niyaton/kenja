@@ -2,5 +2,6 @@ language: python
 python:
         - "2.7"
 install:
+        - "mvn assembly:assembly"
         - "python setup.py install"
 scripts: nosetests
