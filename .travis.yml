@@ -3,5 +3,6 @@ python:
         - "2.7"
 install:
         - "mvn assembly:assembly"
+        - "cp target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar kenja/lib/java-parser.jar"
         - "python setup.py install"
 scripts: nosetests
