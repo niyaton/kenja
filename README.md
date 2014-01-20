@@ -3,6 +3,12 @@
 - python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
 - Java
 
+# Dependencies
+Kenja needs following libraries.
+
+- [pyrem_torq](https://github.com/tos-kamiya/pyrem_torq)
+- [GitPython](https://github.com/gitpython-developers/GitPython/)
+- [kenja-java-parser](https://github.com/niyaton/kenja-java-parser/)
 
 # Installation
 
