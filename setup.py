@@ -1,4 +1,26 @@
+import os
+import sys
+import hashlib
+import urllib
 from setuptools import setup, find_packages
+
+parser_path = 'kenja/lib/java-parser.jar'
+parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.1/kenja-java-parser-0.1-jar-with-dependencies.jar'
+parser_digest = 'efeaf203579b4cf7264873ccfe4abcda'
+if not os.path.exists(parser_path):
+    print("{0} does not exist. Do you want to download it?[y/n]".format(parser_path))
+    choice = raw_input().lower()
+    yes = set(['yes', 'y', 'ye'])
+    no = set(['no', 'n'])
+    if choice in yes:
+        urllib.urlretrieve(parser_location, parser_path)
+        digest = hashlib.md5(open(parser_path).read()).hexdigest()
+        if parser_digest != digest:
+            print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
+            sys.exit(1)
+    else:
+        sys.exit(1)
+
 
 setup(name='kenja',
     version='0.4',

@@ -3,12 +3,6 @@
 *.iml
 *.iws
 .idea/
-.classpath
-.settings
-.project
-*.class
-root
-target
 __pycache__
 *.pyc
 testdata

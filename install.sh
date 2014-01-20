@@ -10,9 +10,12 @@ MAVEN_BIN=mvn
 PYTHON_BIN=python
 
 # location of java-parser created by maven
-PARSER_PATH=target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar 
+PARSER_PATH=parser/java/target/kenja-java-parser-0.1-jar-with-dependencies.jar
 
 # Build Java parser for kenja
+git submodule update
+cd parser/java
 $MAVEN_BIN assembly:assembly
+cd -
 cp $PARSER_PATH kenja/lib/java-parser.jar
 $SUDO $PYTHON_BIN setup.py install
