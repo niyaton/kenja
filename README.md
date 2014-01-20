@@ -1,7 +1,7 @@
 # Requirements
 
-python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
-Java
+- python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
+- Java
 
 
 # Installation
