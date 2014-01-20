@@ -1,0 +1,3 @@
+[submodule "parser/java"]
+	path = parser/java
+	url = git@github.com:niyaton/kenja-java-parser.git
