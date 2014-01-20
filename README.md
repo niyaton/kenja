@@ -1,24 +1,30 @@
 # Requirements
 
-python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
-Java
+- python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
+- Java
 
+# Dependencies
+Kenja needs following libraries.
+
+- [pyrem_torq](https://github.com/tos-kamiya/pyrem_torq)
+- [GitPython](https://github.com/gitpython-developers/GitPython/)
+- [kenja-java-parser](https://github.com/niyaton/kenja-java-parser/)
 
 # Installation
-## Requirements
-Apache Maven 2 or 3
-
-## Use install.sh
 
 ```
-sh install.sh
+python setup.py
 ```
 
 ## Manual Installation
 
 ```
+git submodule init
+git submodule update
+cd parser/java
 mvn assembly:assembly
-cp target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar kenja/lib/java-parser.jar
+cd -
+cp parser/java/target/kenja-java-parser-0.1-jar-with-dependencies.jar kenja/lib/java-parser.jar
 python setup.py install
 ```
 
@@ -35,8 +41,12 @@ $kenja.detection all <historage_path>
 ```
 
 # Development
-## Create eclipse project
+## Install latest version of kenja
+use install.sh
+
 ```
-$mvn eclipse:eclipse
+sh install.sh
 ```
 
+### Requirements
+Apache Maven 2 or 3
