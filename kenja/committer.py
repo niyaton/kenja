@@ -13,7 +13,8 @@ from kenja.git.util import (
     commit_from_binsha,
     mktree_from_iter,
     write_syntax_tree_from_file,
-    tree_mode
+    tree_mode,
+    create_note
     )
 from kenja.git.submodule import (
     store_submodule_config,
@@ -29,8 +30,6 @@ class SyntaxTreesCommitter:
         self.old2new = {}
         self.sorted_tree_contents = {}
         self.blob2tree = {}
-
-        self.create_submodule_info()
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
@@ -71,12 +70,11 @@ class SyntaxTreesCommitter:
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 
-        message = org_commit.message.encode(org_commit.encoding)
-        return commit_from_binsha(self.new_repo, binsha, message, parents)
+        result = commit_from_binsha(self.new_repo, binsha, org_commit, parents)
 
-    def create_submodule_info(self):
-        mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
-        self.submodule_info = (mode, binsha, '.gitmodules')
+        note_message = str(org_commit.hexsha)
+        create_note(self.new_repo, note_message)
+        return result
 
     def apply_change(self, commit):
         if commit.parents:
@@ -91,9 +89,6 @@ class SyntaxTreesCommitter:
     def create_tree_contents_from_commit(self, commit):
         tree_contents = SortedTreeContents()
 
-        tree_contents.insert(*(self.submodule_info))
-        tree_contents.insert(*(get_submodule_tree_content(commit.hexsha, 'org_repo')))
-
         for entry in commit.tree.traverse():
             if isinstance(entry, Blob) and self.is_commit_target(entry):
                 path = self.get_normalized_path(entry.path)
@@ -105,8 +100,6 @@ class SyntaxTreesCommitter:
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
-
-        tree_contents.replace(*(get_submodule_tree_content(commit.hexsha, 'org_repo')))
 
         for diff in parent.diff(commit):
             is_a_target = self.is_commit_target(diff.a_blob)
