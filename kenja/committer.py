@@ -71,7 +71,8 @@ class SyntaxTreesCommitter:
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 
         message = org_commit.message.encode(org_commit.encoding)
-        return commit_from_binsha(self.new_repo, binsha, message, parents)
+        #return commit_from_binsha(self.new_repo, binsha, message, parents)
+        return commit_from_binsha(self.new_repo, binsha, org_commit, parents)
 
     def create_submodule_info(self):
         mode, binsha = store_submodule_config(self.new_repo.odb, 'original', 'org_repo', self.org_repo.git_dir)
