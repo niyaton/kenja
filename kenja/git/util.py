@@ -141,6 +141,10 @@ def commit_from_binsha(repo, binsha, org_commit, parents=None):
 
     return Commit.create_from_tree(repo, tree, message, parents, True)
 
+def create_note(repo, message):
+    kwargs = ['add', '-f', '-m', message]
+    repo.git.notes(kwargs)
+
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
     nodes = list(revs)
