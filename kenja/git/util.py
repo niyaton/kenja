@@ -118,7 +118,6 @@ def mktree_from_iter(odb, object_info_iter):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
-
 def commit_from_binsha(repo, binsha, org_commit, parents=None):
     env = os.environ
     env_author_date = "GIT_AUTHOR_DATE"
@@ -146,22 +145,6 @@ def commit_from_binsha(repo, binsha, org_commit, parents=None):
     tree = Tree.new(repo, bin_to_hex(binsha))
 
     return Commit.create_from_tree(repo, tree, message, parents, True)
-
-    #config_write = repo.
-
-    #author = org_commit.author
-    #author_time = org_commit.authored_date
-    #author_offset = org_commit.author_tz_offset
-
-    #committer = org_commit.committer
-    #committer_time = org_commit.committed_date
-    #committer_offset = org_commit.committer_tz_offset
-
-    #new_commit = Commit(repo, Commit.NULL_BIN_SHA, author, author_time, author_offset,
-    #                    committer, committer_time, committer_offset, message,
-    #                    parent_commits, conf_encoding)
-    #                    )
-
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
