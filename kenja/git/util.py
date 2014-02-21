@@ -5,6 +5,7 @@ from git.objects.util import altz_to_utctz_str
 from git.util import Actor
 import io
 import os
+import sys
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from StringIO import StringIO
@@ -125,13 +126,13 @@ def commit_from_binsha(repo, binsha, org_commit, parents=None):
     author_date = "%d %s" % (org_commit.authored_date, altz_to_utctz_str(org_commit.author_tz_offset))
     env[Commit.env_author_date] = author_date
 
-    committer_date = "%d %s" % (org_commit.committered_date, altz_to_utctz_str(org_commit.committer_tz_offset))
+    committer_date = "%d %s" % (org_commit.committed_date, altz_to_utctz_str(org_commit.committer_tz_offset))
     env[Commit.env_committer_date] = committer_date
 
-    env[Actor.env_author_name] = org_commit.author.name
+    env[Actor.env_author_name] = org_commit.author.name.encode(org_commit.encoding)
     env[Actor.env_author_email] = org_commit.author.email
 
-    env[Actor.env_committer_name] = org_commit.committer.name
+    env[Actor.env_committer_name] = org_commit.committer.name.encode(org_commit.encoding)
     env[Actor.env_committer_email] = org_commit.committer.email
 
     message = org_commit.message.encode(org_commit.encoding)
