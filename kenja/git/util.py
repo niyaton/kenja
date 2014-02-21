@@ -130,10 +130,16 @@ def commit_from_binsha(repo, binsha, org_commit, parents=None):
     env[Commit.env_committer_date] = committer_date
 
     env[Actor.env_author_name] = org_commit.author.name.encode(org_commit.encoding)
-    env[Actor.env_author_email] = org_commit.author.email
+    if org_commit.author.email is None:
+        env[Actor.env_author_email] = ""
+    else:
+        env[Actor.env_author_email] = org_commit.author.email
 
     env[Actor.env_committer_name] = org_commit.committer.name.encode(org_commit.encoding)
-    env[Actor.env_committer_email] = org_commit.committer.email
+    if org_commit.committer.email is None:
+        env[Actor.env_committer_email] = ""
+    else:
+        env[Actor.env_committer_email] = org_commit.committer.email
 
     message = org_commit.message.encode(org_commit.encoding)
 
