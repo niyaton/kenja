@@ -32,7 +32,7 @@ python setup.py install
 
 ## Convert your git repository to historage
 ```
-$kenja.convert convert <your_repository_path> <name of converted repository>
+$kenja.convert convert <your_repository_path> <path of working directory>
 ```
 
 ## Detect extract method from your historage
