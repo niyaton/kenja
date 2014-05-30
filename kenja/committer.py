@@ -16,11 +16,6 @@ from kenja.git.util import (
     tree_mode,
     create_note
     )
-from kenja.git.submodule import (
-    store_submodule_config,
-    get_submodule_tree_content
-    )
-
 
 class SyntaxTreesCommitter:
     def __init__(self, org_repo, new_repo, syntax_trees_dir):
