@@ -1,7 +1,5 @@
 from __future__ import absolute_import
 import os
-from gitdb.util import bin_to_hex
-from git.objects.fun import tree_entries_from_data
 
 
 def is_method_body(path):
