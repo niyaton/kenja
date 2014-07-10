@@ -28,11 +28,7 @@ def get_method(path):
     return split_path[mt_index + 1]
 
 def get_org_commit(commit):
-    tree_entries = tree_entries_from_data(commit.tree.data_stream.read())
-    for binsha, mode, name in tree_entries:
-        if name == 'org_repo':
-            return bin_to_hex(binsha)
-    return None
+    return commit.repo.git.notes(['show', commit.hexsha])
 
 def get_package(path, commit):
     split_path = path.split('/')
