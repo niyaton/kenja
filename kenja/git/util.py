@@ -10,16 +10,19 @@ from StringIO import StringIO
 blob_mode = '100644'
 tree_mode = '040000'
 
+
 def tree_item_str(mode, file_name, binsha):
     if mode[0] == 0:
         mode = mode[1:]
     return '%s %s\0%s' % (mode, file_name, binsha)
+
 
 def write_blob(odb, src_path):
     assert os.path.isfile(src_path) and not os.path.islink(src_path)
     istream = IStream("blob", os.path.getsize(src_path), io.open(src_path))
     odb.store(istream)
     return (blob_mode, istream.binsha)
+
 
 def write_blob_from_file(odb, f, line_size):
     if line_size == 0:
@@ -32,6 +35,7 @@ def write_blob_from_file(odb, f, line_size):
     odb.store(istream)
 
     return (blob_mode, istream.binsha)
+
 
 def write_syntax_tree_from_file(odb, src_path):
     if not os.path.isfile(src_path):
@@ -67,6 +71,7 @@ def write_syntax_tree_from_file(odb, src_path):
     (mode, binsha) = mktree_from_iter(odb, trees.pop())
     return (mode, binsha)
 
+
 def write_tree(odb, src_path):
     assert os.path.isdir(src_path) and not os.path.islink(src_path)
 
@@ -81,6 +86,7 @@ def write_tree(odb, src_path):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
         return write_blob(odb, src_path)
@@ -88,6 +94,7 @@ def write_path(odb, src_path):
         return write_tree(odb, src_path)
 
     raise Exception
+
 
 def write_paths(odb, paths, names):
     items = []
@@ -101,6 +108,7 @@ def write_paths(odb, paths, names):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+
 def mktree(odb, modes, binshas, names):
     items = [tree_item_str(mode, name, binsha) for mode, binsha, name in zip(modes, binshas, names)]
     items_str = ''.join(items)
@@ -108,6 +116,7 @@ def mktree(odb, modes, binshas, names):
     istream = IStream("tree", len(items_str), StringIO(items_str))
     odb.store(istream)
     return (tree_mode, istream.binsha)
+
 
 def mktree_from_iter(odb, object_info_iter):
     items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
@@ -117,9 +126,11 @@ def mktree_from_iter(odb, object_info_iter):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+
 def commit_from_binsha(repo, binsha, message, parents=None):
     tree = Tree.new(repo, bin_to_hex(binsha))
     return Commit.create_from_tree(repo, tree, message, parents, True)
+
 
 def get_reversed_topological_ordered_commits(repo, revs):
     revs = [repo.commit(rev).hexsha for rev in revs]
@@ -146,6 +157,7 @@ def get_reversed_topological_ordered_commits(repo, revs):
             post.append(node)
 
     return post
+
 
 if __name__ == '__main__':
     repo = Repo.init('test_git')

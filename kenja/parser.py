@@ -1,19 +1,21 @@
 from __future__ import absolute_import
 import os
 from subprocess import (
-                            Popen,
-                            PIPE,
-                        )
+    Popen,
+    PIPE,
+    )
 from multiprocessing import (
-                                Pool,
-                                cpu_count
-                            )
+    Pool,
+    cpu_count
+    )
+
 
 def execute_parser(cmd, src):
     p = Popen(cmd, stdin=PIPE)
     p.stdin.write(src)
     p.communicate()
     return True
+
 
 class ParserExecutor:
     parser_class = "jp.naist.sd.kenja.factextractor.GitTreeCreator"
@@ -37,11 +39,11 @@ class ParserExecutor:
 
     def make_cmd(self, hexsha):
         cmd = ["java",
-                "-cp",
-                self.parser_path,
-                self.parser_class,
-                os.path.join(self.output_dir, hexsha)
-                ]
+               "-cp",
+               self.parser_path,
+               self.parser_class,
+               os.path.join(self.output_dir, hexsha)
+        ]
         return cmd
 
     def join(self):
@@ -49,20 +51,3 @@ class ParserExecutor:
         self.closed = True
         self.pool.join()
         self.pool = None
-
-#if __name__ == "__main__":
-#    kenja_jar = "../target/kenja-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
-#    kenja_parser_class = "jp.naist.sd.kenja.factextractor.ASTGitTreeCreator"
-#    output_dir = "/Users/kenjif/syntax_trees_test/"
-#
-#    from git import Repo
-#    repo = Repo('/Users/kenjif/historage_recover_test/columba_all')
-#    exe = ParserExecutor(output_dir, kenja_jar)
-#
-#    for commit in repo.iter_commits(repo.head):
-#        for p in commit.parents:
-#            for diff in p.diff(commit):
-#                if diff.b_blob and diff.b_blob.name.endswith(".java"):
-#                    exe.parse_blob(diff.b_blob)
-#
-#    exe.join()

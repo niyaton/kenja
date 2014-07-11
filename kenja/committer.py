@@ -5,20 +5,21 @@ from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
 from multiprocessing import (
-                                Pool,
-                                cpu_count
-                            )
+    Pool,
+    cpu_count
+    )
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
-                            commit_from_binsha,
-                            mktree_from_iter,
-                            write_syntax_tree_from_file,
-                            tree_mode
-                    )
+    commit_from_binsha,
+    mktree_from_iter,
+    write_syntax_tree_from_file,
+    tree_mode
+    )
 from kenja.git.submodule import (
-                                store_submodule_config,
-                                get_submodule_tree_content
-                    )
+    store_submodule_config,
+    get_submodule_tree_content
+    )
+
 
 class SyntaxTreesCommitter:
     def __init__(self, org_repo, new_repo, syntax_trees_dir):
@@ -141,11 +142,13 @@ class SyntaxTreesCommitter:
             if hexsha in self.old2new:
                 self.new_repo.create_tag(tag_ref.name, ref=self.old2new[hexsha])
 
+
 def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
     repo = Repo(repo_dir)
     org_repo = Repo(org_repo_dir)
     committer = syntax_trees_committer(org_repo, repo, syntax_trees_dir)
     committer.commit_syntax_trees(changed_commits)
+
 
 class SyntaxTreesParallelCommitter:
     def __init__(self, syntax_trees_dir, org_repo_dir, syntax_trees_committer, processes=None):
