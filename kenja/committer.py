@@ -28,12 +28,7 @@ class SyntaxTreesCommitter:
 
     def is_completed_parse(self, blob):
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
-        cmd = ['find', path, '-type', 'f']
-        output = check_output(cmd)
-        if len(output) == 0:
-            #print 'Interface?:', blob.path
-            pass
-        return len(output) > 0
+        return os.path.isfile(path)
 
     def is_commit_target(self, blob):
         if blob is None or not blob.name.endswith('.java'):
