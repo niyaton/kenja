@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from git.repo import Repo
 from git.objects import (Commit, Tree)
+from git.objects.util import altz_to_utctz_str
+from git.util import Actor
 import io
 import os
 from gitdb import IStream
@@ -127,9 +129,31 @@ def mktree_from_iter(odb, object_info_iter):
     return (tree_mode, istream.binsha)
 
 
-def commit_from_binsha(repo, binsha, message, parents=None):
+def commit_from_binsha(repo, binsha, org_commit, parents=None):
+    env = os.environ
+
+    author_date = "%d %s" % (org_commit.authored_date, altz_to_utctz_str(org_commit.author_tz_offset))
+    env[Commit.env_author_date] = author_date
+
+    committer_date = "%d %s" % (org_commit.committed_date, altz_to_utctz_str(org_commit.committer_tz_offset))
+    env[Commit.env_committer_date] = committer_date
+
+    env[Actor.env_author_name] = org_commit.author.name.encode(org_commit.encoding)
+    env[Actor.env_author_email] = org_commit.author.email or ""
+
+    env[Actor.env_committer_name] = org_commit.committer.name.encode(org_commit.encoding)
+    env[Actor.env_committer_email] = org_commit.committer.email or ""
+
+    message = org_commit.message.encode(org_commit.encoding)
+
     tree = Tree.new(repo, bin_to_hex(binsha))
+
     return Commit.create_from_tree(repo, tree, message, parents, True)
+
+
+def create_note(repo, message):
+    kwargs = ['add', '-f', '-m', message]
+    repo.git.notes(kwargs)
 
 
 def get_reversed_topological_ordered_commits(repo, revs):
