@@ -5,6 +5,7 @@ from collections import defaultdict
 from kenja.historage import *
 from kenja.shingles import calculate_similarity
 
+
 def get_extends(commit, org_file_name, class_name):
     extends_path = '/'.join([org_file_name, '[CN]', class_name, 'extend'])
     try:
@@ -18,7 +19,7 @@ def get_extends(commit, org_file_name, class_name):
 
 def exist_class(blob, commit):
     split_path = blob.path.split('/')
-    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2 ])
+    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2])
 
     try:
         commit.tree / class_path
@@ -32,7 +33,7 @@ def detect_pull_up_method(historage):
 
     for commit in historage.iter_commits(historage.head):
         for p in commit.parents:
-            #pull_up_method_information.extend(detect_pullup_method_from_commit(p, commit))
+            # pull_up_method_information.extend(detect_pullup_method_from_commit(p, commit))
             pull_up_method_information.extend(detect_shingle_pullup_method(p, commit))
 
     return pull_up_method_information
@@ -94,7 +95,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
     added_methods = defaultdict(list)
-    delted_methods = defaultdict(lambda : defaultdict(list))
+    delted_methods = defaultdict(lambda: defaultdict(list))
     for diff in diff_index.iter_change_type('A'):
         new_blob_path = diff.b_blob.path
         new_method = Method.create_from_blob(diff.b_blob, new_commit)
@@ -112,7 +113,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
             if subclass_method.get_full_class_name() in deleted_classes:
                 continue
 
-            if  not exist_class(diff.a_blob, new_commit):
+            if not exist_class(diff.a_blob, new_commit):
                 deleted_classes.add(subclass_method.get_full_class_name())
                 continue
 
@@ -145,20 +146,27 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                             sim = 0
                         old_org_commit = get_org_commit(old_commit)
                         new_org_commit = get_org_commit(new_commit)
-                        pull_up_method_candidates.append((old_commit.hexsha, new_commit.hexsha, old_org_commit, new_org_commit, str(src_method), str(dst_method), sim, is_same_parameters))
+                        pull_up_method_candidates.append((old_commit.hexsha,
+                                                          new_commit.hexsha,
+                                                          old_org_commit,
+                                                          new_org_commit,
+                                                          str(src_method),
+                                                          str(dst_method),
+                                                          sim,
+                                                          is_same_parameters))
 
     return pull_up_method_candidates
 
 
 def detect_pullup_method_from_commit(old_commit, new_commit):
     result = []
-    #pullup_method_candidates = default
+    # pullup_method_candidates = default
 
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
-    #method_added_classes =
+    # method_added_classes =
     added_methods = defaultdict(list)
-    delted_methods = defaultdict(lambda : defaultdict(list))
+    delted_methods = defaultdict(lambda: defaultdict(list))
     for diff in diff_index.iter_change_type('A'):
         if is_method_body(diff.b_blob.path):
             c = get_class(diff.b_blob.path)
@@ -167,20 +175,20 @@ def detect_pullup_method_from_commit(old_commit, new_commit):
     for diff in diff_index.iter_change_type('D'):
         if is_method_body(diff.a_blob.path):
             c = get_class(diff.a_blob.path)
-            split_path =diff.a_blob.path.split('/')
+            split_path = diff.a_blob.path.split('/')
             extend = get_extends(new_commit, split_path[0], c)
             if not extend:
                 continue
 
             extend = extend.rstrip()
             if extend in added_methods.keys():
-                #print extend
+                # print extend
                 delted_methods[extend][c].append(get_method(diff.a_blob.path))
 
     for k, v in delted_methods.items():
         pull_up_target = k
-        #method_deleted_classes = set()
-        #for c, m in v.items():
+        # method_deleted_classes = set()
+        # for c, m in v.items():
         #    method_deleted_classes.add(c)
         if len(v.keys()) > 2:
             print old_commit, new_commit, pull_up_target, v
@@ -191,6 +199,3 @@ def detect_pullup_method_from_commit(old_commit, new_commit):
                     print p, p2
 
     return result
-
-
-
