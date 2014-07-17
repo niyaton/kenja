@@ -8,7 +8,9 @@ from kenja.historage import *
 from kenja.git.diff import GitDiffParser
 from kenja.shingles import tokenizer, split_to_str, calculate_similarity
 
+
 diff_parser = GitDiffParser()
+
 
 def seq_outermost_node_iter(seq, label):
     # This function is fixed version of seq_outermost_node_iter.
@@ -20,8 +22,10 @@ def seq_outermost_node_iter(seq, label):
                 yield curPos, item
             else:
                 for i in xrange(1, len(item)):
-                    for v in soni_i(curPos + [i], item[i]): yield v  # need PEP380
+                    for v in soni_i(curPos + [i], item[i]):
+                        yield v
     return soni_i([], seq)
+
 
 def parsing_method_parameter_list_iter():
     # TODO Support {... , ...} and <A,B>
@@ -30,22 +34,26 @@ def parsing_method_parameter_list_iter():
     ;""")
     complex_script = script.compile("""
         ( method_invoke <- target_method, (null <- LP), *(req^(RP), @simpleExp), (null <- RP))
-    ;""", replaces={ 'simpleExp': simple_exp})
+    ;""", replaces={'simpleExp': simple_exp})
     yield Search(complex_script)
 
     yield Search(script.compile("""
         ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
     ;"""))
 
+
 def parsing_parameter():
     return Search(script.compile("""
         ( method_invoke :: ~( target_method, +(param <- +any^(comma), ?comma)))
     ;"""))
 
+
 parsing_expressions = list(parsing_method_parameter_list_iter())
+
 
 def search_method(method_name):
     return Search(script.compile("""target_method <- (id :: "%s");""" % (method_name)))
+
 
 def parse_added_lines(added_lines, method_name):
     tmp = '\n'.join([line for lineno, line in added_lines])
@@ -66,6 +74,7 @@ def parse_added_lines(added_lines, method_name):
 
     return num_args_list
 
+
 def detect_extract_method(historage):
     extract_method_information = []
 
@@ -74,6 +83,7 @@ def detect_extract_method(historage):
             extract_method_information.extend(detect_extract_method_from_commit(p, commit))
 
     return extract_method_information
+
 
 def detect_extract_method_from_commit(old_commit, new_commit):
     result = []
@@ -125,8 +135,9 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                         sim = "N/A"
                     org_commit = get_org_commit(new_commit)
                     result.append(
-                        (old_commit.hexsha, new_commit.hexsha, org_commit, a_package, b_package, c, m, extracted_method, sim))
-                    #print deleted_lines, added_lines_dict[(c, method, num_args)]
+                        (old_commit.hexsha, new_commit.hexsha, org_commit,
+                         a_package, b_package, c, m, extracted_method, sim))
+                    # print deleted_lines, added_lines_dict[(c, method, num_args)]
 
     return result
 
@@ -136,7 +147,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Extract Method Detector')
     parser.add_argument('historage_dir',
-            help='path of historage repository dir')
+                        help='path of historage repository dir')
     args = parser.parse_args()
 
     historage = Repo(args.historage_dir)
