@@ -65,8 +65,11 @@ def write_syntax_tree_from_file(odb, src_path):
             # Contents of tree end by [TE].
             # [TE] tree_name
             tree_name = info
-            (mode, binsha) = mktree_from_iter(odb, trees.pop())
-            trees[-1].append((mode, binsha, tree_name))
+            if len(trees[-1]) > 0:
+                (mode, binsha) = mktree_from_iter(odb, trees.pop())
+                trees[-1].append((mode, binsha, tree_name))
+            else:
+                trees.pop()
 
         line = f.readline()
 
@@ -121,7 +124,7 @@ def mktree(odb, modes, binshas, names):
 
 
 def mktree_from_iter(odb, object_info_iter):
-    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
+    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter if bin_to_hex(binsha) != '4b825dc642cb6eb9a060e54bf8d69288fbee4904']
     items_str = ''.join(items)
 
     istream = IStream("tree", len(items_str), StringIO(items_str))
