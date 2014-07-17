@@ -32,7 +32,7 @@ python setup.py install
 
 ## Convert your git repository to historage
 ```
-$kenja.convert convert <your_repository_path> <path of working directory>
+$kenja.historage.convert <your_repository_path> <path of working directory> <path of syntax tree directory>
 ```
 
 The direcotry ``base_repo`` is a historage converted by kenja.
