@@ -31,8 +31,10 @@ setup(name='kenja',
     packages=find_packages(),
     data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"])],
     entry_points = {
-        'console_scripts': [ 
-            'kenja.convert = kenja.convert:main',
+        'console_scripts': [
+            'kenja.historage.convert = kenja.convert:convert',
+            'kenja.historage.parse = kenja.convert:parse',
+            'kenja.historage.construct = kenja.convert:construct',
             'kenja.detection.extract_method = kenja.refactoring_detection:main',
             'kenja.detection.pull_up_method = kenja.pull_up_method:main'
         ]
