@@ -7,7 +7,8 @@ from pyrem_torq.treeseq import seq_split_nodes_of_label
 #      such as ^= ++ --
 def split_to_str(text):
     p = re.compile("|".join([
-        r'"([^"\\\r\n]|\\"|\\\\)*"', r"'([^'\\\r\n]|\\'|\\\\)*'", # literals(string, char)
+        r'"([^"\\\r\n]|\\"|\\\'|\\\\|\\)*"', # literal(string)
+        r"'([^'\\\r\n]|\\'|\\\"|\\\\|\\)*'", # literal(char)
         r"\d+[.]\d+", # literals (float)
         r"0x[0-9A-F]+", r"\d+", # literals (integers)
         r"//[^\r\n]*", # comment
@@ -93,6 +94,8 @@ tokenizer = tokenizing_expr()
 
 def create_two_shingles(seq):
     shingles = set()
+    if len(seq) == 0:
+        return shingles
     prev = seq.pop(0)
     for tok in seq:
         shingles.add((prev[0], prev[2], tok[0], tok[2]))
