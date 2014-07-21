@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from git.repo import Repo
 from gitdb.exc import BadObject
-#from kenja.detection.extract_method import detect_extract_method
-#from kenja.detection.extract_method import detect_extract_method_from_commit
+# from kenja.detection.extract_method import detect_extract_method
+# from kenja.detection.extract_method import detect_extract_method_from_commit
 from kenja.detection.pull_up_method import detect_pullup_method_from_commit
 from kenja.detection.pull_up_method import detect_pull_up_method
 import argparse
@@ -22,27 +22,29 @@ class RefactoringDetectionCommandParser:
         args.func(args)
 
     def add_all_command(self):
-        subparser = self.subparsers.add_parser('all',
-                                               help='detect refactoring from all commits in the Historage')
-        subparser.add_argument('historage_dir',
-                               help='path of Historage dir')
+        help_str = 'detect refactoring from all commits in the Historage'
+        subparser = self.subparsers.add_parser('all', help=help_str)
+
+        help_str = 'path of Historage dir'
+        subparser.add_argument('historage_dir', help=help_str)
         subparser.set_defaults(func=self.detect_all)
 
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         pull_up_method_candidates = detect_pull_up_method(historage)
-        print '"old_commit","new_commit","old_org_commit","new_org_commit","src_method","dst_method","similarity","isSamePrameters"'
+        print '"old_commit","new_commit","old_org_commit","new_org_commit",' \
+            + '"src_method","dst_method","similarity","isSamePrameters"'
         for old_commit, new_commit, old_org_commit, new_org_commit, src, dst, sim, is_same_parameter in pull_up_method_candidates:
             print '"%s","%s","%s","%s","%s","%s","%s","%s"' % (old_commit, new_commit, old_org_commit, new_org_commit, src, dst, str(sim), is_same_parameter)
 
-        #candidate_revisions = set()
-        #for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-        #    candidate_revisions.add(b_commit)
-        #    print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-        #                                  sim)
+        # candidate_revisions = set()
+        # for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
+        #     candidate_revisions.add(b_commit)
+        #     print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
+        #                                   sim)
 
-        #print 'candidates:', len(extract_method_information)
-        #print 'candidate revisions:', len(candidate_revisions)
+        # print 'candidates:', len(extract_method_information)
+        # print 'candidate revisions:', len(candidate_revisions)
 
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
@@ -59,12 +61,14 @@ class RefactoringDetectionCommandParser:
         return '"%s","%s","%s","%s","%s","%s"' % (a_commit, b_commit, org_commit, target_method, extracted_method, sim)
 
     def add_commits_command(self):
-        subparser = self.subparsers.add_parser('commits',
-                                               help='detect refactoring from commits in the csv')
-        subparser.add_argument('historage_dir',
-                               help='path of Historage dir')
-        subparser.add_argument('commits_list',
-                               help='comma separated commits list. please write a_commit hash and b_commit hash per line')
+        help_str = 'detect refactoring from commits in the csv'
+        subparser = self.subparsers.add_parser('commits', help=help_str)
+
+        help_str = 'path of Historage dir'
+        subparser.add_argument('historage_dir', help=help_str)
+
+        help_str = 'comma separated commits list. please write a_commit hash and b_commit hash per line'
+        subparser.add_argument('commits_list', help=help_str)
         subparser.set_defaults(func=self.detect_from_commits_list)
 
     def detect_from_commits_list(self, args):
