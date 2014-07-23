@@ -37,15 +37,6 @@ class RefactoringDetectionCommandParser:
             info[6] = str(info[6])
             print ','.join(['"' + s + '"' for s in info])
 
-        # candidate_revisions = set()
-        # for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-        #     candidate_revisions.add(b_commit)
-        #     print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-        #                                   sim)
-
-        # print 'candidates:', len(extract_method_information)
-        # print 'candidate revisions:', len(candidate_revisions)
-
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
         target_method_info = [package_prefix]
