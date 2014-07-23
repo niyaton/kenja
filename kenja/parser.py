@@ -28,8 +28,19 @@ class ParserExecutor:
         self.closed = False
 
     def parse_blob(self, blob):
-        src = blob.data_stream.read()
+        # src = blob.data_stream.read()
+        src = blob.hexsha
         cmd = self.make_cmd(blob.hexsha)
+
+        if(self.closed):
+            self.pool = Pool(self.processes)
+            self.closed = False
+
+        self.pool.apply_async(execute_parser, args=[cmd, src])
+
+    def parse_blobs(self, blobs):
+        src = '\n'.join([b.hexsha for b in blobs])
+        cmd = self.make_cmd("")
 
         if(self.closed):
             self.pool = Pool(self.processes)
@@ -42,7 +53,7 @@ class ParserExecutor:
                "-cp",
                self.parser_path,
                self.parser_class,
-               os.path.join(self.output_dir, hexsha)
+               self.output_dir
                ]
         return cmd
 

@@ -34,19 +34,22 @@ class HistorageConverter:
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
             commit = self.org_repo.commit(commit)
+            blobs = []
             if commit.parents:
                 for p in commit.parents:
                     for diff in p.diff(commit):
                         if self.is_target_blob(diff.b_blob, '.java'):
                             if diff.b_blob.hexsha not in parsed_blob:
-                                parser_executor.parse_blob(diff.b_blob)
+                                blobs.append(diff.b_blob)
                                 parsed_blob.add(diff.b_blob.hexsha)
             else:
                 for entry in commit.tree.traverse():
                     if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
                         if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
+                            blobs.append(entry)
                             parsed_blob.add(entry.hexsha)
+            parser_executor.parse_blobs(blobs)
         print 'waiting parser processes'
         parser_executor.join()
 
