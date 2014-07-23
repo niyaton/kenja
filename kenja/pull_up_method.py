@@ -76,9 +76,10 @@ class RefactoringDetectionCommandParser:
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in results:
-            print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-                                          sim)
+        for result in results:
+            # result[6] = sim
+            result[6] = str(result[6])
+            print ','.join(['"' + s + '"' for s in result])
 
 
 def main():
