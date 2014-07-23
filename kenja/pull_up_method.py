@@ -64,19 +64,19 @@ class RefactoringDetectionCommandParser:
 
     def detect_from_commits_list(self, args):
         historage = Repo(args.historage_dir)
-        extract_method_information = []
+        results = []
         try:
             for a_commit_hash, b_commit_hash in csv.reader(open(args.commits_list)):
                 a_commit = historage.commit(a_commit_hash)
                 b_commit = historage.commit(b_commit_hash)
-                extract_method_information.extend(detect_pullup_method_from_commit(a_commit, b_commit))
+                results.extend(detect_pullup_method_from_commit(a_commit, b_commit))
         except ValueError:
             print "Invalid input."
             return
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
+        for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in results:
             print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                                           sim)
 
