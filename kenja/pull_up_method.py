@@ -34,8 +34,10 @@ class RefactoringDetectionCommandParser:
         pull_up_method_candidates = detect_pull_up_method(historage)
         print '"old_commit","new_commit","old_org_commit","new_org_commit",' \
             + '"src_method","dst_method","similarity","isSamePrameters"'
-        for old_commit, new_commit, old_org_commit, new_org_commit, src, dst, sim, is_same_parameter in pull_up_method_candidates:
-            print '"%s","%s","%s","%s","%s","%s","%s","%s"' % (old_commit, new_commit, old_org_commit, new_org_commit, src, dst, str(sim), is_same_parameter)
+        for info in pull_up_method_candidates:
+            # info[6] = sim
+            info[6] = str(info[6])
+            print ','.join(['"' + s + '"' for s in info])
 
         # candidate_revisions = set()
         # for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
