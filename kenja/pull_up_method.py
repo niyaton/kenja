@@ -20,7 +20,7 @@ class RefactoringDetectionCommandParser:
         args.func(args)
 
     def add_all_command(self):
-        help_str = 'detect refactoring from all commits in the Historage'
+        help_str = 'detect Pull Up Method refactoring from all commits in the Historage'
         subparser = self.subparsers.add_parser('all', help=help_str)
 
         help_str = 'path of Historage dir'
