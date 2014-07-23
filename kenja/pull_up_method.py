@@ -80,7 +80,7 @@ class RefactoringDetectionCommandParser:
             for a_commit_hash, b_commit_hash in csv.reader(open(args.commits_list)):
                 a_commit = historage.commit(a_commit_hash)
                 b_commit = historage.commit(b_commit_hash)
-                extract_method_information.extend(detect_extract_method_from_commit(a_commit, b_commit))
+                extract_method_information.extend(detect_pullup_method_from_commit(a_commit, b_commit))
         except ValueError:
             print "Invalid input."
             return
