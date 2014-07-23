@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from git import Repo
 import os
 
+
 class GitDistiller:
     def __init__(self, git_dir):
         pass
@@ -15,14 +16,14 @@ class GitDistiller:
         self.clone_repo(new_repo_path)
         git = self.new_repo.git
         execcmd = self.create_remove_command_find(extensions)
-        #execcmd = self.create_remove_command_xargs(extensions)
+        # execcmd = self.create_remove_command_xargs(extensions)
         cmd = ['--tree-filter', execcmd]
 
         git.filter_branch(cmd)
 
     def prune_empty(self):
         git = self.new_repo.git
-        kwargs = {'f':True, 'prune-empty':True}
+        kwargs = {'f': True, 'prune-empty': True}
         git.filter_branch(**kwargs)
 
     def create_remove_command_find(self, extensions):
@@ -56,13 +57,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Git Distiller')
     parser.add_argument('repo_dir',
-            help='path of repository dir')
+                        help='path of repository dir')
     parser.add_argument('new_repo',
-            help='path of new repository')
+                        help='path of new repository')
     parser.add_argument('extension', nargs='*')
     parser.add_argument('--delete-no-extension')
     args = parser.parse_args()
 
     distiller = GitDistiller(args.repo_dir)
     distiller.distille(args.new_repo, args.extension)
-

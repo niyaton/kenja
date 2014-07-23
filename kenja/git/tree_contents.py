@@ -3,6 +3,7 @@ from bisect import bisect_left
 from itertools import (izip, repeat)
 from kenja.git.util import tree_mode
 
+
 class SortedTreeContents(object):
     def __init__(self, iterable=()):
         self._modes = [i[0] for i in iterable]
@@ -32,4 +33,3 @@ class SortedTreeContents(object):
         pos = self.index(name)
         self._binshas[pos] = binsha
         self._modes[pos] = mode
-

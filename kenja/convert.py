@@ -17,20 +17,20 @@ class ConvertorCommandParser:
         args.func(args)
 
     def add_convert_command(self):
-        sub_parser = self.subparsers.add_parser('convert',
-                                                help='convert git repository to historage')
-        sub_parser.add_argument('org_git_dir',
-                                help='path of original git repository')
-        sub_parser.add_argument('working_dir',
-                                help='path of working directory')
-        sub_parser.add_argument('--parser-processes',
-                                type=int,
-                                help='set parser processes (default value is number of processers of your machine)',
-        )
-        sub_parser.add_argument('--working-repositories',
-                                type=int,
-                                help='set number of working repositories (default value is 2)',
-        )
+        help_str = 'convert git repository to historage'
+        sub_parser = self.subparsers.add_parser('convert', help=help_str)
+
+        help_str = 'path of original git repository'
+        sub_parser.add_argument('org_git_dir', help=help_str)
+
+        help_str = 'path of working directory'
+        sub_parser.add_argument('working_dir', help=help_str)
+
+        help_str = 'set parser processes (default value is number of processers of your machine)'
+        sub_parser.add_argument('--parser-processes', type=int, help=help_str)
+
+        help_str = 'set number of working repositories (default value is 2)'
+        sub_parser.add_argument('--working-repositories', type=int, help=help_str)
         sub_parser.set_defaults(func=self.convert)
 
     def convert(self, args):
@@ -47,9 +47,14 @@ class ConvertorCommandParser:
         hc.convert()
 
     def add_parse_command(self):
-        sub_parser = self.subparsers.add_parser('parse', help='parse all java files from orginal git repository')
-        sub_parser.add_argument('org_git_dir', help='path of original git repository')
-        sub_parser.add_argument('working_dir', help='"syntax_treses" dir will be created in this dir')
+        help_str = 'parse all java files from orginal git repository'
+        sub_parser = self.subparsers.add_parser('parse', help=help_str)
+
+        help_str = 'path of original git repository'
+        sub_parser.add_argument('org_git_dir', help=help_str)
+
+        help_str = '"syntax_treses" dir will be created in this dir'
+        sub_parser.add_argument('working_dir', help=help_str)
         sub_parser.set_defaults(func=self.parse)
 
     def parse(self, args):
@@ -58,10 +63,17 @@ class ConvertorCommandParser:
         pass
 
     def add_construct_command(self):
-        sub_parser = self.subparsers.add_parser('construct', help='construct historage by using syntax trees')
-        sub_parser.add_argument('org_git_dir', help='path of original git repository')
-        sub_parser.add_argument('working_dir', help='path of working dir')
-        sub_parser.add_argument('--syntax-trees-dir', help='path of syntax treses dir')
+        help_str = 'construct historage by using syntax trees'
+        sub_parser = self.subparsers.add_parser('construct', help=help_str)
+
+        help_str = 'path of original git repository'
+        sub_parser.add_argument('org_git_dir', help=help_str)
+
+        help_str = 'path of working dir'
+        sub_parser.add_argument('working_dir', help=help_str)
+
+        help_str = 'path of syntax treses dir'
+        sub_parser.add_argument('--syntax-trees-dir', help=help_str)
         sub_parser.set_defaults(func=self.construct)
 
     def construct(self, args):

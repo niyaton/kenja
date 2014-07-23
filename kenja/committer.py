@@ -17,6 +17,7 @@ from kenja.git.util import (
     create_note
     )
 
+
 class SyntaxTreesCommitter:
     def __init__(self, org_repo, new_repo, syntax_trees_dir):
         self.org_repo = org_repo

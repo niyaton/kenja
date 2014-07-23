@@ -43,7 +43,7 @@ class ParserExecutor:
                self.parser_path,
                self.parser_class,
                os.path.join(self.output_dir, hexsha)
-        ]
+               ]
         return cmd
 
     def join(self):
