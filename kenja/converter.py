@@ -9,6 +9,7 @@ from kenja.parser import JavaParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
 from logging import getLogger
+from git import GitCmdObjectDB
 
 logger = getLogger(__name__)
 
@@ -28,7 +29,7 @@ def is_target_blob(blob, language):
 class HistorageConverter:
     def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir=None):
         if org_git_repo_dir:
-            self.org_repo = Repo(org_git_repo_dir)
+            self.org_repo = Repo(org_git_repo_dir, odbt=GitCmdObjectDB)
 
         self.language = 'java'
         self.check_and_make_working_dir(historage_dir)
@@ -81,6 +82,7 @@ class HistorageConverter:
 
     def prepare_historage_repo(self):
         historage_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
+        historage_repo = Repo(self.historage_dir, odbt=GitCmdObjectDB)
         self.set_git_config(historage_repo)
         return historage_repo
 
