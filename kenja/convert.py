@@ -16,29 +16,32 @@ class CommandParser:
         args.func(args)
 
     def add_main_command(self):
-        self.parser.add_argument('org_git_dir',
-                                help='path of original git repository')
-        self.parser.add_argument('working_dir',
-                                help='path of working directory')
-        self.parser.add_argument('syntax_trees_dir',
-                                help='path of syntax treses dir')
+        self.parser.add_argument('org_git_dir', help='path of original git repository')
+        self.parser.add_argument('working_dir', help='path of working directory')
+        self.parser.add_argument('syntax_trees_dir', help='path of syntax treses dir')
 
     def add_option_command(self):
         pass
+
     def set_function(self, args):
         pass
+
     def get_description(self):
         pass
 
 
 class ConvertCommandParser(CommandParser):
     def add_option_command(self):
-        self.parser.add_argument('--parser-processes',
-                                type=int,
-                                help='set parser processes (default value is number of processers of your machine)',)
-        self.parser.add_argument('--working-repositories',
-                                type=int,
-                                help='set number of working repositories (default value is 2)',)
+        self.parser.add_argument(
+            '--parser-processes',
+            type=int,
+            help='set parser processes (default value is number of processers of your machine)'
+        )
+        self.parser.add_argument(
+            '--working-repositories',
+            type=int,
+            help='set number of working repositories (default value is 2)'
+        )
 
     def set_function(self, args):
         print args
@@ -84,9 +87,11 @@ def convert():
     parser = ConvertCommandParser()
     parser.parse_and_execute_command()
 
+
 def parse():
     parser = ParseCommandParser()
     parser.parse_and_execute_command()
+
 
 def construct():
     parser = ConstructCommandParser()
