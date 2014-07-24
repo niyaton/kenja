@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 import re
 
+
 class GitDiffParser:
-    #header_regex = re.compile(r'^diff --git (a/)+(.*) (b/)+(.*)$')
+    # header_regex = re.compile(r'^diff --git (a/)+(.*) (b/)+(.*)$')
 
     header_a_blob_regex = re.compile(r'^--- (a/)?(.*)$')
     header_b_blob_regex = re.compile(r'^\+\+\+ (b/)?(.*)$')
@@ -18,7 +19,7 @@ class GitDiffParser:
         added_lines = []
         while(lines):
             line = lines.pop(0)
-            #if line[0] == 'd' and line[1] == 'i':
+            # if line[0] == 'd' and line[1] == 'i':
             #    print line
             if line[0] == '-':
                 match = self.header_a_blob_regex.match(line)

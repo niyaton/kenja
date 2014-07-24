@@ -39,7 +39,11 @@ The direcotry ``base_repo`` is a historage converted by kenja.
 
 ## Detect extract method from your historage
 ```
-$kenja.detection all <historage_path>
+$kenja.detection.extract_method all <historage_path>
+```
+## Detect pull up method from your historage
+```
+$kenja.detection.pull_up_method all <historage_path>
 ```
 
 # Development

@@ -1,8 +1,6 @@
 from __future__ import absolute_import
 from git.repo import Repo
 from gitdb.exc import BadObject
-#from kenja.detection.extract_method import detect_extract_method
-#from kenja.detection.extract_method import detect_extract_method_from_commit
 from kenja.detection.pull_up_method import detect_pullup_method_from_commit
 from kenja.detection.pull_up_method import detect_pull_up_method
 import argparse
@@ -22,27 +20,22 @@ class RefactoringDetectionCommandParser:
         args.func(args)
 
     def add_all_command(self):
-        subparser = self.subparsers.add_parser('all',
-                                               help='detect refactoring from all commits in the Historage')
-        subparser.add_argument('historage_dir',
-                               help='path of Historage dir')
+        help_str = 'detect Pull Up Method refactoring from all commits in the Historage'
+        subparser = self.subparsers.add_parser('all', help=help_str)
+
+        help_str = 'path of Historage dir'
+        subparser.add_argument('historage_dir', help=help_str)
         subparser.set_defaults(func=self.detect_all)
 
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         pull_up_method_candidates = detect_pull_up_method(historage)
-        print '"old_commit","new_commit","old_org_commit","new_org_commit","src_method","dst_method","similarity","isSamePrameters"'
-        for old_commit, new_commit, old_org_commit, new_org_commit, src, dst, sim, is_same_parameter in pull_up_method_candidates:
-            print '"%s","%s","%s","%s","%s","%s","%s","%s"' % (old_commit, new_commit, old_org_commit, new_org_commit, src, dst, str(sim), is_same_parameter)
-
-        #candidate_revisions = set()
-        #for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-        #    candidate_revisions.add(b_commit)
-        #    print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-        #                                  sim)
-
-        #print 'candidates:', len(extract_method_information)
-        #print 'candidate revisions:', len(candidate_revisions)
+        print '"old_commit","new_commit","old_org_commit","new_org_commit",' \
+            + '"src_method","dst_method","similarity","isSamePrameters"'
+        for info in pull_up_method_candidates:
+            # info[6] = sim
+            info[6] = str(info[6])
+            print ','.join(['"' + s + '"' for s in info])
 
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
@@ -59,31 +52,34 @@ class RefactoringDetectionCommandParser:
         return '"%s","%s","%s","%s","%s","%s"' % (a_commit, b_commit, org_commit, target_method, extracted_method, sim)
 
     def add_commits_command(self):
-        subparser = self.subparsers.add_parser('commits',
-                                               help='detect refactoring from commits in the csv')
-        subparser.add_argument('historage_dir',
-                               help='path of Historage dir')
-        subparser.add_argument('commits_list',
-                               help='comma separated commits list. please write a_commit hash and b_commit hash per line')
+        help_str = 'detect refactoring from commits in the csv'
+        subparser = self.subparsers.add_parser('commits', help=help_str)
+
+        help_str = 'path of Historage dir'
+        subparser.add_argument('historage_dir', help=help_str)
+
+        help_str = 'comma separated commits list. please write a_commit hash and b_commit hash per line'
+        subparser.add_argument('commits_list', help=help_str)
         subparser.set_defaults(func=self.detect_from_commits_list)
 
     def detect_from_commits_list(self, args):
         historage = Repo(args.historage_dir)
-        extract_method_information = []
+        results = []
         try:
             for a_commit_hash, b_commit_hash in csv.reader(open(args.commits_list)):
                 a_commit = historage.commit(a_commit_hash)
                 b_commit = historage.commit(b_commit_hash)
-                extract_method_information.extend(detect_extract_method_from_commit(a_commit, b_commit))
+                results.extend(detect_pullup_method_from_commit(a_commit, b_commit))
         except ValueError:
             print "Invalid input."
             return
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for a_commit, b_commit, org_commit, a_package, b_package, c, m, method, sim in extract_method_information:
-            print self.format_for_umldiff('jedit', a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
-                                          sim)
+        for result in results:
+            # result[6] = sim
+            result[6] = str(result[6])
+            print ','.join(['"' + s + '"' for s in result])
 
 
 def main():

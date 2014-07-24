@@ -7,13 +7,14 @@ from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
 
+
 class HistorageConverter:
     parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
 
     def __init__(self, org_git_repo_dir, working_dir):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
-        
+
         if not(os.path.isdir(working_dir)):
             raise Exception('%s is not a directory' % (working_dir))
 
@@ -37,13 +38,13 @@ class HistorageConverter:
                 for p in commit.parents:
                     for diff in p.diff(commit):
                         if self.is_target_blob(diff.b_blob, '.java'):
-                            if not diff.b_blob.hexsha in parsed_blob:
+                            if diff.b_blob.hexsha not in parsed_blob:
                                 parser_executor.parse_blob(diff.b_blob)
                                 parsed_blob.add(diff.b_blob.hexsha)
             else:
                 for entry in commit.tree.traverse():
                     if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
-                        if not entry.hexsha in parsed_blob:
+                        if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
         print 'waiting parser processes'
@@ -53,7 +54,7 @@ class HistorageConverter:
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
         base_repo = Repo.init(base_repo_dir)
         return base_repo
-    
+
     def convert(self):
         self.parse_all_java_files()
         self.construct_historage()
@@ -70,4 +71,3 @@ class HistorageConverter:
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
-

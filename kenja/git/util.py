@@ -30,7 +30,7 @@ def write_blob_from_file(odb, f, line_size):
     if line_size == 0:
         blob_body = ''
     else:
-        lines = [ f.readline() for i in range(line_size) ]
+        lines = [f.readline() for i in range(line_size)]
         blob_body = ''.join(lines)
 
     istream = IStream("blob", len(blob_body), StringIO(blob_body))
@@ -170,7 +170,7 @@ def get_reversed_topological_ordered_commits(repo, revs):
 
         children = []
         for parent in commit.parents:
-            if not parent.hexsha in visited:
+            if parent.hexsha not in visited:
                 children.append(parent.hexsha)
 
         if children:
@@ -185,10 +185,10 @@ def get_reversed_topological_ordered_commits(repo, revs):
 
 if __name__ == '__main__':
     repo = Repo.init('test_git')
-    #(mode, binsha) = write_tree(repo.odb, 'temp')
+    # (mode, binsha) = write_tree(repo.odb, 'temp')
 
-    #(mode, binsha) = write_tree(repo.odb, 'temp/00')
-    #(mode, binsha) = write_tree(repo.odb, 'temp/01')
+    # (mode, binsha) = write_tree(repo.odb, 'temp/00')
+    # (mode, binsha) = write_tree(repo.odb, 'temp/01')
 
     paths = ['temp/00', 'temp/01']
     names = ['a', 'b']

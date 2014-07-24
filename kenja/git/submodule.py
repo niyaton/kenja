@@ -9,7 +9,8 @@ from gitdb.util import (hex_to_bin,
                         )
 from tempfile import NamedTemporaryFile
 
-def write_submodule_config(f, name, path ,url):
+
+def write_submodule_config(f, name, path, url):
     config = RawConfigParser()
     section = 'submodule "%s"' % (name)
     config.add_section(section)
@@ -18,15 +19,18 @@ def write_submodule_config(f, name, path ,url):
 
     config.write(f)
 
+
 def store_submodule_config(odb, name, path, url):
     with NamedTemporaryFile() as f:
         write_submodule_config(f, name, path, url)
         f.flush()
         return write_blob(odb, f.name)
 
+
 def get_submodule_tree_content(commit_hexsha, name):
     submodule_mode = '160000'
     return (submodule_mode, hex_to_bin(commit_hexsha), name)
+
 
 def create_submodule_tree(odb, submodule_commit_hexsha):
     submodule_conf = '/Users/kenjif/test_gitmodules'
