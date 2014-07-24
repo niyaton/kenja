@@ -73,3 +73,5 @@ class HistorageConverter:
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
+        if not self.is_bare_repo:
+            base_repo.head.reset(working_tree=True)
