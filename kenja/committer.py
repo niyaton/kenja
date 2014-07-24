@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from copy import deepcopy
-from subprocess import check_output
 from git.repo import Repo
 from git.objects import Blob
 from multiprocessing import (
