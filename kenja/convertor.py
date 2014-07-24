@@ -11,16 +11,19 @@ from kenja.committer import SyntaxTreesCommitter
 class HistorageConverter:
     parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
 
-    def __init__(self, org_git_repo_dir, working_dir):
+    def __init__(self, org_git_repo_dir, historage_dir):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
-        if not(os.path.isdir(working_dir)):
-            raise Exception('%s is not a directory' % (working_dir))
+        if os.path.isdir(historage_dir):
+            if os.listdir(historage_dir):
+                raise Exception('%s is not a empty directory' % (historage_dir))
+        else:
+            os.mkdir(historage_dir)
 
-        self.working_dir = working_dir
+        self.historage_dir = historage_dir
 
-        self.syntax_trees_dir = os.path.join(self.working_dir, 'syntax_trees')
+        self.syntax_trees_dir = os.path.join(self.historage_dir, 'syntax_trees')
 
         self.num_commits = 0
 
@@ -51,8 +54,7 @@ class HistorageConverter:
         parser_executor.join()
 
     def prepare_base_repo(self):
-        base_repo_dir = os.path.join(self.working_dir, 'base_repo')
-        base_repo = Repo.init(base_repo_dir)
+        base_repo = Repo.init(self.historage_dir)
         return base_repo
 
     def convert(self):

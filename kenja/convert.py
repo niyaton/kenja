@@ -17,7 +17,7 @@ class CommandParser:
 
     def add_main_command(self):
         self.parser.add_argument('org_git_dir', help='path of original git repository')
-        self.parser.add_argument('working_dir', help='path of working directory')
+        self.parser.add_argument('historage_dir', help='path of historage directory')
         self.parser.add_argument('syntax_trees_dir', help='path of syntax treses dir')
 
     def add_option_command(self):
@@ -46,7 +46,7 @@ class ConvertCommandParser(CommandParser):
     def set_function(self, args):
         print args
 
-        hc = HistorageConverter(args.org_git_dir, args.working_dir)
+        hc = HistorageConverter(args.org_git_dir, args.historage_dir)
 
         if args.parser_processes:
             hc.parser_processes = args.parser_processes
@@ -62,7 +62,7 @@ class ConvertCommandParser(CommandParser):
 
 class ParseCommandParser(CommandParser):
     def set_function(self, args):
-        hc = HistorageConverter(args.org_git_dir, args.working_dir)
+        hc = HistorageConverter(args.org_git_dir, args.historage_dir)
         hc.parse_all_java_files()
         pass
 
@@ -72,7 +72,7 @@ class ParseCommandParser(CommandParser):
 
 class ConstructCommandParser(CommandParser):
     def set_function(self, args):
-        hc = HistorageConverter(args.org_git_dir, args.working_dir)
+        hc = HistorageConverter(args.org_git_dir, args.historage_dir)
 
         if args.syntax_trees_dir:
             hc.syntax_trees_dir = args.syntax_trees_dir
