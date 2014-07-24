@@ -24,6 +24,8 @@ class HistorageConverter:
 
         self.num_commits = 0
 
+        self.is_bare_repo = False
+
     def is_target_blob(self, blob, ext):
         return blob and blob.name.endswith(ext)
 
@@ -52,7 +54,7 @@ class HistorageConverter:
 
     def prepare_base_repo(self):
         base_repo_dir = os.path.join(self.working_dir, 'base_repo')
-        base_repo = Repo.init(base_repo_dir)
+        base_repo = Repo.init(base_repo_dir, bare=self.is_bare_repo)
         return base_repo
 
     def convert(self):

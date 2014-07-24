@@ -42,6 +42,11 @@ class ConvertCommandParser(CommandParser):
             type=int,
             help='set number of working repositories (default value is 2)'
         )
+        self.parser.add_argument(
+            '--bare',
+            action='store_true',
+            help='create a bare repository for historage'
+        )
 
     def set_function(self, args):
         print args
@@ -53,6 +58,8 @@ class ConvertCommandParser(CommandParser):
 
         if args.working_repositories:
             hc.num_commit_process = args.working_repositories
+
+        hc.is_bare_repo = args.bare
 
         hc.convert()
 
@@ -71,11 +78,20 @@ class ParseCommandParser(CommandParser):
 
 
 class ConstructCommandParser(CommandParser):
+    def add_option_command(self):
+        self.parser.add_argument(
+            '--bare',
+            action='store_true',
+            help='create a bare repository for historage'
+        )
+
     def set_function(self, args):
         hc = HistorageConverter(args.org_git_dir, args.working_dir)
 
         if args.syntax_trees_dir:
             hc.syntax_trees_dir = args.syntax_trees_dir
+
+        hc.is_bare_repo = args.bare
 
         hc.construct_historage()
 
