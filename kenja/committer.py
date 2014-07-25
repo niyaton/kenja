@@ -84,6 +84,8 @@ class SyntaxTreesCommitter:
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
+        # TODO This deepcopy have a potential of performance bug.
+        # I think there is more clever algorithm for this situation.
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
 
         for diff in parent.diff(commit):
