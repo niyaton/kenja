@@ -1,13 +1,7 @@
 from __future__ import absolute_import
 import os
 from copy import deepcopy
-from subprocess import check_output
-from git.repo import Repo
 from git.objects import Blob
-from multiprocessing import (
-    Pool,
-    cpu_count
-    )
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
     commit_from_binsha,
@@ -90,6 +84,8 @@ class SyntaxTreesCommitter:
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
+        # TODO This deepcopy have a potential of performance bug.
+        # I think there is more clever algorithm for this situation.
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
 
         for diff in parent.diff(commit):
@@ -125,34 +121,3 @@ class SyntaxTreesCommitter:
             hexsha = tag_ref.commit.hexsha
             if hexsha in self.old2new:
                 self.new_repo.create_tag(tag_ref.name, ref=self.old2new[hexsha])
-
-
-def commit_syntax_trees_worker(repo_dir, org_repo_dir, changed_commits, syntax_trees_dir, syntax_trees_committer):
-    repo = Repo(repo_dir)
-    org_repo = Repo(org_repo_dir)
-    committer = syntax_trees_committer(org_repo, repo, syntax_trees_dir)
-    committer.commit_syntax_trees(changed_commits)
-
-
-class SyntaxTreesParallelCommitter:
-    def __init__(self, syntax_trees_dir, org_repo_dir, syntax_trees_committer, processes=None):
-        self.syntax_trees_dir = syntax_trees_dir
-        self.org_repo_dir = org_repo_dir
-        self.processes = processes if processes else cpu_count()
-        self.pool = Pool(self.processes)
-        self.closed = False
-        self.syntax_trees_committer = syntax_trees_committer
-
-    def commit_syntax_trees_parallel(self, repo_dir, changed_commits):
-        args = [repo_dir, self.org_repo_dir, changed_commits, self.syntax_trees_dir, self.syntax_trees_committer]
-        if(self.closed):
-            self.pool = Pool(self.processes)
-            self.closed = False
-
-        self.pool.apply_async(commit_syntax_trees_worker, args=args)
-
-    def join(self):
-        self.pool.close()
-        self.closed = True
-        self.pool.join()
-        self.pool = None
