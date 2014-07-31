@@ -35,8 +35,6 @@ python setup.py install
 $kenja.historage.convert <your_repository_path> <path_of_working_directory> <path_of_syntax_tree_directory>
 ```
 
-The direcotry ``base_repo`` is a historage converted by kenja.
-
 ## Detect extract method from your historage
 ```
 $kenja.detection.extract_method all <historage_path>
