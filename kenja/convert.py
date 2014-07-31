@@ -7,20 +7,20 @@ class CommandParser:
     def __init__(self):
         self.parser = argparse.ArgumentParser(description=self.get_description())
 
-        self.add_main_command()
-        self.add_option_command()
+        self.add_main_argument()
+        self.add_option_argument()
         self.parser.set_defaults(func=self.set_function)
 
     def parse_and_execute_command(self):
         args = self.parser.parse_args()
         args.func(args)
 
-    def add_main_command(self):
+    def add_main_argument(self):
         self.parser.add_argument('org_git_dir', help='path of original git repository')
         self.parser.add_argument('working_dir', help='path of working directory')
         self.parser.add_argument('syntax_trees_dir', help='path of syntax treses dir')
 
-    def add_option_command(self):
+    def add_option_argument(self):
         pass
 
     def set_function(self, args):
@@ -31,7 +31,7 @@ class CommandParser:
 
 
 class ConvertCommandParser(CommandParser):
-    def add_option_command(self):
+    def add_option_argument(self):
         self.parser.add_argument(
             '--parser-processes',
             type=int,
@@ -78,7 +78,7 @@ class ParseCommandParser(CommandParser):
 
 
 class ConstructCommandParser(CommandParser):
-    def add_option_command(self):
+    def add_option_argument(self):
         self.parser.add_argument(
             '--bare',
             action='store_true',
