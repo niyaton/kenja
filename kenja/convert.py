@@ -38,11 +38,6 @@ class ConvertCommandParser(CommandParser):
             help='set parser processes (default value is number of processers of your machine)'
         )
         self.parser.add_argument(
-            '--working-repositories',
-            type=int,
-            help='set number of working repositories (default value is 2)'
-        )
-        self.parser.add_argument(
             '--bare',
             action='store_true',
             help='create a bare repository for historage'
@@ -55,9 +50,6 @@ class ConvertCommandParser(CommandParser):
 
         if args.parser_processes:
             hc.parser_processes = args.parser_processes
-
-        if args.working_repositories:
-            hc.num_commit_process = args.working_repositories
 
         hc.is_bare_repo = args.bare
 
