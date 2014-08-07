@@ -17,24 +17,24 @@ class HistorageConverter:
 
         if os.path.isdir(historage_dir):
             if os.listdir(historage_dir):
-                raise Exception('%s is not a empty directory' % (historage_dir))
+                raise Exception('{0} is not an empty directory'.format(historage_dir))
         else:
             try:
                 os.mkdir(historage_dir)
             except OSError:
-                print '%s has not a parent directory' % (historage_dir)
+                print('Kenja cannot make a directory: {0}'.format(historage_dir))
                 raise
 
         self.historage_dir = historage_dir
 
         if os.path.isdir(syntax_trees_dir):
             if os.listdir(syntax_trees_dir):
-                raise Exception('%s is not a empty directory' % (syntax_trees_dir))
+                raise Exception('{0} is not an empty directory'.format(syntax_trees_dir))
         else:
             try:
                 os.mkdir(syntax_trees_dir)
             except OSError:
-                print '%s has not a parent directory' % (syntax_trees_dir)
+                print('Kenja cannot make a directory: {0}'.format(syntax_trees_dir))
                 raise
 
         self.syntax_trees_dir = syntax_trees_dir
