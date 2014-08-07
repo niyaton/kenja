@@ -15,33 +15,26 @@ class HistorageConverter:
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
-        if os.path.isdir(historage_dir):
-            if os.listdir(historage_dir):
-                raise Exception('{0} is not an empty directory'.format(historage_dir))
-        else:
-            try:
-                os.mkdir(historage_dir)
-            except OSError:
-                print('Kenja cannot make a directory: {0}'.format(historage_dir))
-                raise
-
+        self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
-        if os.path.isdir(syntax_trees_dir):
-            if os.listdir(syntax_trees_dir):
-                raise Exception('{0} is not an empty directory'.format(syntax_trees_dir))
-        else:
-            try:
-                os.mkdir(syntax_trees_dir)
-            except OSError:
-                print('Kenja cannot make a directory: {0}'.format(syntax_trees_dir))
-                raise
-
+        self.check_and_make_working_dir(syntax_trees_dir)
         self.syntax_trees_dir = syntax_trees_dir
 
         self.num_commits = 0
 
         self.is_bare_repo = False
+
+    def check_and_make_working_dir(self, path):
+        if os.path.isdir(path):
+            if os.listdir(path):
+                raise Exception('{0} is not an empty directory'.format(path))
+        else:
+            try:
+                os.mkdir(path)
+            except OSError:
+                print('Kenja cannot make a directory: {0}'.format(path))
+                raise
 
     def is_target_blob(self, blob, ext):
         return blob and blob.name.endswith(ext)
