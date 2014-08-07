@@ -61,7 +61,7 @@ class ConvertCommandParser(CommandParser):
 
 class ParseCommandParser(CommandParser):
     def set_function(self, args):
-        hc = HistorageConverter(args.org_git_dir, args.working_dir, args.syntax_trees_dir)
+        hc = HistorageConverter(args.org_git_dir, args.historage_dir, args.syntax_trees_dir)
         hc.parse_all_java_files()
         pass
 
