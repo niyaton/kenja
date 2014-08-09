@@ -81,9 +81,6 @@ class ConstructCommandParser(CommandParser):
     def set_function(self, args):
         hc = HistorageConverter(args.org_git_dir, args.historage_dir, args.syntax_trees_dir)
 
-        if args.syntax_trees_dir:
-            hc.syntax_trees_dir = args.syntax_trees_dir
-
         hc.is_bare_repo = args.bare
 
         hc.construct_historage()
