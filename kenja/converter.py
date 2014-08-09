@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 import os
+from tempfile import mkdtemp
+from shutil import rmtree
 from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
@@ -11,15 +13,20 @@ from kenja.committer import SyntaxTreesCommitter
 class HistorageConverter:
     parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
 
-    def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir):
+    def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir=None):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
         self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
-        self.check_and_make_working_dir(syntax_trees_dir)
-        self.syntax_trees_dir = syntax_trees_dir
+        self.use_tempdir = syntax_trees_dir is None
+        if self.use_tempdir:
+            self.syntax_trees_dir = mkdtemp()
+            print(self.syntax_trees_dir)
+        else:
+            self.check_and_make_working_dir(syntax_trees_dir)
+            self.syntax_trees_dir = syntax_trees_dir
 
         self.num_commits = 0
 
@@ -84,3 +91,7 @@ class HistorageConverter:
         committer.create_tags()
         if not self.is_bare_repo:
             base_repo.head.reset(working_tree=True)
+
+    def __del__(self):
+        if self.use_tempdir and os.path.exists(self.syntax_trees_dir):
+            rmtree(self.syntax_trees_dir)

@@ -3,7 +3,7 @@ import argparse
 from kenja.converter import HistorageConverter
 
 
-class CommandParser:
+class CommandParser(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser(description=self.get_description())
 
@@ -18,10 +18,9 @@ class CommandParser:
     def add_main_argument(self):
         self.parser.add_argument('org_git_dir', help='path of original git repository')
         self.parser.add_argument('historage_dir', help='path of historage directory')
-        self.parser.add_argument('syntax_trees_dir', help='path of syntax trees dir')
 
     def add_option_argument(self):
-        pass
+        self.parser.add_argument('--syntax-trees-dir', help='path of syntax trees dir')
 
     def set_function(self, args):
         pass
@@ -32,6 +31,7 @@ class CommandParser:
 
 class ConvertCommandParser(CommandParser):
     def add_option_argument(self):
+        super(ConvertCommandParser, self).add_option_argument()
         self.parser.add_argument(
             '--parser-processes',
             type=int,
@@ -71,6 +71,7 @@ class ParseCommandParser(CommandParser):
 
 class ConstructCommandParser(CommandParser):
     def add_option_argument(self):
+        super(ConstructCommandParser, self).add_option_argument()
         self.parser.add_argument(
             '--bare',
             action='store_true',
@@ -79,9 +80,6 @@ class ConstructCommandParser(CommandParser):
 
     def set_function(self, args):
         hc = HistorageConverter(args.org_git_dir, args.historage_dir, args.syntax_trees_dir)
-
-        if args.syntax_trees_dir:
-            hc.syntax_trees_dir = args.syntax_trees_dir
 
         hc.is_bare_repo = args.bare
 
