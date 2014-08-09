@@ -38,9 +38,17 @@ $kenja.historage.convert <your_repository_path> <path_of_historage_directory> <p
 - Use path of empty directory for \<path_of_historage_directory\>
     - Historage (a Git repository) will be created here.
     - Kenja will make this directory automatically if you give non-existing directory.
+
+### Store syntax trees infromation [for DEBUG]
+```
+$kenja.historage.convert --synta-trees-dir=<path_of_syntax_tree_directory> <your_repository_path> <path_of_historage_directory> 
+```
+
+- Information of syntax trees will be stored in the \<path_of_syntax_tree_directory\>
 - We recommend you to provide path of empty dir for \<path_of_syntax_tree_directory\>
     - Kenja will make a lot of files which contains syntax information to construct a historage.
     - Kenja will make this directory automatically if you give non-existing directory.
+
 
 ## Detect extract method from your historage
 ```
