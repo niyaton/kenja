@@ -7,8 +7,17 @@ from setuptools import setup, find_packages
 parser_path = 'kenja/lib/java-parser.jar'
 parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.1/kenja-java-parser-0.1-jar-with-dependencies.jar'
 parser_digest = 'efeaf203579b4cf7264873ccfe4abcda'
+
+confirm_text = None
+exit_when_no = True
 if not os.path.exists(parser_path):
-    print("{0} does not exist. Do you want to download it?[y/n]".format(parser_path))
+    confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
+elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
+    confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
+    exit_when_no = False
+
+if confirm_text is not None:
+    print(confirm_text)
     choice = raw_input().lower()
     yes = set(['yes', 'y', 'ye'])
     no = set(['no', 'n'])
@@ -18,7 +27,7 @@ if not os.path.exists(parser_path):
         if parser_digest != digest:
             print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
             sys.exit(1)
-    else:
+    elif exit_when_no:
         sys.exit(1)
 
 
