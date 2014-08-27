@@ -13,7 +13,7 @@ Kenja needs following libraries.
 # Installation
 
 ```
-python setup.py
+python setup.py install
 ```
 
 ## Manual Installation
