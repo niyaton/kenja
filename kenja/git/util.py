@@ -156,8 +156,8 @@ def create_note(repo, message):
     repo.git.notes(kwargs)
 
 
-def get_reversed_topological_ordered_commits(repo, revs):
-    revs = [repo.commit(rev).hexsha for rev in revs]
+def get_reversed_topological_ordered_commits(repo, refs):
+    revs = [ref.commit.hexsha for ref in refs]
     nodes = list(revs)
     visited = set()
     post = []
