@@ -11,6 +11,7 @@ import sys
 class RefactoringDetectionCommandParser:
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='Kenja a refactoring detection tool')
+        self.parser.add_argument('--format', help='output format', default='csv')
         self.subparsers = self.parser.add_subparsers()
 
         self.add_all_command()
@@ -32,14 +33,16 @@ class RefactoringDetectionCommandParser:
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         extract_method_candidates = detect_extract_method(historage)
+        self.print_csv(extract_method_candidates)
 
+    def print_csv(self, candidates):
         candidate_revisions = set()
         writer = csv.writer(sys.stdout)
-        for candidate in extract_method_candidates:
+        for candidate in candidates:
             candidate_revisions.add(candidate['b_commit'])
             writer.writerow(self.format_for_umldiff(candidate, 'jedit'))
 
-        print 'candidates:', len(extract_method_candidates)
+        print 'candidates:', len(candidates)
         print 'candidate revisions:', len(candidate_revisions)
 
     def format_for_umldiff(self, extract_method_information, package_prefix=None):
@@ -73,6 +76,7 @@ class RefactoringDetectionCommandParser:
 
         help_str = 'comma separated commits list. please write a_commit hash and b_commit hash per line'
         subparser.add_argument('commits_list', help=help_str)
+
         subparser.set_defaults(func=self.detect_from_commits_list)
 
     def detect_from_commits_list(self, args):
@@ -89,8 +93,7 @@ class RefactoringDetectionCommandParser:
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for candidate in extract_method_information:
-            print self.format_for_umldiff('jedit', candidate)
+        self.print_csv(extract_method_information)
 
 
 def main():
