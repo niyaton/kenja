@@ -134,10 +134,17 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                     except ZeroDivisionError:
                         sim = "N/A"
                     org_commit = get_org_commit(new_commit)
-                    result.append(
-                        (old_commit.hexsha, new_commit.hexsha, org_commit,
-                         a_package, b_package, c, m, extracted_method, sim))
-                    # print deleted_lines, added_lines_dict[(c, method, num_args)]
+                    refactoring_candidate = {'a_commit': old_commit.hexsha,
+                                             'b_commit': new_commit.hexsha,
+                                             'b_org_commit': org_commit,
+                                             'a_package': a_package,
+                                             'b_package': b_package,
+                                             'target_class': c,
+                                             'target_method': m,
+                                             'extracted_method': extracted_method,
+                                             'similarity': sim
+                                             }
+                    result.append(refactoring_candidate)
 
     return result
 

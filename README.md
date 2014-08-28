@@ -51,9 +51,17 @@ $kenja.historage.convert --synta-trees-dir=<path_of_syntax_tree_directory> <your
 
 
 ## Detect extract method from your historage
+
+### Output as CSV format
 ```
 $kenja.detection.extract_method all <historage_path>
 ```
+
+### Output as JSON format
+```
+$kenja.detection.extract_method --format json all <historage_path>
+```
+
 ## Detect pull up method from your historage
 ```
 $kenja.detection.pull_up_method all <historage_path>
