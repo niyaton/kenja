@@ -5,6 +5,7 @@ from kenja.detection.extract_method import detect_extract_method
 from kenja.detection.extract_method import detect_extract_method_from_commit
 import argparse
 import csv
+import sys
 
 
 class RefactoringDetectionCommandParser:
@@ -33,9 +34,10 @@ class RefactoringDetectionCommandParser:
         extract_method_candidates = detect_extract_method(historage)
 
         candidate_revisions = set()
+        writer = csv.writer(sys.stdout)
         for candidate in extract_method_candidates:
             candidate_revisions.add(candidate['b_commit'])
-            print self.format_for_umldiff(candidate, 'jedit')
+            writer.writerow(self.format_for_umldiff(candidate, 'jedit'))
 
         print 'candidates:', len(extract_method_candidates)
         print 'candidate revisions:', len(candidate_revisions)
@@ -56,8 +58,7 @@ class RefactoringDetectionCommandParser:
         b_commit = extract_method_information['b_commit']
         org_commit = extract_method_information['b_org_commit']
         sim = extract_method_information['similarity']
-        column = [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
-        return ','.join(['"{}"'.format(s) for s in column])
+        return [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
 
     def join_method_name(self, prefix, package, class_name, method):
         info = [prefix, package, class_name, method]
