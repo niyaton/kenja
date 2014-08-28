@@ -6,6 +6,7 @@ from kenja.detection.extract_method import detect_extract_method_from_commit
 import argparse
 import csv
 import sys
+import json
 
 
 class RefactoringDetectionCommandParser:
@@ -33,9 +34,32 @@ class RefactoringDetectionCommandParser:
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         extract_method_candidates = detect_extract_method(historage)
-        self.print_csv(extract_method_candidates)
+        self.print_candidates(extract_method_candidates, args.format)
+
+    def print_candidates(self, candidates, format):
+        if format == 'csv':
+            self.print_csv(candidates)
+        elif format == 'umldiff':
+            self.print_umldiff(candidates)
+        elif format == 'json':
+            self.print_json(candidates)
 
     def print_csv(self, candidates):
+        fieldnames = ('a_commit',
+                      'b_commit',
+                      'b_org_commit',
+                      'a_package',
+                      'target_class',
+                      'target_method',
+                      'b_package',
+                      'extracted_method',
+                      'similarity'
+                      )
+        writer = csv.DictWriter(sys.stdout, fieldnames)
+        writer.writeheader()
+        writer.writerows(candidates)
+
+    def print_umldiff(self, candidates):
         candidate_revisions = set()
         writer = csv.writer(sys.stdout)
         for candidate in candidates:
@@ -44,6 +68,9 @@ class RefactoringDetectionCommandParser:
 
         print 'candidates:', len(candidates)
         print 'candidate revisions:', len(candidate_revisions)
+
+    def print_json(self, candidates):
+        print json.dumps(candidates, encoding='utf_8', indent=4)
 
     def format_for_umldiff(self, extract_method_information, package_prefix=None):
         target_method = self.join_method_name(package_prefix,
@@ -93,7 +120,7 @@ class RefactoringDetectionCommandParser:
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        self.print_csv(extract_method_information)
+        self.print_candidates(extract_method_information, args.format)
 
 
 def main():
