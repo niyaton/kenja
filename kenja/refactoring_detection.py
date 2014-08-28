@@ -30,35 +30,38 @@ class RefactoringDetectionCommandParser:
 
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
-        extract_method_information = detect_extract_method(historage)
+        extract_method_candidates = detect_extract_method(historage)
 
         candidate_revisions = set()
-        for info in extract_method_information:
-            # info[1]: b_commit
-            candidate_revisions.add(info[1])
-            print self.format_for_umldiff('jedit', *info)
+        for candidate in extract_method_candidates:
+            candidate_revisions.add(candidate['b_commit'])
+            print self.format_for_umldiff(candidate, 'jedit')
 
-        print 'candidates:', len(extract_method_information)
+        print 'candidates:', len(extract_method_candidates)
         print 'candidate revisions:', len(candidate_revisions)
 
-    def format_for_umldiff(self, package_prefix,
-                           a_commit, b_commit,
-                           org_commit,
-                           a_package, b_package,
-                           c, m, method, sim):
-        target_method_info = [package_prefix]
-        if a_package:
-            target_method_info.append(a_package)
-        target_method_info.extend((c, m))
-        target_method = '.'.join(target_method_info)
-        extracted_method_info = [package_prefix]
-        if b_package:
-            extracted_method_info.append(b_package)
-        extracted_method_info.extend((c, method))
-        extracted_method = '.'.join(extracted_method_info)
-        return '"%s","%s","%s","%s","%s","%s"' % (a_commit, b_commit,
-                                                  org_commit,
-                                                  target_method, extracted_method, sim)
+    def format_for_umldiff(self, extract_method_information, package_prefix=None):
+        target_method = self.join_method_name(package_prefix,
+                                              extract_method_information['a_package'],
+                                              extract_method_information['target_class'],
+                                              extract_method_information['target_method']
+                                              )
+        extracted_method = self.join_method_name(package_prefix,
+                                                 extract_method_information['b_package'],
+                                                 extract_method_information['target_class'],
+                                                 extract_method_information['extracted_method']
+                                                 )
+
+        a_commit = extract_method_information['a_commit']
+        b_commit = extract_method_information['b_commit']
+        org_commit = extract_method_information['b_org_commit']
+        sim = extract_method_information['similarity']
+        column = [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
+        return ','.join(['"{}"'.format(s) for s in column])
+
+    def join_method_name(self, prefix, package, class_name, method):
+        info = [prefix, package, class_name, method]
+        return '.'.join([s for s in info if s is not None])
 
     def add_commits_command(self):
         help_str = 'detect refactoring from commits in the csv'
@@ -85,8 +88,8 @@ class RefactoringDetectionCommandParser:
         except BadObject, name:
             print "Invalid hash of the commit:", name.message
 
-        for info in extract_method_information:
-            print self.format_for_umldiff('jedit', *info)
+        for candidate in extract_method_information:
+            print self.format_for_umldiff('jedit', candidate)
 
 
 def main():
