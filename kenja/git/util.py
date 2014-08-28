@@ -8,6 +8,7 @@ import os
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from StringIO import StringIO
+from time import (time, altzone)
 
 blob_mode = '100644'
 tree_mode = '040000'
@@ -112,7 +113,8 @@ def write_paths(odb, paths, names):
 
 
 def mktree(odb, modes, binshas, names):
-    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in zip(modes, binshas, names)]
+    items = [tree_item_str(mode, name, binsha) for mode,
+             binsha, name in zip(modes, binshas, names)]
     items_str = ''.join(items)
 
     istream = IStream("tree", len(items_str), StringIO(items_str))
@@ -121,7 +123,8 @@ def mktree(odb, modes, binshas, names):
 
 
 def mktree_from_iter(odb, object_info_iter):
-    items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
+    items = [tree_item_str(mode, name, binsha) for mode,
+             binsha, name in object_info_iter]
     items_str = ''.join(items)
 
     istream = IStream("tree", len(items_str), StringIO(items_str))
@@ -129,26 +132,77 @@ def mktree_from_iter(odb, object_info_iter):
     return (tree_mode, istream.binsha)
 
 
-def commit_from_binsha(repo, binsha, org_commit, parents=None):
+def create_commit_from_tree(repo, tree, message, parent_commits, author,
+                            author_date, committer, committer_date,
+                            encoding, head):
+    parents = parent_commits
+    if parent_commits is None:
+        try:
+            parent_commits = [repo.head.commit]
+        except ValueError:
+            # empty repositories have no head commit
+            parent_commits = list()
+    # COMMITER AND AUTHOR INFO
+    cr = repo.config_reader()
     env = os.environ
+    # PARSE THE DATES
+    unix_time = int(time())
+    offset = altzone
+    author_date_str = env.get(author_date, '')
+    if author_date_str:
+        author_time, author_offset = parse_date(author_date_str)
+    else:
+        author_time, author_offset = unix_time, offset
+    # END set author time
+    committer_date_str = env.get(committer_date, '')
+    if committer_date_str:
+        committer_time, committer_offset = parse_date(committer_date_str)
+    else:
+        committer_time, committer_offset = unix_time, offset
+    # END set committer time
+    # if the tree is no object, make sure we create one - otherwise
+    # the created commit object is invalid
+    if isinstance(tree, str):
+        tree = repo.tree(tree)
+    # END tree conversion
+    # CREATE NEW COMMIT
+    new_commit = Commit(repo, Commit.NULL_BIN_SHA, tree,
+                        author, author_time, author_offset,
+                        committer, committer_time, committer_offset,
+                        message, parent_commits, encoding)
+    stream = StringIO()
+    new_commit._serialize(stream)
+    streamlen = stream.tell()
+    stream.seek(0)
+    istream = repo.odb.store(IStream(Commit.type, streamlen, stream))
+    new_commit.binsha = istream.binsha
+    if head:
+        # need late import here, importing git at the very beginning throws
+        # as well ...
+        import git.refs
+        try:
+            repo.head.set_commit(new_commit, logmsg="commit: %s" % message)
+        except ValueError:
+            # head is not yet set to the ref our HEAD points to
+            # Happens on first commit
+            import git.refs
+            master = git.refs.Head.create(repo, repo.head.ref, new_commit,
+                                          logmsg="commit (initial): %s" % message)
+            repo.head.set_reference(master,
+                                    logmsg='commit: Switching to %s' % master)
+        # END handle empty repositories
+    # END advance head handling
+    return new_commit
 
-    author_date = "%d %s" % (org_commit.authored_date, altz_to_utctz_str(org_commit.author_tz_offset))
-    env[Commit.env_author_date] = author_date
 
-    committer_date = "%d %s" % (org_commit.committed_date, altz_to_utctz_str(org_commit.committer_tz_offset))
-    env[Commit.env_committer_date] = committer_date
-
-    env[Actor.env_author_name] = org_commit.author.name.encode(org_commit.encoding)
-    env[Actor.env_author_email] = org_commit.author.email or ""
-
-    env[Actor.env_committer_name] = org_commit.committer.name.encode(org_commit.encoding)
-    env[Actor.env_committer_email] = org_commit.committer.email or ""
-
+def commit_from_binsha(repo, binsha, org_commit, parents=None):
     message = org_commit.message.encode(org_commit.encoding)
 
     tree = Tree.new(repo, bin_to_hex(binsha))
 
-    return Commit.create_from_tree(repo, tree, message, parents, True)
+    return create_commit_from_tree(repo, tree, message, parents,
+                                   org_commit.author, org_commit.authored_date, org_commit.committer,
+                                   org_commit.committed_date, org_commit.encoding, True)
 
 
 def create_note(repo, message):
