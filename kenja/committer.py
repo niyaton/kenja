@@ -69,10 +69,9 @@ class SyntaxTreesCommitter:
 
     def apply_change(self, commit):
         if commit.parents:
-            tree_contents = self.create_tree_contents(commit.parents[0], commit)
+            tree_contents = []
         else:
-            tree_contents = self.create_tree_contents_from_commit(commit)
-            tree_contents = self.create_readme(tree_contents)
+            tree_contents = []
 
         new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha

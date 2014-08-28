@@ -86,7 +86,6 @@ class HistorageConverter:
             writer.set(user_key, 'email', 'default@example.com')
 
     def convert(self):
-        self.parse_all_target_files()
         self.construct_historage()
 
     def construct_historage(self):
