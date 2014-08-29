@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import os
 from copy import deepcopy
+from tempfile import NamedTemporaryFile
 from git.objects import Blob
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
@@ -8,7 +9,8 @@ from kenja.git.util import (
     mktree_from_iter,
     write_syntax_tree_from_file,
     tree_mode,
-    create_note
+    create_note,
+    write_blob
     )
 
 
@@ -66,6 +68,7 @@ class SyntaxTreesCommitter:
             tree_contents = self.create_tree_contents(commit.parents[0], commit)
         else:
             tree_contents = self.create_tree_contents_from_commit(commit)
+            tree_contents = self.create_readme(tree_contents)
 
         new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
@@ -81,6 +84,24 @@ class SyntaxTreesCommitter:
                 tree_contents.insert(tree_mode, binsha, path)
 
         return tree_contents
+
+    def create_readme(self, tree_contents):
+        with NamedTemporaryFile() as f:
+            f.write((
+                "# README\n"
+                "## Location of Original Repository\n"
+                "This Git repository is a historage converted from (repo_name)\n"
+                "You can get original repository from following URL :\n"
+                "## How to use Historage\n"
+                "You will know the hashes of original commit by using git show command.\n"
+                "Please visit http://sdlab.naist.jp/kataribe to get more information of how to use Historage.\n"
+                "## Version of Historage\n"
+                "This repository was created by kenja at version (version)"
+            ))
+            f.flush()
+            mode, binsha = write_blob(self.new_repo.odb, f.name)
+            tree_contents.insert(mode, binsha, 'README.md')
+            return tree_contents
 
     def create_tree_contents(self, parent, commit):
         converted_parent_hexsha = self.old2new[parent.hexsha]
