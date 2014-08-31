@@ -53,8 +53,14 @@ class RefactoringDetectionCommandParser:
                       'target_method',
                       'b_package',
                       'extracted_method',
-                      'similarity'
+                      'similarity',
+                      'extracted_body',
+                      'target_body',
+                      'target_deleted_lines'
                       )
+        for candidate in candidates:
+            candidate['target_deleted_lines'] = '\n'.join(candidate['target_deleted_lines'])
+
         writer = csv.DictWriter(sys.stdout, fieldnames)
         writer.writeheader()
         writer.writerows(candidates)

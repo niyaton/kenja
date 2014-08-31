@@ -134,6 +134,11 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                     except ZeroDivisionError:
                         sim = "N/A"
                     org_commit = get_org_commit(new_commit)
+
+                    target_body = diff.a_blob.data_stream.read()
+                    extracted_body = diff.b_blob.data_stream.read()
+                    target_deleted_lines = [l[1] for l in deleted_lines]
+
                     refactoring_candidate = {'a_commit': old_commit.hexsha,
                                              'b_commit': new_commit.hexsha,
                                              'b_org_commit': org_commit,
@@ -142,7 +147,10 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                                              'target_class': c,
                                              'target_method': m,
                                              'extracted_method': extracted_method,
-                                             'similarity': sim
+                                             'similarity': sim,
+                                             'target_body': target_body,
+                                             'extracted_body': extracted_body,
+                                             'target_deleted_lines': target_deleted_lines,
                                              }
                     result.append(refactoring_candidate)
 
