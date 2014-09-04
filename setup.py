@@ -2,7 +2,10 @@ import os
 import sys
 import hashlib
 import urllib
+import subprocess
 from setuptools import setup, find_packages
+
+kenja_version = '0.6-122-gbd1964f'
 
 parser_path = 'kenja/lib/java-parser.jar'
 parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.1/kenja-java-parser-0.1-jar-with-dependencies.jar'
@@ -30,9 +33,13 @@ if confirm_text is not None:
     elif exit_when_no:
         sys.exit(1)
 
+try:
+    kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
+except subprocess.CalledProcessError, e:
+    pass
 
 setup(name='kenja',
-    version='0.4',
+    version=kenja_version,
     description='A Refactoring Detection tool powered by Historage',
     author='Kenji Fujiwara',
     author_email='kenji-f@is.naist.jp',
