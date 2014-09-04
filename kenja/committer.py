@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 import os
+import pkg_resources
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
+from string import Template
 from git.objects import Blob
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
@@ -87,17 +89,16 @@ class SyntaxTreesCommitter:
 
     def create_readme(self, tree_contents):
         with NamedTemporaryFile() as f:
-            f.write((
-                "# README\n"
-                "## Location of Original Repository\n"
-                "This Git repository is a historage converted from (repo_name)\n"
-                "You can get original repository from following URL :\n"
-                "## How to use Historage\n"
-                "You will know the hashes of original commit by using git show command.\n"
-                "Please visit http://sdlab.naist.jp/kataribe to get more information of how to use Historage.\n"
-                "## Version of Historage\n"
-                "This repository was created by kenja at version (version)"
-            ))
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            with open(dir_path + '/readme_for_historage.txt', 'r') as readme:
+                text = readme.read()
+            version = pkg_resources.require("kenja")[0].version
+            text = Template(text).substitute(
+                name='repo_name',
+                url='repo.git',
+                version=version
+            )
+            f.write(text)
             f.flush()
             mode, binsha = write_blob(self.new_repo.odb, f.name)
             tree_contents.insert(mode, binsha, 'README.md')

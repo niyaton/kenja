@@ -38,7 +38,8 @@ setup(name='kenja',
     author_email='kenji-f@is.naist.jp',
     url='https://github.com/niyaton/kenja',
     packages=find_packages(),
-    data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"])],
+    data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"]),
+                ("kenja", ["kenja/readme_for_historage.txt"])],
     entry_points = {
         'console_scripts': [
             'kenja.historage.convert = kenja.convert:convert',
