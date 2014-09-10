@@ -1,40 +1,37 @@
 # -*- coding: utf-8 -*-
 from git import *
-from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.historage import get_org_commit
+from collections import deque
 
-def diff(org_path,base_path,branch):
-	org_repo = Repo(org_path)
-	base_repo = Repo(base_path)
-	commit_set = set()
-	for commit in org_repo.iter_commits(branch):
-		commit_set.add(str(commit))
-	for item in base_repo.iter_commits(branch):
-		commit = str(get_org_commit(item))
+def get_all_commits(repo):
+	note_rev = 'refs/notes/commits'
+	commit_set = set([c.commit for c in repo.refs if c.path != note_rev])
+	queue = deque([c.commit for c in repo.refs if c.path != note_rev])
+	while queue:
+		commit = queue.pop()
+		for parent in commit.parents:
+			if parent not in commit_set:
+				queue.append(parent)
+				commit_set.add(parent)
+	return commit_set
+
+def get_diff_commits(org_repo,base_repo):
+	commit_set = [str(c) for c in get_all_commits(org_repo)]
+	for commit in get_all_commits(base_repo):
+		commit = str(commit.repo.git.notes(['show', commit.hexsha]))
 		if commit in commit_set:
 			commit_set.remove(commit)
 	return commit_set
 
-def diff2(org_path,base_path):
-	org_repo = Repo(org_path)
-	base_repo = Repo(base_path)
-	commit_set = set()
-	for commit in get_reversed_topological_ordered_commits(org_repo, org_repo.refs):
-		commit_set.add(commit)
-	for commit in get_reversed_topological_ordered_commits(base_repo, base_repo.refs[0:-1]):
-		commit=base_repo.commit(commit)
-		org_commit = str(get_org_commit(commit))
-		if org_commit in commit_set:
-			commit_set.remove(org_commit)
-	return commit_set
-
 if __name__ == '__main__':
-	name_set = diff(base_path="./historage/base_repo",org_path="./test",branch="master")
-	for name in name_set:
-		print name
-	name_set = diff2(base_path="./historage/base_repo",org_path="./test")
-	for name in name_set:
-		print name
+	org_repo = Repo("~/Desktop/test")
+	base_repo = Repo("~/Desktop/historage/base_repo")
+#	get_all_commits(org_repo)
+#	get_all_commits(base_repo)
+	print get_diff_commits(org_repo,base_repo)
+#	commits = get_diff_commits(org_repo,base_repo)
+#	commits = diff2(org_repo,base_repo)
+#	print commits
 
 
 
