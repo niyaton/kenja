@@ -185,6 +185,31 @@ def get_reversed_topological_ordered_commits(repo, refs):
     return post
 
 
+def get_all_commits(repo):
+    note_rev = 'refs/notes/commits'
+    visited = set([c.commit for c in repo.refs if c.path != note_rev])
+    queue = deque([c.commit for c in repo.refs if c.path != note_rev])
+    while queue:
+        commit = queue.pop()
+        for parent in commit.parents:
+            if parent not in visited:
+                queue.append(parent)
+                visited.add(parent)
+    return visited
+
+def diff_commits(org_repo,base_repo):
+    org_commit = get_reversed_topological_ordered_commits(org_repo,org_repo.refs)
+    base_commit = get_all_commits(base_repo)
+    org_id = set([str(c) for c in org_commit])
+    base_id = set([str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit])
+    diff_id = org_id.difference(base_id)
+    ret = []
+    for commit in org_commit:
+        if str(commit) in diff_id:
+            ret.append(commit)
+    return base_repo(ret)
+
+
 if __name__ == '__main__':
     repo = Repo.init('test_git')
     # (mode, binsha) = write_tree(repo.odb, 'temp')
