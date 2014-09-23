@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+import re
 import pkg_resources
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
@@ -92,10 +93,16 @@ class SyntaxTreesCommitter:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             with open(dir_path + '/readme_for_historage.txt', 'r') as readme:
                 text = readme.read()
+            try:
+                url = self.org_repo.remotes.origin.url
+                repo_name = re.search('/(.*)$', url).group(1).replace('.git', '')
+            except AttributeError:
+                url = 'unknown url'
+                repo_name = 'unknown repository'
             version = pkg_resources.require("kenja")[0].version
             text = Template(text).substitute(
-                name='repo_name',
-                url='repo.git',
+                name=repo_name,
+                url=url,
                 version=version
             )
             f.write(text)
