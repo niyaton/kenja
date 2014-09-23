@@ -2,6 +2,10 @@
 
 - python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
 - Java
+- git (confirmed versions)
+    - 1.7.10
+    - 1.8.5.2
+    - 2.0.1
 
 # Dependencies
 Kenja needs following libraries.
@@ -41,7 +45,7 @@ $kenja.historage.convert <your_repository_path> <path_of_historage_directory> <p
 
 ### Store syntax trees infromation [for DEBUG]
 ```
-$kenja.historage.convert --synta-trees-dir=<path_of_syntax_tree_directory> <your_repository_path> <path_of_historage_directory> 
+$kenja.historage.convert --synta-trees-dir=<path_of_syntax_tree_directory> <your_repository_path> <path_of_historage_directory>
 ```
 
 - Information of syntax trees will be stored in the \<path_of_syntax_tree_directory\>
