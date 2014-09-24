@@ -207,7 +207,7 @@ def diff_commits(org_repo,base_repo):
     for commit in org_commit:
         if str(commit) in diff_id:
             ret.append(commit)
-    return base_repo(ret)
+    return ret
 
 
 if __name__ == '__main__':

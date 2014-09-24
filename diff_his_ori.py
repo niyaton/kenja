@@ -47,9 +47,6 @@ def diff_commits(org_repo,base_repo):
 	org_id = set([str(c) for c in org_commit])
 	base_id = set([str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit])
 	diff_id = org_id.difference(base_id)
-	print base_id
-	print org_id
-	print diff_id
 	ret = []
 	for c in org_commit:
 		if str(c) in diff_id:

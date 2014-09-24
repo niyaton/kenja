@@ -92,6 +92,21 @@ class HistorageConverter:
         if not self.is_bare_repo:
             base_repo.head.reset(working_tree=True)
 
+    def construct_diff_historage(self):
+        print 'create historage...'
+
+        base_repo = self.prepare_base_repo()
+        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
+        num_commits = self.num_commits if self.num_commits != 0 else '???'
+        for num, commit in izip(count(),diff_commits(self.org_repo,base_repo)):
+            commit = self.org_repo.commit(commit)
+            print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
+            committer.apply_change(commit)
+        committer.create_heads()
+        committer.create_tags()
+        if not self.is_bare_repo:
+            base_repo.head.reset(working_tree=True)
+
     def __del__(self):
         if self.use_tempdir and os.path.exists(self.syntax_trees_dir):
             rmtree(self.syntax_trees_dir)
