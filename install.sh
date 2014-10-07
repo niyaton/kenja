@@ -13,6 +13,7 @@ PYTHON_BIN=python
 PARSER_PATH=parser/java/target/kenja-java-parser-0.1-jar-with-dependencies.jar
 
 # Build Java parser for kenja
+git submodule init
 git submodule update
 cd parser/java
 $MAVEN_BIN assembly:assembly
