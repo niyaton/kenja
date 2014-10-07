@@ -197,7 +197,7 @@ def get_all_commits(repo):
                 visited.add(parent)
     return visited
 
-def diff_commits(org_repo,base_repo):
+def get_diff_commits(org_repo,base_repo):
     org_commit = get_reversed_topological_ordered_commits(org_repo,org_repo.refs)
     base_commit = get_all_commits(base_repo)
     org_id = set([str(c) for c in org_commit])
