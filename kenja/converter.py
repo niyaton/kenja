@@ -69,6 +69,30 @@ class HistorageConverter:
         print 'waiting parser processes'
         parser_executor.join()
 
+    def parse_diff_java_files(self):
+        print 'create paresr processes...'
+        parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
+        parsed_blob = set()
+        for commit in get_diff_commits(self.org_repo, self.org_repo.refs):
+            self.num_commits = self.num_commits + 1
+            commit = self.org_repo.commit(commit)
+            if commit.parents:
+                for p in commit.parents:
+                    for diff in p.diff(commit):
+                        if self.is_target_blob(diff.b_blob, '.java'):
+                            if diff.b_blob.hexsha not in parsed_blob:
+                                parser_executor.parse_blob(diff.b_blob)
+                                parsed_blob.add(diff.b_blob.hexsha)
+            else:
+                for entry in commit.tree.traverse():
+                    if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
+                        if entry.hexsha not in parsed_blob:
+                            parser_executor.parse_blob(entry)
+                            parsed_blob.add(entry.hexsha)
+        print 'waiting parser processes'
+        parser_executor.join()
+        
+
     def prepare_base_repo(self):
         base_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
         self.set_git_config(base_repo)
@@ -90,6 +114,10 @@ class HistorageConverter:
     def convert(self):
         self.parse_all_java_files()
         self.construct_historage()
+
+    def convert_diff(self):
+        self.parse_diff_java_files()
+        self.construct_diff_historage()
 
     def construct_historage(self):
         print 'create historage...'

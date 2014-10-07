@@ -50,6 +50,7 @@ setup(name='kenja',
     entry_points = {
         'console_scripts': [
             'kenja.historage.convert = kenja.convert:convert',
+            'kenja.historage.convert_diff = kenja.convert:convert_diff:'
             'kenja.historage.parse = kenja.convert:parse',
             'kenja.historage.construct = kenja.convert:construct',
             'kenja.detection.extract_method = kenja.refactoring_detection:main',
