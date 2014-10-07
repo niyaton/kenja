@@ -71,7 +71,21 @@ class HistorageConverter:
 
     def prepare_base_repo(self):
         base_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
+        self.set_git_config(base_repo)
         return base_repo
+
+    def set_git_config(self, repo):
+        reader = repo.config_reader()  # global config
+        writer = repo.config_writer()  # local config
+        user_key = 'user'
+        if not reader.has_option(user_key, 'name'):
+            if not writer.has_section(user_key):
+                writer.add_section(user_key)
+            writer.set(user_key, 'name', 'Kenja Converter')
+        if not reader.has_option(user_key, 'email'):
+            if not writer.has_section(user_key):
+                writer.add_section(user_key)
+            writer.set(user_key, 'email', 'default@example.com')
 
     def convert(self):
         self.parse_all_java_files()
