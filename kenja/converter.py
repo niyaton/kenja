@@ -7,7 +7,9 @@ from git.repo import Repo
 from git.objects import Blob
 from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
+from kenja.git.util import get_diff_commits
 from kenja.committer import SyntaxTreesCommitter
+
 
 
 class HistorageConverter:
@@ -17,7 +19,7 @@ class HistorageConverter:
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
-        self.check_and_make_working_dir(historage_dir)
+        #self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
         self.use_tempdir = syntax_trees_dir is None
@@ -73,7 +75,7 @@ class HistorageConverter:
         print 'create paresr processes...'
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
-        for commit in get_diff_commits(self.org_repo, self.org_repo.refs):
+        for commit in get_diff_commits(self.org_repo, self.prepare_base_repo()):
             self.num_commits = self.num_commits + 1
             commit = self.org_repo.commit(commit)
             if commit.parents:
@@ -136,11 +138,10 @@ class HistorageConverter:
 
     def construct_diff_historage(self):
         print 'create historage...'
-
         base_repo = self.prepare_base_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
-        for num, commit in izip(count(),diff_commits(self.org_repo,base_repo)):
+        for num, commit in izip(count(),get_diff_commits(self.org_repo,base_repo)):
             commit = self.org_repo.commit(commit)
             print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
             committer.apply_change(commit)
