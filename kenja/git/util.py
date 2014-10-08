@@ -7,6 +7,7 @@ import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from StringIO import StringIO
+from collections import deque
 
 blob_mode = '100644'
 tree_mode = '040000'
