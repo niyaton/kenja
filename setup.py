@@ -53,7 +53,8 @@ setup(name='kenja',
             'kenja.historage.parse = kenja.convert:parse',
             'kenja.historage.construct = kenja.convert:construct',
             'kenja.detection.extract_method = kenja.refactoring_detection:main',
-            'kenja.detection.pull_up_method = kenja.pull_up_method:main'
+            'kenja.detection.pull_up_method = kenja.pull_up_method:main',
+            'kenja.debug.check_duplicate_entry = kenja.git.detect_duplicate_entry:main'
         ]
     },
     install_requires = [
