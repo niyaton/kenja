@@ -21,15 +21,19 @@ def check_duplicate_entry(path):
                 for blob in current_tree.blobs:
                     blob_names.add(blob.name)
 
+                s = set()
+                duplicated_blobs = [b.name for b in current_tree.blobs if b.name in s or s.add(b.name)]
+
+                assert len(blob_names) == len(current_tree.blobs), duplicated_blobs
+
                 tree_names = set()
                 for tree in current_tree.trees:
                     tree_names.add(tree.name)
 
                 s = set()
-                duplicates = [t.name for t in current_tree.trees if t.name in s or s.add(t.name)]
+                duplicated_trees = [t.name for t in current_tree.trees if t.name in s or s.add(t.name)]
 
-                assert len(tree_names) == len(current_tree.trees), duplicates
-                assert len(blob_names) == len(current_tree.blobs), duplicates
+                assert len(tree_names) == len(current_tree.trees), duplicated_trees
 
                 visited_tree.add(current_tree.hexsha)
 
