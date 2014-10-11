@@ -10,7 +10,7 @@ MAVEN_BIN=mvn
 PYTHON_BIN=python
 
 # location of java-parser created by maven
-PARSER_PATH=parser/java/target/kenja-java-parser-0.1-jar-with-dependencies.jar
+PARSER_PATH=parser/java/target/kenja-java-parser-0.2-jar-with-dependencies.jar
 
 # Build Java parser for kenja
 git submodule init
