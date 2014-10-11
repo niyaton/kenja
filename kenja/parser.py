@@ -18,8 +18,6 @@ def execute_parser(cmd, src):
 
 
 class ParserExecutor:
-    parser_class = "jp.naist.sd.kenja.factextractor.GitTreeCreator"
-
     def __init__(self, output_dir, parser_path, processes=None):
         self.output_dir = output_dir
         self.parser_path = parser_path
@@ -39,9 +37,8 @@ class ParserExecutor:
 
     def make_cmd(self, hexsha):
         cmd = ["java",
-               "-cp",
+               "-jar",
                self.parser_path,
-               self.parser_class,
                os.path.join(self.output_dir, hexsha)
                ]
         return cmd
