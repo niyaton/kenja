@@ -205,11 +205,26 @@ def get_diff_commits(org_repo,base_repo):
     base_id = set([str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit])
     diff_id = org_id.difference(base_id)
     ret = []
+    org_commit = [org_repo.commit(st) for st in org_commit]
     for commit in org_commit:
         if str(commit) in diff_id:
             ret.append(commit)
     return ret
 
+def get_old2new(org_repo,base_repo):
+    base_commit = get_all_commits(base_repo)
+    diff_commit = get_diff_commits(org_repo,base_repo)
+    base_id = [str(c) for c in base_commit]
+    org_id = [str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit]
+    key = []
+    value = []
+    for commit in diff_commit:
+        for parent in commit.parents:
+            if str(parent) in org_id:
+                idx = org_id.index(str(parent))
+                key.append(org_id[idx])
+                value.append(base_id[idx])
+    return dict(zip(key, value))
 
 if __name__ == '__main__':
     repo = Repo.init('test_git')
