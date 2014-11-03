@@ -13,7 +13,8 @@ from kenja.git.util import (
     write_syntax_tree_from_file,
     tree_mode,
     create_note,
-    write_blob
+    write_blob,
+    get_old2new
     )
 
 
@@ -56,6 +57,8 @@ class SyntaxTreesCommitter:
         return write_syntax_tree_from_file(repo.odb, src)[1]
 
     def commit(self, org_commit, tree_contents):
+        self.set_old2new()
+
         (mode, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
@@ -66,8 +69,8 @@ class SyntaxTreesCommitter:
         create_note(self.new_repo, note_message)
         return result
 
-    def apply_change(self, commit):
-        if commit.parents:
+    def apply_change(self, commit, is_all=True):
+        if commit.parents and is_all:
             tree_contents = self.create_tree_contents(commit.parents[0], commit)
         else:
             tree_contents = self.create_tree_contents_from_commit(commit)
@@ -150,3 +153,6 @@ class SyntaxTreesCommitter:
             hexsha = tag_ref.commit.hexsha
             if hexsha in self.old2new:
                 self.new_repo.create_tag(tag_ref.name, ref=self.old2new[hexsha])
+
+    def set_old2new(self):
+        self.old2new = get_old2new(self.org_repo,self.new_repo)

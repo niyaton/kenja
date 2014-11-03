@@ -144,7 +144,7 @@ class HistorageConverter:
         for num, commit in izip(count(),get_diff_commits(self.org_repo,base_repo)):
             commit = self.org_repo.commit(commit)
             print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
-            committer.apply_change(commit)
+            committer.apply_change(commit,is_all=False)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:
