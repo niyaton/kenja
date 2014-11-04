@@ -18,9 +18,10 @@ def is_method_parameters(path):
 
 def get_class(path):
     split_path = path.split('/')
+    split_path.reverse()
     cn_index = split_path.index('[CN]')
-    assert cn_index + 1 <= len(split_path)
-    return split_path[cn_index + 1]
+    assert cn_index - 1 <= len(split_path)
+    return split_path[cn_index - 1]
 
 
 def get_method(path):
