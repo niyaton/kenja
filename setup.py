@@ -8,8 +8,8 @@ from setuptools import setup, find_packages
 kenja_version = '0.6-122-gbd1964f'
 
 parser_path = 'kenja/lib/java-parser.jar'
-parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.2/kenja-java-parser-0.2-jar-with-dependencies.jar'
-parser_digest = 'c72d2a9b1f1916858cd68e127b2d4a02'
+parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
+parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
 
 confirm_text = None
 exit_when_no = True
