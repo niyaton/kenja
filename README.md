@@ -81,3 +81,7 @@ sh install.sh
 
 ### Requirements
 Apache Maven 2 or 3
+
+# Notes
+- The Historage which converted by kenja is case sensitive, because Git is case sensitive too.
+- Your local file system should use case sensitive file system when you construct Historage by kenja.
