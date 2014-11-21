@@ -55,8 +55,11 @@ class RefactoringDetectionCommandParser:
                       'extracted_method',
                       'similarity',
                       'extracted_body',
-                      'target_body',
-                      'target_deleted_lines'
+                      'target_before_body',
+                      'target_after_body',
+                      'target_deleted_lines',
+                      'target_method_path',
+                      'extracted_method_path'
                       )
         for candidate in candidates:
             candidate['target_deleted_lines'] = '\n'.join(candidate['target_deleted_lines'])
