@@ -82,22 +82,32 @@ class RefactoringDetectionCommandParser:
         print json.dumps(candidates, encoding='utf_8', indent=4)
 
     def format_for_umldiff(self, extract_method_information, package_prefix=None):
-        target_method = self.join_method_name(package_prefix,
-                                              extract_method_information['a_package'],
-                                              extract_method_information['target_class'],
-                                              extract_method_information['target_method']
-                                              )
-        extracted_method = self.join_method_name(package_prefix,
-                                                 extract_method_information['b_package'],
-                                                 extract_method_information['target_class'],
-                                                 extract_method_information['extracted_method']
-                                                 )
+        target_method = self.get_method_full_name(package_prefix,
+                                                  extract_method_information['a_package'],
+                                                  extract_method_information['target_method_path']
+                                                  )
+        extracted_method = self.get_method_full_name(package_prefix,
+                                                     extract_method_information['b_package'],
+                                                     extract_method_information['extracted_method_path']
+                                                     )
 
         a_commit = extract_method_information['a_commit']
         b_commit = extract_method_information['b_commit']
         org_commit = extract_method_information['b_org_commit']
         sim = extract_method_information['similarity']
         return [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
+
+    def get_method_full_name(self, prefix, package, path_of_method):
+        info = [prefix, package]
+
+        split_path = path_of_method.split('/')
+
+        target_path = ['[CN]', '[MT]', '[CS]']
+        for i, p in enumerate(split_path):
+            if p in target_path:
+                info.append(split_path[i+1])
+
+        return '.'.join([s for s in info if s is not None])
 
     def join_method_name(self, prefix, package, class_name, method):
         info = [prefix, package, class_name, method]
