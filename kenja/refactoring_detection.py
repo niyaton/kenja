@@ -82,20 +82,33 @@ class RefactoringDetectionCommandParser:
         print json.dumps(candidates, encoding='utf_8', indent=4)
 
     def format_for_umldiff(self, extract_method_information, package_prefix=None):
+        target_method_path = extract_method_information['target_method_path']
+        extracted_method_path = extract_method_information['extracted_method_path']
         target_method = self.get_method_full_name(package_prefix,
                                                   extract_method_information['a_package'],
-                                                  extract_method_information['target_method_path']
+                                                  target_method_path
                                                   )
         extracted_method = self.get_method_full_name(package_prefix,
                                                      extract_method_information['b_package'],
-                                                     extract_method_information['extracted_method_path']
+                                                     extracted_method_path
                                                      )
+
+        split_path = target_method_path.split('/')
+        target_method_is_inner = split_path.count('[CN]') > 1
+        target_method_is_constructor = '[CS]' in split_path
+
+        split_path = extracted_method_path.split('/')
+        extracted_method_is_inner = split_path.count('[CN]') > 1
+        extracted_method_is_constructor = '[CS]' in split_path
 
         a_commit = extract_method_information['a_commit']
         b_commit = extract_method_information['b_commit']
         org_commit = extract_method_information['b_org_commit']
         sim = extract_method_information['similarity']
-        return [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
+        return [a_commit, b_commit, org_commit,
+                target_method, target_method_is_inner, target_method_is_constructor,
+                extracted_method, extracted_method_is_inner, extracted_method_is_constructor,
+                sim]
 
     def get_method_full_name(self, prefix, package, path_of_method):
         info = [prefix, package]
