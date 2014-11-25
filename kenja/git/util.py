@@ -212,13 +212,13 @@ def get_diff_commits(org_repo,base_repo):
     return ret
 
 def get_old2new(org_repo,base_repo):
-    base_commit = get_all_commits(base_repo)
-    diff_commit = get_diff_commits(org_repo,base_repo)
-    base_id = [str(c) for c in base_commit]
-    org_id = [str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit]
+    base_commits = get_all_commits(base_repo)
+    diff_commits = get_diff_commits(org_repo,base_repo)
+    base_id = [str(c) for c in base_commits]
+    org_id = [str(c.repo.git.notes(['show',c.hexsha]))for c in base_commits]
     key = []
     value = []
-    for commit in diff_commit:
+    for commit in diff_commits:
         for parent in commit.parents:
             if str(parent) in org_id:
                 idx = org_id.index(str(parent))
