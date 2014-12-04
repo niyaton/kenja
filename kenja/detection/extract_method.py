@@ -107,7 +107,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                 num_args = 0 if args[0] == '()' else 1
 
             c = get_class(diff.b_blob.path)
-            extracted_method_candidates[c].add(method_name)
+            extracted_method_candidates[c].add((method_name, diff.b_blob.path))
             (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
@@ -128,7 +128,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
         else:
             m = get_constructor(diff.b_blob.path)
         script = '\n'.join([l[1] for l in deleted_lines])
-        for method in extracted_method_candidates[c]:
+        for method, path_of_method in extracted_method_candidates[c]:
             num_args_list = parse_added_lines(added_lines, method)
             for num_args in num_args_list:
                 if (c, method, num_args) not in added_lines_dict.keys():
@@ -142,8 +142,8 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                         sim = "N/A"
                     org_commit = get_org_commit(new_commit)
 
-                    target_body = diff.a_blob.data_stream.read()
-                    extracted_body = diff.b_blob.data_stream.read()
+                    target_before_body = diff.a_blob.data_stream.read()
+                    target_after_body = diff.b_blob.data_stream.read()
                     target_deleted_lines = [l[1] for l in deleted_lines]
 
                     refactoring_candidate = {'a_commit': old_commit.hexsha,
@@ -155,9 +155,12 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                                              'target_method': m,
                                              'extracted_method': extracted_method,
                                              'similarity': sim,
-                                             'target_body': target_body,
-                                             'extracted_body': extracted_body,
+                                             'target_before_body': target_before_body,
+                                             'target_after_body': target_after_body,
+                                             'extracted_body': script2,
                                              'target_deleted_lines': target_deleted_lines,
+                                             'target_method_path': diff.b_blob.path,
+                                             'extracted_method_path': path_of_method
                                              }
                     result.append(refactoring_candidate)
 

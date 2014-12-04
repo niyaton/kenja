@@ -55,8 +55,11 @@ class RefactoringDetectionCommandParser:
                       'extracted_method',
                       'similarity',
                       'extracted_body',
-                      'target_body',
-                      'target_deleted_lines'
+                      'target_before_body',
+                      'target_after_body',
+                      'target_deleted_lines',
+                      'target_method_path',
+                      'extracted_method_path'
                       )
         for candidate in candidates:
             candidate['target_deleted_lines'] = '\n'.join(candidate['target_deleted_lines'])
@@ -79,22 +82,45 @@ class RefactoringDetectionCommandParser:
         print json.dumps(candidates, encoding='utf_8', indent=4)
 
     def format_for_umldiff(self, extract_method_information, package_prefix=None):
-        target_method = self.join_method_name(package_prefix,
-                                              extract_method_information['a_package'],
-                                              extract_method_information['target_class'],
-                                              extract_method_information['target_method']
-                                              )
-        extracted_method = self.join_method_name(package_prefix,
-                                                 extract_method_information['b_package'],
-                                                 extract_method_information['target_class'],
-                                                 extract_method_information['extracted_method']
-                                                 )
+        target_method_path = extract_method_information['target_method_path']
+        extracted_method_path = extract_method_information['extracted_method_path']
+        target_method = self.get_method_full_name(package_prefix,
+                                                  extract_method_information['a_package'],
+                                                  target_method_path
+                                                  )
+        extracted_method = self.get_method_full_name(package_prefix,
+                                                     extract_method_information['b_package'],
+                                                     extracted_method_path
+                                                     )
+
+        split_path = target_method_path.split('/')
+        target_method_is_inner = split_path.count('[CN]') > 1
+        target_method_is_constructor = '[CS]' in split_path
+
+        split_path = extracted_method_path.split('/')
+        extracted_method_is_inner = split_path.count('[CN]') > 1
+        extracted_method_is_constructor = '[CS]' in split_path
 
         a_commit = extract_method_information['a_commit']
         b_commit = extract_method_information['b_commit']
         org_commit = extract_method_information['b_org_commit']
         sim = extract_method_information['similarity']
-        return [a_commit, b_commit, org_commit, target_method, extracted_method, sim]
+        return [a_commit, b_commit, org_commit,
+                target_method, target_method_is_inner, target_method_is_constructor,
+                extracted_method, extracted_method_is_inner, extracted_method_is_constructor,
+                sim]
+
+    def get_method_full_name(self, prefix, package, path_of_method):
+        info = [prefix, package]
+
+        split_path = path_of_method.split('/')
+
+        target_path = ['[CN]', '[MT]', '[CS]']
+        for i, p in enumerate(split_path):
+            if p in target_path:
+                info.append(split_path[i+1])
+
+        return '.'.join([s for s in info if s is not None])
 
     def join_method_name(self, prefix, package, class_name, method):
         info = [prefix, package, class_name, method]
