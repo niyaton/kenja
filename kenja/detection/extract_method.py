@@ -95,12 +95,8 @@ def detect_extract_method(historage):
     return extract_method_information
 
 
-def detect_extract_method_from_commit(old_commit, new_commit):
-    result = []
+def get_extracted_method_candidates(diff_index):
     extracted_method_candidates = defaultdict(set)
-
-    diff_index = old_commit.diff(new_commit, create_patch=True)
-
     added_lines_dict = defaultdict(list)
 
     for diff in diff_index.iter_change_type('A'):
@@ -120,6 +116,16 @@ def detect_extract_method_from_commit(old_commit, new_commit):
             extracted_method_candidates[c].add((method_name, b_path))
             (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
+
+    return (extracted_method_candidates, added_lines_dict)
+
+
+def detect_extract_method_from_commit(old_commit, new_commit):
+    result = []
+
+    diff_index = old_commit.diff(new_commit, create_patch=True)
+
+    extracted_method_candidates, added_lines_dict = get_extracted_method_candidates(diff_index)
 
     for diff in diff_index.iter_change_type('M'):
         a_path = diff.a_blob.path
