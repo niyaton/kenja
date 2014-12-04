@@ -104,20 +104,20 @@ def detect_extract_method_from_commit(old_commit, new_commit):
     added_lines_dict = defaultdict(list)
 
     for diff in diff_index.iter_change_type('A'):
-        path = diff.b_blob.path
-        if is_method_body(path) or is_constructor_body(path):
-            if is_method_body(path):
-                method = get_method(diff.b_blob.path)
+        b_path = diff.b_blob.path
+        if is_method_body(b_path) or is_constructor_body(b_path):
+            if is_method_body(b_path):
+                method = get_method(b_path)
             else:
-                method = get_constructor(diff.b_blob.path)
+                method = get_constructor(b_path)
             method_name = method[:method.index(r'(')]
             args = method[method.index(r'('):].split(r',')
             num_args = len(args)
             if num_args == 1:
                 num_args = 0 if args[0] == '()' else 1
 
-            c = get_class(diff.b_blob.path)
-            extracted_method_candidates[c].add((method_name, diff.b_blob.path))
+            c = get_class(b_path)
+            extracted_method_candidates[c].add((method_name, b_path))
             (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
