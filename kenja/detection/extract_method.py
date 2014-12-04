@@ -95,6 +95,21 @@ def detect_extract_method(historage):
     return extract_method_information
 
 
+def get_method_information(method_signature):
+    results = []
+
+    # add method name
+    results.append(method_signature[:method_signature.index(r'(')])
+
+    parameters = method_signature[method_signature.index(r'('):]
+    parameters = parameters[1:-1].split(',')
+    if parameters[0] == '':
+        parameters = []
+
+    results.extend(parameters)
+    return results
+
+
 def get_extracted_method_candidates(diff_index):
     extracted_method_candidates = defaultdict(set)
     added_lines_dict = defaultdict(list)
@@ -106,11 +121,11 @@ def get_extracted_method_candidates(diff_index):
                 method = get_method(b_path)
             else:
                 method = get_constructor(b_path)
-            method_name = method[:method.index(r'(')]
-            args = method[method.index(r'('):].split(r',')
-            num_args = len(args)
-            if num_args == 1:
-                num_args = 0 if args[0] == '()' else 1
+
+            method_information = get_method_information(method)
+            method_name = method_information[0]
+            parameters = method_information[1:]
+            num_args = len(parameters)
 
             c = get_class(b_path)
             extracted_method_candidates[c].add((method_name, b_path))
