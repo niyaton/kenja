@@ -122,21 +122,23 @@ def detect_extract_method_from_commit(old_commit, new_commit):
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
     for diff in diff_index.iter_change_type('M'):
-        if not (is_method_body(diff.b_blob.path) or is_constructor_body(diff.b_blob.path)):
+        a_path = diff.a_blob.path
+        b_path = diff.b_blob.path
+        if not (is_method_body(b_path) or is_constructor_body(b_path)):
             continue
-        c = get_class(diff.b_blob.path)
+        c = get_class(b_path)
         if c not in extracted_method_candidates.keys():
             continue
 
         (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
         if not (deleted_lines and added_lines):
             continue
-        a_package = get_package(diff.a_blob.path, old_commit)
-        b_package = get_package(diff.b_blob.path, new_commit)
-        if is_method_body(diff.b_blob.path):
-            m = get_method(diff.b_blob.path)
+        a_package = get_package(a_path, old_commit)
+        b_package = get_package(b_path, new_commit)
+        if is_method_body(b_path):
+            m = get_method(b_path)
         else:
-            m = get_constructor(diff.b_blob.path)
+            m = get_constructor(b_path)
         script = '\n'.join([l[1] for l in deleted_lines])
         for method, path_of_method in extracted_method_candidates[c]:
             num_args_list = parse_added_lines(added_lines, method)
@@ -169,7 +171,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                                              'target_after_body': target_after_body,
                                              'extracted_body': script2,
                                              'target_deleted_lines': target_deleted_lines,
-                                             'target_method_path': diff.b_blob.path,
+                                             'target_method_path': b_path,
                                              'extracted_method_path': path_of_method
                                              }
                     result.append(refactoring_candidate)
