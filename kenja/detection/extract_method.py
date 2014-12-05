@@ -164,7 +164,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
         for method, path_of_method in extracted_method_candidates[c]:
             num_args_list = parse_added_lines(added_lines, method)
             for num_args in num_args_list:
-                if (c, method, num_args) not in added_lines_dict.keys():
+                if (c, method, num_args) not in added_lines_dict:
                     continue
                 for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                     extracted_lines = extracted_lines[1:-1]
