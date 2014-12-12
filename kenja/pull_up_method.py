@@ -33,9 +33,7 @@ class RefactoringDetectionCommandParser:
         print('"old_commit","new_commit","old_org_commit","new_org_commit",'
               + '"src_method","dst_method","similarity","isSamePrameters"')
         for info in pull_up_method_candidates:
-            # info[6] = sim
-            info[6] = str(info[6])
-            print(','.join(['"' + s + '"' for s in info]))
+            print(','.join(['"' + str(s) + '"' for s in info]))
 
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
