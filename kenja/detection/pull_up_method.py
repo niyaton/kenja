@@ -19,7 +19,9 @@ def get_extends(commit, org_file_name, class_name):
 
 def exist_class(blob, commit):
     split_path = blob.path.split('/')
-    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2])
+    while split_path[-2] != '[CN]':
+        split_path.pop()
+    class_path = '/'.join(split_path)
 
     try:
         commit.tree / class_path
