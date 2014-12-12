@@ -6,8 +6,9 @@ from kenja.historage import *
 from kenja.shingles import calculate_similarity
 
 
-def get_extends(commit, org_file_name, class_name):
-    extends_path = '/'.join([org_file_name, '[CN]', class_name, 'extend'])
+def get_extends(commit, org_file_name, classes):
+    classes_path = '/[CN]/'.join(classes)
+    extends_path = '/'.join([org_file_name, '[CN]', classes_path, 'extend'])
     try:
         extend = commit.tree / extends_path
         assert isinstance(extend, Blob)
@@ -55,20 +56,30 @@ class Method(object):
         self.blob = blob
 
         self.package_name = get_package(blob.path, commit)
-        self.class_name = get_class(blob.path)
+        self.classes = self.get_classes(blob.path)
         self.method_name = get_method(blob.path)
 
+    def get_classes(self, path):
+        classes = []
+        split_path = path.split('/')
+        for i, v in enumerate(split_path):
+            if v == '[CN]':
+                classes.append(split_path[i+1])
+        return classes
+
     def get_full_name(self):
+        class_name = '.'.join(self.classes)
         if self.package_name:
-            return '.'.join([self.package_name, self.class_name, self.method_name])
+            return '.'.join([self.package_name, class_name, self.method_name])
         else:
-            return '.'.join([self.class_name, self.method_name])
+            return '.'.join([class_name, self.method_name])
 
     def get_full_class_name(self):
+        class_name = '.'.join(self.classes)
         if self.package_name:
-            return '.'.join([self.package_name, self.class_name])
+            return '.'.join([self.package_name, class_name])
         else:
-            return '.'.join([self.class_name])
+            return '.'.join([class_name])
 
     def get_parameter_types(self):
         index = self.method_name.index('(')
@@ -93,7 +104,7 @@ class SubclassMethod(Method):
         super(SubclassMethod, self).__init__(blob, commit)
 
         split_path = blob.path.split('/')
-        self.extend = get_extends(commit, split_path[0], self.class_name)
+        self.extend = get_extends(commit, split_path[0], self.classes)
 
 
 def match_type(a_method, b_method):
@@ -110,7 +121,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     for diff in diff_index.iter_change_type('A'):
         new_method = Method.create_from_blob(diff.b_blob, new_commit)
         if new_method:
-            added_methods[new_method.class_name].append(new_method)
+            added_methods[new_method.get_full_class_name()].append(new_method)
 
     deleted_classes = set()
     for diff in diff_index.iter_change_type('D'):
