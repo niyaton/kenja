@@ -78,9 +78,19 @@ def parse_added_lines(added_lines, method_name):
 def detect_extract_method(historage):
     extract_method_information = []
 
-    for commit in historage.iter_commits(historage.head):
-        for p in commit.parents:
-            extract_method_information.extend(detect_extract_method_from_commit(p, commit))
+    checked_commit = set()
+    detection_stack = []
+    for ref in get_refs(historage):
+        ref_commit = historage.commit(ref)
+        detection_stack.append(ref_commit)
+        while detection_stack:
+            commit = detection_stack.pop()
+            if commit.hexsha in checked_commit:
+                continue
+            for p in commit.parents:
+                extract_method_information.extend(detect_extract_method_from_commit(p, commit))
+                detection_stack.append(p)
+            checked_commit.add(commit.hexsha)
 
     return extract_method_information
 

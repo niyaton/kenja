@@ -2,6 +2,12 @@ from __future__ import absolute_import
 import os
 
 
+def get_refs(historage):
+    for ref in historage.refs:
+        if not ref.path.startswith('refs/notes/'):
+            yield ref
+
+
 def is_method_body(path):
     if os.path.basename(path) != 'body':
         return False
