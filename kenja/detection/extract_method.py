@@ -95,53 +95,76 @@ def detect_extract_method(historage):
     return extract_method_information
 
 
-def detect_extract_method_from_commit(old_commit, new_commit):
-    result = []
+def get_method_information(method_signature):
+    results = []
+
+    # add method name
+    results.append(method_signature[:method_signature.index(r'(')])
+
+    parameters = method_signature[method_signature.index(r'('):]
+    parameters = parameters[1:-1].split(',')
+    if parameters[0] == '':
+        parameters = []
+
+    results.extend(parameters)
+    return results
+
+
+def get_extracted_method_candidates(diff_index):
     extracted_method_candidates = defaultdict(set)
-
-    diff_index = old_commit.diff(new_commit, create_patch=True)
-
     added_lines_dict = defaultdict(list)
 
     for diff in diff_index.iter_change_type('A'):
-        path = diff.b_blob.path
-        if is_method_body(path) or is_constructor_body(path):
-            if is_method_body(path):
-                method = get_method(diff.b_blob.path)
+        b_path = diff.b_blob.path
+        if is_method_body(b_path) or is_constructor_body(b_path):
+            if is_method_body(b_path):
+                method = get_method(b_path)
             else:
-                method = get_constructor(diff.b_blob.path)
-            method_name = method[:method.index(r'(')]
-            args = method[method.index(r'('):].split(r',')
-            num_args = len(args)
-            if num_args == 1:
-                num_args = 0 if args[0] == '()' else 1
+                method = get_constructor(b_path)
 
-            c = get_class(diff.b_blob.path)
-            extracted_method_candidates[c].add((method_name, diff.b_blob.path))
+            method_information = get_method_information(method)
+            method_name = method_information[0]
+            parameters = method_information[1:]
+            num_args = len(parameters)
+
+            c = get_class(b_path)
+            extracted_method_candidates[c].add((method_name, b_path))
             (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
             added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
 
+    return (extracted_method_candidates, added_lines_dict)
+
+
+def detect_extract_method_from_commit(old_commit, new_commit):
+    result = []
+
+    diff_index = old_commit.diff(new_commit, create_patch=True)
+
+    extracted_method_candidates, added_lines_dict = get_extracted_method_candidates(diff_index)
+
     for diff in diff_index.iter_change_type('M'):
-        if not (is_method_body(diff.b_blob.path) or is_constructor_body(diff.b_blob.path)):
+        a_path = diff.a_blob.path
+        b_path = diff.b_blob.path
+        if not (is_method_body(b_path) or is_constructor_body(b_path)):
             continue
-        c = get_class(diff.b_blob.path)
+        c = get_class(b_path)
         if c not in extracted_method_candidates.keys():
             continue
 
         (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
         if not (deleted_lines and added_lines):
             continue
-        a_package = get_package(diff.a_blob.path, old_commit)
-        b_package = get_package(diff.b_blob.path, new_commit)
-        if is_method_body(diff.b_blob.path):
-            m = get_method(diff.b_blob.path)
+        a_package = get_package(a_path, old_commit)
+        b_package = get_package(b_path, new_commit)
+        if is_method_body(b_path):
+            m = get_method(b_path)
         else:
-            m = get_constructor(diff.b_blob.path)
+            m = get_constructor(b_path)
         script = '\n'.join([l[1] for l in deleted_lines])
         for method, path_of_method in extracted_method_candidates[c]:
             num_args_list = parse_added_lines(added_lines, method)
             for num_args in num_args_list:
-                if (c, method, num_args) not in added_lines_dict.keys():
+                if (c, method, num_args) not in added_lines_dict:
                     continue
                 for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
                     extracted_lines = extracted_lines[1:-1]
@@ -169,7 +192,7 @@ def detect_extract_method_from_commit(old_commit, new_commit):
                                              'target_after_body': target_after_body,
                                              'extracted_body': script2,
                                              'target_deleted_lines': target_deleted_lines,
-                                             'target_method_path': diff.b_blob.path,
+                                             'target_method_path': b_path,
                                              'extracted_method_path': path_of_method
                                              }
                     result.append(refactoring_candidate)
