@@ -58,6 +58,7 @@ class Method(object):
         self.package_name = get_package(blob.path, commit)
         self.classes = self.get_classes(blob.path)
         self.method_name = get_method(blob.path)
+        self.body_cache = None
 
     def get_classes(self, path):
         classes = []
@@ -66,6 +67,9 @@ class Method(object):
             if v == '[CN]':
                 classes.append(split_path[i+1])
         return classes
+
+    def get_class_name(self):
+        return self.classes[-1]
 
     def get_full_name(self):
         class_name = '.'.join(self.classes)
@@ -93,7 +97,9 @@ class Method(object):
             return None
 
     def get_body(self):
-        return self.blob.data_stream.read()
+        if self.body_cache is None:
+            self.body_cache = self.blob.data_stream.read()
+        return self.body_cache
 
     def __str__(self):
         return self.get_full_name()
@@ -117,11 +123,11 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
     added_methods = defaultdict(list)
-    delted_methods = defaultdict(lambda: defaultdict(list))
+    deleted_methods = defaultdict(list)
     for diff in diff_index.iter_change_type('A'):
         new_method = Method.create_from_blob(diff.b_blob, new_commit)
         if new_method:
-            added_methods[new_method.get_full_class_name()].append(new_method)
+            added_methods[new_method.get_class_name()].append(new_method)
 
     deleted_classes = set()
     for diff in diff_index.iter_change_type('D'):
@@ -139,41 +145,43 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                 continue
 
             if subclass_method.extend in added_methods.keys():
-                delted_methods[subclass_method.extend][subclass_method.class_name].append(subclass_method)
+                deleted_methods[subclass_method.extend].append(subclass_method)
 
     pull_up_method_candidates = []
-    for super_class, v in delted_methods.iteritems():
+
+    old_org_commit = get_org_commit(old_commit)
+    new_org_commit = get_org_commit(new_commit)
+
+    for super_class, v in deleted_methods.iteritems():
         if super_class not in added_methods:
             print('%s does\'nt have a deleted method' % (super_class))
             continue
         for dst_method in added_methods[super_class]:
-            for src_class in v.keys():
-                for src_method in v[src_class]:
-                    src_body = src_method.get_body()
-                    dst_body = dst_method.get_body()
+            dst_body = dst_method.get_body()
+            if not dst_body:
+                continue
+            dst_body = '\n'.join(dst_body.split('\n')[1:-2])
+            for src_method in v:
+                src_body = src_method.get_body()
 
-                    is_same_parameters = match_type(src_method, dst_method)
-                    if dst_body:
-                        dst_body = '\n'.join(dst_body.split('\n')[1:-2])
-                        if src_body:
-                            src_body = '\n'.join(src_body.split('\n')[1:-2])
+                is_same_parameters = match_type(src_method, dst_method)
+                if src_body:
+                    src_body = '\n'.join(src_body.split('\n')[1:-2])
 
-                        if src_body or dst_body:
-                            try:
-                                sim = calculate_similarity(src_body, dst_body)
-                            except ZeroDivisionError:
-                                sim = "N/A"
-                        else:
-                            sim = 0
-                        old_org_commit = get_org_commit(old_commit)
-                        new_org_commit = get_org_commit(new_commit)
-                        pull_up_method_candidates.append((old_commit.hexsha,
-                                                          new_commit.hexsha,
-                                                          old_org_commit,
-                                                          new_org_commit,
-                                                          str(src_method),
-                                                          str(dst_method),
-                                                          sim,
-                                                          is_same_parameters))
+                if src_body or dst_body:
+                    try:
+                        sim = calculate_similarity(src_body, dst_body)
+                    except ZeroDivisionError:
+                        sim = "N/A"
+                else:
+                    sim = 0
+                pull_up_method_candidates.append((old_commit.hexsha,
+                                                  new_commit.hexsha,
+                                                  old_org_commit,
+                                                  new_org_commit,
+                                                  str(src_method),
+                                                  str(dst_method),
+                                                  sim,
+                                                  is_same_parameters))
 
     return pull_up_method_candidates
