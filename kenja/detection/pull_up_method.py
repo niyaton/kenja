@@ -31,10 +31,19 @@ def exist_class(blob, commit):
 def detect_pull_up_method(historage):
     pull_up_method_information = []
 
-    for commit in historage.iter_commits(historage.head):
-        for p in commit.parents:
-            # pull_up_method_information.extend(detect_pullup_method_from_commit(p, commit))
-            pull_up_method_information.extend(detect_shingle_pullup_method(p, commit))
+    checked_commit = set()
+    detection_stack = []
+    for ref in get_refs(historage):
+        ref_commit = historage.commit(ref)
+        detection_stack.append(ref_commit)
+        while detection_stack:
+            commit = detection_stack.pop()
+            if commit.hexsha in checked_commit:
+                continue
+            for p in commit.parents:
+                pull_up_method_information.extend(detect_shingle_pullup_method(p, commit))
+                detection_stack.append(p)
+            checked_commit.add(commit.hexsha)
 
     return pull_up_method_information
 
