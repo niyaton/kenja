@@ -112,7 +112,7 @@ def get_method_information(method_signature):
 
 def get_extracted_method_candidates(diff_index):
     extracted_method_candidates = defaultdict(set)
-    added_lines_dict = defaultdict(list)
+    added_lines_dict = dict()
 
     for diff in diff_index.iter_change_type('A'):
         b_path = diff.b_blob.path
@@ -128,9 +128,9 @@ def get_extracted_method_candidates(diff_index):
             num_args = len(parameters)
 
             c = get_class(b_path)
-            extracted_method_candidates[c].add((method_name, b_path))
             (deleted_lines, added_lines) = diff_parser.parse(diff.diff)
-            added_lines_dict[(c, method_name, num_args)].append((method, added_lines))
+            extracted_method_candidates[c].add((method_name, b_path, num_args))
+            added_lines_dict[b_path] = added_lines
 
     return (extracted_method_candidates, added_lines_dict)
 
@@ -161,41 +161,41 @@ def detect_extract_method_from_commit(old_commit, new_commit):
         else:
             m = get_constructor(b_path)
         script = '\n'.join([l[1] for l in deleted_lines])
-        for method, path_of_method in extracted_method_candidates[c]:
+        for method, path_of_method, num_args in extracted_method_candidates[c]:
+            extracted_lines = added_lines_dict[path_of_method]
             num_args_list = parse_added_lines(added_lines, method)
-            for num_args in num_args_list:
-                if (c, method, num_args) not in added_lines_dict:
-                    continue
-                for extracted_method, extracted_lines in added_lines_dict[(c, method, num_args)]:
-                    extracted_lines = extracted_lines[1:-1]
-                    script2 = '\n'.join([l[1] for l in extracted_lines])
-                    try:
-                        sim = calculate_similarity(script, script2)
-                    except ZeroDivisionError:
-                        sim = "N/A"
-                    org_commit = get_org_commit(new_commit)
+            if num_args not in num_args_list:
+                continue
 
-                    target_before_body = diff.a_blob.data_stream.read()
-                    target_after_body = diff.b_blob.data_stream.read()
-                    target_deleted_lines = [l[1] for l in deleted_lines]
+            extracted_lines = extracted_lines[1:-1]
+            script2 = '\n'.join([l[1] for l in extracted_lines])
+            try:
+                sim = calculate_similarity(script, script2)
+            except ZeroDivisionError:
+                sim = "N/A"
+            org_commit = get_org_commit(new_commit)
 
-                    refactoring_candidate = {'a_commit': old_commit.hexsha,
-                                             'b_commit': new_commit.hexsha,
-                                             'b_org_commit': org_commit,
-                                             'a_package': a_package,
-                                             'b_package': b_package,
-                                             'target_class': c,
-                                             'target_method': m,
-                                             'extracted_method': extracted_method,
-                                             'similarity': sim,
-                                             'target_before_body': target_before_body,
-                                             'target_after_body': target_after_body,
-                                             'extracted_body': script2,
-                                             'target_deleted_lines': target_deleted_lines,
-                                             'target_method_path': b_path,
-                                             'extracted_method_path': path_of_method
-                                             }
-                    result.append(refactoring_candidate)
+            target_before_body = diff.a_blob.data_stream.read()
+            target_after_body = diff.b_blob.data_stream.read()
+            target_deleted_lines = [l[1] for l in deleted_lines]
+
+            refactoring_candidate = {'a_commit': old_commit.hexsha,
+                                     'b_commit': new_commit.hexsha,
+                                     'b_org_commit': org_commit,
+                                     'a_package': a_package,
+                                     'b_package': b_package,
+                                     'target_class': c,
+                                     'target_method': m,
+                                     'extracted_method': method,
+                                     'similarity': sim,
+                                     'target_before_body': target_before_body,
+                                     'target_after_body': target_after_body,
+                                     'extracted_body': script2,
+                                     'target_deleted_lines': target_deleted_lines,
+                                     'target_method_path': b_path,
+                                     'extracted_method_path': path_of_method
+                                     }
+            result.append(refactoring_candidate)
 
     return result
 
