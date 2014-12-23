@@ -58,15 +58,17 @@ class ConvertCommandParser(CommandParser):
     def get_description(self):
         return 'convert git repository to historage'
 
+
 class ConvertDiffCommandParser(ConvertCommandParser):
-    def set_function(self,args):
+    def set_function(self, args):
         print args
-        hc = HistorageConverter(args.org_git_dir,args.historage_dir,args.syntax_trees_dir)
+        hc = HistorageConverter(args.org_git_dir, args.historage_dir, args.syntax_trees_dir)
         if args.parser_processes:
             hc.parser_processes = args.parser_processes
 
         hc.is_bare_repo = args.bare
         hc.convert_diff()
+
 
 class ParseCommandParser(CommandParser):
     def set_function(self, args):
@@ -97,9 +99,11 @@ class ConstructCommandParser(CommandParser):
     def get_description(self):
         return 'construct historage by using syntax trees (for debug)'
 
+
 def convert_diff():
     parser = ConvertDiffCommandParser()
     parser.parse_and_execute_command()
+
 
 def convert():
     parser = ConvertCommandParser()

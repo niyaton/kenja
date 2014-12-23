@@ -11,7 +11,6 @@ from kenja.git.util import get_diff_commits
 from kenja.committer import SyntaxTreesCommitter
 
 
-
 class HistorageConverter:
     parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
 
@@ -19,7 +18,7 @@ class HistorageConverter:
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
-        #self.check_and_make_working_dir(historage_dir)
+        # self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
         self.use_tempdir = syntax_trees_dir is None
@@ -93,7 +92,6 @@ class HistorageConverter:
                             parsed_blob.add(entry.hexsha)
         print 'waiting parser processes'
         parser_executor.join()
-        
 
     def prepare_base_repo(self):
         base_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
@@ -141,10 +139,10 @@ class HistorageConverter:
         base_repo = self.prepare_base_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
-        for num, commit in izip(count(),get_diff_commits(self.org_repo,base_repo)):
+        for num, commit in izip(count(), get_diff_commits(self.org_repo, base_repo)):
             commit = self.org_repo.commit(commit)
             print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
-            committer.apply_change(commit,is_all=False)
+            committer.apply_change(commit, is_all=False)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:

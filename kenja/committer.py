@@ -155,4 +155,4 @@ class SyntaxTreesCommitter:
                 self.new_repo.create_tag(tag_ref.name, ref=self.old2new[hexsha])
 
     def set_old2new(self):
-        self.old2new = get_old2new(self.org_repo,self.new_repo)
+        self.old2new = get_old2new(self.org_repo, self.new_repo)

@@ -198,11 +198,12 @@ def get_all_commits(repo):
                 visited.add(parent)
     return visited
 
-def get_diff_commits(org_repo,base_repo):
-    org_commit = get_reversed_topological_ordered_commits(org_repo,org_repo.refs)
+
+def get_diff_commits(org_repo, base_repo):
+    org_commit = get_reversed_topological_ordered_commits(org_repo, org_repo.refs)
     base_commit = get_all_commits(base_repo)
     org_id = set([str(c) for c in org_commit])
-    base_id = set([str(c.repo.git.notes(['show',c.hexsha]))for c in base_commit])
+    base_id = set([str(c.repo.git.notes(['show', c.hexsha]))for c in base_commit])
     diff_id = org_id.difference(base_id)
     ret = []
     org_commit = [org_repo.commit(st) for st in org_commit]
@@ -211,11 +212,12 @@ def get_diff_commits(org_repo,base_repo):
             ret.append(commit)
     return ret
 
-def get_old2new(org_repo,base_repo):
+
+def get_old2new(org_repo, base_repo):
     base_commits = get_all_commits(base_repo)
-    diff_commits = get_diff_commits(org_repo,base_repo)
+    diff_commits = get_diff_commits(org_repo, base_repo)
     base_id = [str(c) for c in base_commits]
-    org_id = [str(c.repo.git.notes(['show',c.hexsha]))for c in base_commits]
+    org_id = [str(c.repo.git.notes(['show', c.hexsha]))for c in base_commits]
     key = []
     value = []
     for commit in diff_commits:
@@ -225,6 +227,7 @@ def get_old2new(org_repo,base_repo):
                 key.append(org_id[idx])
                 value.append(base_id[idx])
     return dict(zip(key, value))
+
 
 if __name__ == '__main__':
     repo = Repo.init('test_git')
