@@ -131,6 +131,8 @@ def detect_shingle_pullup_method(old_commit, new_commit):
 
     deleted_classes = set()
     for diff in diff_index.iter_change_type('D'):
+        # NOTE change following old_commit to new_commit to detect
+        # pull_up_method by same condtion of UMLDiff
         subclass_method = SubclassMethod.create_from_blob(diff.a_blob, old_commit)
 
         if subclass_method:
