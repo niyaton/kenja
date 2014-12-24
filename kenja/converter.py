@@ -47,7 +47,7 @@ class HistorageConverter:
         return blob and blob.name.endswith(ext)
 
     def parse_all_java_files(self):
-        print 'create paresr processes...'
+        print('create paresr processes...')
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
@@ -66,7 +66,7 @@ class HistorageConverter:
                         if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
-        print 'waiting parser processes'
+        print('waiting parser processes')
         parser_executor.join()
 
     def prepare_base_repo(self):
@@ -92,14 +92,14 @@ class HistorageConverter:
         self.construct_historage()
 
     def construct_historage(self):
-        print 'create historage...'
+        print('create historage...')
 
         base_repo = self.prepare_base_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             commit = self.org_repo.commit(commit)
-            print '[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir)
+            print('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir))
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()

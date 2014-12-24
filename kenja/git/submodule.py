@@ -66,7 +66,7 @@ if __name__ == '__main__':
         heads[head.commit.hexsha] = head.name
 
     for commit_hexsha, num in izip(commits, count()):
-        print num, commit_hexsha
+        print(num, commit_hexsha)
         git = new_repo.git
         commit = repo.commit(commit_hexsha)
 

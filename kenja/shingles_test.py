@@ -33,43 +33,43 @@ def check_torknized_str(torknized_result, estimated_result):
 
 def test_split_to_str():
     test_data = "public void main()"
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = ['public', ' ', 'void', ' ', 'main', '(', ')']
     for_split_to_str(test_data, estimated_result)
 
     test_data = '""'
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = ['""']
     for_split_to_str(test_data, estimated_result)
 
     test_data = r'"\""'
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = [r'"\""']
     for_split_to_str(test_data, estimated_result)
-    print "[test]", test_data
+    print("[test]", test_data)
 
     test_data = "''"
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = ["''"]  # ''
     for_split_to_str(test_data, estimated_result)
 
     test_data = r"'\"'"
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = [r"'\"'"]  # '\"'
     for_split_to_str(test_data, estimated_result)
 
     test_data = r'"\'"'
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = [r'"\'"']  # '\"'
     for_split_to_str(test_data, estimated_result)
 
     test_data = r'"\n"'
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = [r'"\n"']  # "\n"
     for_split_to_str(test_data, estimated_result)
 
     test_data = r"'\n'"
-    print "[test]", test_data
+    print("[test]", test_data)
     estimated_result = [r"'\n'"]  # '\n'
     for_split_to_str(test_data, estimated_result)
 

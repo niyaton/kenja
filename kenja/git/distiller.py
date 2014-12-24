@@ -49,7 +49,7 @@ class GitDistiller:
         cmd.extend(['-o', '-type', 'd'])
         cmd.append('\\)')
         cmd.extend(['-print0', '|', 'xargs', '-0', 'rm'])
-        print cmd
+        print(cmd)
         return ' '.join(cmd)
 
 if __name__ == '__main__':

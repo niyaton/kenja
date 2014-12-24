@@ -125,8 +125,8 @@ def calculate_similarity(script1, script2):
         seq = tokenize(tokenizer, script1)[1:]
         seq2 = tokenize(tokenizer, script2)[1:]
     except Exception:
-        print script1
-        print script2
+        print(script1)
+        print(script2)
         raise
 
     shingles1 = create_two_shingles(seq)
@@ -138,7 +138,7 @@ def main():
     import sys
 
     if len(sys.argv) == 1:
-        print "usage: shingles <script> [ <input> ]\nAn calculator of method similarity for Java."
+        print("usage: shingles <script> [ <input> ]\nAn calculator of method similarity for Java.")
         return
 
     assert len(sys.argv) in (2, 3)
@@ -156,7 +156,7 @@ def main():
     if scriptFile2 is None:
         tokenizer = tokenizing_expr()
         seq = tokenize(tokenizer, script)
-        print "\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq)))
+        print("\n".join(treeseq.seq_pretty(treeseq.seq_remove_strattrs(seq))))
         return
 
     f = open(scriptFile2, "r")
