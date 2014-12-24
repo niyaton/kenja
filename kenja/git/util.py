@@ -7,6 +7,7 @@ import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from StringIO import StringIO
+from collections import deque
 
 blob_mode = '100644'
 tree_mode = '040000'
@@ -183,6 +184,49 @@ def get_reversed_topological_ordered_commits(repo, refs):
             post.append(node)
 
     return post
+
+
+def get_all_commits(repo):
+    note_rev = 'refs/notes/commits'
+    visited = set([c.commit for c in repo.refs if c.path != note_rev])
+    queue = deque([c.commit for c in repo.refs if c.path != note_rev])
+    while queue:
+        commit = queue.pop()
+        for parent in commit.parents:
+            if parent not in visited:
+                queue.append(parent)
+                visited.add(parent)
+    return visited
+
+
+def get_diff_commits(org_repo, base_repo):
+    org_commit = get_reversed_topological_ordered_commits(org_repo, org_repo.refs)
+    base_commit = get_all_commits(base_repo)
+    org_id = set([str(c) for c in org_commit])
+    base_id = set([str(c.repo.git.notes(['show', c.hexsha]))for c in base_commit])
+    diff_id = org_id.difference(base_id)
+    ret = []
+    org_commit = [org_repo.commit(st) for st in org_commit]
+    for commit in org_commit:
+        if str(commit) in diff_id:
+            ret.append(commit)
+    return ret
+
+
+def get_old2new(org_repo, base_repo):
+    base_commits = get_all_commits(base_repo)
+    diff_commits = get_diff_commits(org_repo, base_repo)
+    base_id = [str(c) for c in base_commits]
+    org_id = [str(c.repo.git.notes(['show', c.hexsha]))for c in base_commits]
+    key = []
+    value = []
+    for commit in diff_commits:
+        for parent in commit.parents:
+            if str(parent) in org_id:
+                idx = org_id.index(str(parent))
+                key.append(org_id[idx])
+                value.append(base_id[idx])
+    return dict(zip(key, value))
 
 
 if __name__ == '__main__':
