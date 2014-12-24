@@ -131,7 +131,7 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     pull_up_method_candidates = []
     for super_class, v in delted_methods.iteritems():
         if super_class not in added_methods:
-            print '%s does\'nt have a deleted method' % (super_class)
+            print('%s does\'nt have a deleted method' % (super_class))
             continue
         for dst_method in added_methods[super_class]:
             for src_class in v.keys():
