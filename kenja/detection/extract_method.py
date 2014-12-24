@@ -214,7 +214,7 @@ if __name__ == '__main__':
     candidate_revisions = set()
     for info in extract_method_information:
         candidate_revisions.add(info[0])
-        print '"%s","%s","%s","%s","%s","%s","%s","%s"' % info
+        print('"%s","%s","%s","%s","%s","%s","%s","%s"' % info)
 
-    print 'candidates:', len(extract_method_information)
-    print 'candidate revisions:', len(candidate_revisions)
+    print('candidates:', len(extract_method_information))
+    print('candidate revisions:', len(candidate_revisions))

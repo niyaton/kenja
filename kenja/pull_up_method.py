@@ -30,12 +30,12 @@ class RefactoringDetectionCommandParser:
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         pull_up_method_candidates = detect_pull_up_method(historage)
-        print '"old_commit","new_commit","old_org_commit","new_org_commit",' \
-            + '"src_method","dst_method","similarity","isSamePrameters"'
+        print('"old_commit","new_commit","old_org_commit","new_org_commit",'
+              + '"src_method","dst_method","similarity","isSamePrameters"')
         for info in pull_up_method_candidates:
             # info[6] = sim
             info[6] = str(info[6])
-            print ','.join(['"' + s + '"' for s in info])
+            print(','.join(['"' + s + '"' for s in info]))
 
     def format_for_umldiff(self, package_prefix, a_commit, b_commit, org_commit, a_package, b_package, c, m, method,
                            sim):
@@ -71,15 +71,15 @@ class RefactoringDetectionCommandParser:
                 b_commit = historage.commit(b_commit_hash)
                 results.extend(detect_pullup_method_from_commit(a_commit, b_commit))
         except ValueError:
-            print "Invalid input."
+            print("Invalid input.")
             return
         except BadObject, name:
-            print "Invalid hash of the commit:", name.message
+            print("Invalid hash of the commit:", name.message)
 
         for result in results:
             # result[6] = sim
             result[6] = str(result[6])
-            print ','.join(['"' + s + '"' for s in result])
+            print(','.join(['"' + s + '"' for s in result]))
 
 
 def main():

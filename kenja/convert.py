@@ -44,7 +44,7 @@ class ConvertCommandParser(CommandParser):
         )
 
     def set_function(self, args):
-        print args
+        print(args)
 
         hc = HistorageConverter(args.org_git_dir, args.historage_dir, args.syntax_trees_dir)
 
