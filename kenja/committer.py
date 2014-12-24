@@ -56,7 +56,7 @@ class SyntaxTreesCommitter:
         return write_syntax_tree_from_file(repo.odb, src)[1]
 
     def commit(self, org_commit, tree_contents):
-        (mode, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
+        (_, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
 
         parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
 

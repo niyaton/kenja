@@ -102,7 +102,3 @@ def parse():
 def construct():
     parser = ConstructCommandParser()
     parser.parse_and_execute_command()
-
-
-if __name__ == '__main__':
-    main()
