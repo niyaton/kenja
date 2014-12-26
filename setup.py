@@ -46,6 +46,7 @@ setup(name='kenja',
     url='https://github.com/niyaton/kenja',
     packages=find_packages(),
     data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"]),
+        ("kenja/lib/python",["kenja/lib/python/parser.py","kenja/lib/python/unparse.py","kenja/lib/python/treewriter.py"]),
                 ("kenja", ["kenja/readme_for_historage.txt"])],
     entry_points = {
         'console_scripts': [

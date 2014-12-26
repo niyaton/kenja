@@ -41,6 +41,7 @@ class ParserExecutor:
                self.parser_path,
                os.path.join(self.output_dir, hexsha)
                ]
+#        print cmd
         return cmd
 
     def join(self):
@@ -48,3 +49,12 @@ class ParserExecutor:
         self.closed = True
         self.pool.join()
         self.pool = None
+
+
+class ParserExecutor_py(ParserExecutor): # tmp
+    def make_cmd(self, hexsha):
+        cmd = ["python",
+               self.parser_path,
+               os.path.join(self.output_dir, hexsha)
+               ]
+        return cmd

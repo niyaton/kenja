@@ -31,7 +31,7 @@ class SyntaxTreesCommitter:
         return os.path.isfile(path)
 
     def is_commit_target(self, blob):
-        if blob is None or not blob.name.endswith('.java'):
+        if blob is None or not (blob.name.endswith('.java') or blob.name.endswith('.py')):
             return False
         return self.is_completed_parse(blob)
 
