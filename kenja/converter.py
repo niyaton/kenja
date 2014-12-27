@@ -47,7 +47,7 @@ class HistorageConverter:
         return blob and blob.name.endswith(ext)
 
     def parse_all_java_files(self):
-        print('create paresr processes...')
+        print('create parser processes...')
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
