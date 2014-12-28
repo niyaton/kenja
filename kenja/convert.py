@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import argparse
 from kenja.converter import HistorageConverter
+from logging import basicConfig
 
 
 class CommandParser(object):
@@ -13,11 +14,13 @@ class CommandParser(object):
 
     def parse_and_execute_command(self):
         args = self.parser.parse_args()
+        basicConfig(level=args.logging_level)
         args.func(args)
 
     def add_main_argument(self):
         self.parser.add_argument('org_git_dir', help='path of original git repository')
         self.parser.add_argument('historage_dir', help='path of historage directory')
+        self.parser.add_argument('--logging-level', help='debug level for python logger', default='WARNING')
 
     def add_option_argument(self):
         self.parser.add_argument('--syntax-trees-dir', help='path of syntax trees dir')

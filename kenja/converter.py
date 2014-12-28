@@ -8,6 +8,9 @@ from git.objects import Blob
 from kenja.parser import ParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class HistorageConverter:
@@ -23,7 +26,7 @@ class HistorageConverter:
         self.use_tempdir = syntax_trees_dir is None
         if self.use_tempdir:
             self.syntax_trees_dir = mkdtemp()
-            print(self.syntax_trees_dir)
+            logger.info(self.syntax_trees_dir)
         else:
             self.check_and_make_working_dir(syntax_trees_dir)
             self.syntax_trees_dir = syntax_trees_dir
@@ -40,14 +43,14 @@ class HistorageConverter:
             try:
                 os.mkdir(path)
             except OSError:
-                print('Kenja cannot make a directory: {0}'.format(path))
+                logger.error('Kenja cannot make a directory: {0}'.format(path))
                 raise
 
     def is_target_blob(self, blob, ext):
         return blob and blob.name.endswith(ext)
 
     def parse_all_java_files(self):
-        print('create parser processes...')
+        logger.info('create parser processes...')
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
@@ -66,7 +69,7 @@ class HistorageConverter:
                         if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
-        print('waiting parser processes')
+        logger.info('waiting parser processes')
         parser_executor.join()
 
     def prepare_base_repo(self):
@@ -92,14 +95,14 @@ class HistorageConverter:
         self.construct_historage()
 
     def construct_historage(self):
-        print('create historage...')
+        logger.info('create historage...')
 
         base_repo = self.prepare_base_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             commit = self.org_repo.commit(commit)
-            print('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir))
+            logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir))
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
