@@ -20,6 +20,7 @@ class HistorageConverter:
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
+        self.language = '.java'
         self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
@@ -59,13 +60,13 @@ class HistorageConverter:
             if commit.parents:
                 for p in commit.parents:
                     for diff in p.diff(commit):
-                        if self.is_target_blob(diff.b_blob, '.java'):
+                        if self.is_target_blob(diff.b_blob, self.language):
                             if diff.b_blob.hexsha not in parsed_blob:
                                 parser_executor.parse_blob(diff.b_blob)
                                 parsed_blob.add(diff.b_blob.hexsha)
             else:
                 for entry in commit.tree.traverse():
-                    if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
+                    if isinstance(entry, Blob) and self.is_target_blob(entry, self.language):
                         if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
