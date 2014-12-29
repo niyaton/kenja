@@ -50,7 +50,7 @@ class HistorageConverter:
     def is_target_blob(self, blob, ext):
         return blob and blob.name.endswith(ext)
 
-    def parse_all_java_files(self):
+    def parse_all_target_files(self):
         logger.info('create parser processes...')
         parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
         parsed_blob = set()
@@ -92,7 +92,7 @@ class HistorageConverter:
             writer.set(user_key, 'email', 'default@example.com')
 
     def convert(self):
-        self.parse_all_java_files()
+        self.parse_all_target_files()
         self.construct_historage()
 
     def construct_historage(self):
