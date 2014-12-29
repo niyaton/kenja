@@ -7,6 +7,7 @@ import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from StringIO import StringIO
+from collections import deque
 
 blob_mode = '100644'
 tree_mode = '040000'
@@ -160,7 +161,7 @@ def create_note(repo, message):
 
 def get_reversed_topological_ordered_commits(repo, refs):
     revs = [ref.commit.hexsha for ref in refs]
-    nodes = list(revs)
+    nodes = deque(revs)
     visited = set()
     post = []
     while nodes:
