@@ -164,17 +164,16 @@ def get_reversed_topological_ordered_commits(repo, refs):
     visited = set()
     post = []
     while nodes:
-        node = nodes[-1]
+        node = nodes.pop()
         if node.hexsha in visited:
-            nodes.pop()
             continue
 
         children = [parent for parent in node.parents if parent.hexsha not in visited]
 
         if children:
+            nodes.append(node)
             nodes.extend(children)
         else:
-            nodes.pop()
             visited.add(node.hexsha)
             post.append(node)
 
