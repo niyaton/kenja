@@ -73,10 +73,10 @@ class HistorageConverter:
         logger.info('waiting parser processes')
         parser_executor.join()
 
-    def prepare_base_repo(self):
-        base_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
-        self.set_git_config(base_repo)
-        return base_repo
+    def prepare_historage_repo(self):
+        historage_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
+        self.set_git_config(historage_repo)
+        return historage_repo
 
     def set_git_config(self, repo):
         reader = repo.config_reader()  # global config
@@ -98,17 +98,17 @@ class HistorageConverter:
     def construct_historage(self):
         logger.info('convert a git repository to a  historage...')
 
-        base_repo = self.prepare_base_repo()
-        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
+        historage_repo = self.prepare_historage_repo()
+        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), historage_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             commit = self.org_repo.commit(commit)
-            logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir))
+            logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, historage_repo.git_dir))
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:
-            base_repo.head.reset(working_tree=True)
+            historage_repo.head.reset(working_tree=True)
         logger.info('completed!')
 
     def __del__(self):
