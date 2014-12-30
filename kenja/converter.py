@@ -14,8 +14,6 @@ logger = getLogger(__name__)
 
 
 class HistorageConverter:
-    parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
-
     def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir=None):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
@@ -52,7 +50,7 @@ class HistorageConverter:
 
     def parse_all_target_files(self):
         logger.info('create parser processes...')
-        parser_executor = JavaParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
+        parser_executor = JavaParserExecutor(self.syntax_trees_dir)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
