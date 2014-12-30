@@ -169,10 +169,7 @@ def get_reversed_topological_ordered_commits(repo, refs):
             nodes.pop()
             continue
 
-        children = []
-        for parent in node.parents:
-            if parent.hexsha not in visited:
-                children.append(parent)
+        children = [parent for parent in node.parents if parent.hexsha not in visited]
 
         if children:
             nodes.extend(children)
