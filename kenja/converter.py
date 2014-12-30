@@ -96,7 +96,7 @@ class HistorageConverter:
         self.construct_historage()
 
     def construct_historage(self):
-        logger.info('create historage...')
+        logger.info('convert a git repository to a  historage...')
 
         base_repo = self.prepare_base_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
@@ -109,6 +109,7 @@ class HistorageConverter:
         committer.create_tags()
         if not self.is_bare_repo:
             base_repo.head.reset(working_tree=True)
+        logger.info('completed!')
 
     def __del__(self):
         if self.use_tempdir and os.path.exists(self.syntax_trees_dir):
