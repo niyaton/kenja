@@ -160,27 +160,26 @@ def create_note(repo, message):
 
 
 def get_reversed_topological_ordered_commits(repo, refs):
-    revs = [ref.commit.hexsha for ref in refs]
+    revs = [ref.commit for ref in refs]
     nodes = deque(revs)
     visited = set()
     post = []
     while nodes:
         node = nodes[-1]
-        if node in visited:
+        if node.hexsha in visited:
             nodes.pop()
             continue
-        commit = repo.commit(node)
 
         children = []
-        for parent in commit.parents:
+        for parent in node.parents:
             if parent.hexsha not in visited:
-                children.append(parent.hexsha)
+                children.append(parent)
 
         if children:
             nodes.extend(children)
         else:
             nodes.pop()
-            visited.add(node)
+            visited.add(node.hexsha)
             post.append(node)
 
     return post
