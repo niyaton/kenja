@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from git.repo import Repo
 from git.objects import (Commit, Tree)
 import io
 import os
@@ -183,19 +182,3 @@ def get_reversed_topological_ordered_commits(repo, refs):
             post.append(node)
 
     return post
-
-
-if __name__ == '__main__':
-    repo = Repo.init('test_git')
-    # (mode, binsha) = write_tree(repo.odb, 'temp')
-
-    # (mode, binsha) = write_tree(repo.odb, 'temp/00')
-    # (mode, binsha) = write_tree(repo.odb, 'temp/01')
-
-    paths = ['temp/00', 'temp/01']
-    names = ['a', 'b']
-
-    (mode, binsha) = write_paths(repo.odb, paths, names)
-
-    tree = Tree.new(repo, bin_to_hex(binsha))
-    c = Commit.create_from_tree(repo, tree, 'test commit', None, True)
