@@ -13,7 +13,7 @@ from kenja.git.util import (
     write_syntax_tree_from_file,
     tree_mode,
     create_note,
-    write_blob
+    write_blob_from_path
     )
 
 
@@ -107,7 +107,7 @@ class SyntaxTreesCommitter:
             )
             f.write(text)
             f.flush()
-            mode, binsha = write_blob(self.new_repo.odb, f.name)
+            mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
             tree_contents.insert(mode, binsha, 'README.md')
             return tree_contents
 

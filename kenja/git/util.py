@@ -18,7 +18,7 @@ def tree_item_str(mode, file_name, binsha):
     return '%s %s\0%s' % (mode, file_name, binsha)
 
 
-def write_blob(odb, src_path):
+def write_blob_from_path(odb, src_path):
     assert os.path.isfile(src_path) and not os.path.islink(src_path)
     istream = IStream("blob", os.path.getsize(src_path), io.open(src_path))
     odb.store(istream)
@@ -90,7 +90,7 @@ def write_tree(odb, src_path):
 
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
-        return write_blob(odb, src_path)
+        return write_blob_from_path(odb, src_path)
     elif os.path.isdir(src_path):
         return write_tree(odb, src_path)
 

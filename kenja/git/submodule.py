@@ -3,7 +3,7 @@ from itertools import izip
 from itertools import count
 from git.objects import Commit
 from ConfigParser import RawConfigParser
-from kenja.git.util import write_blob, mktree_from_iter
+from kenja.git.util import write_blob_from_path, mktree_from_iter
 from gitdb.util import (hex_to_bin,
                         bin_to_hex
                         )
@@ -24,7 +24,7 @@ def store_submodule_config(odb, name, path, url):
     with NamedTemporaryFile() as f:
         write_submodule_config(f, name, path, url)
         f.flush()
-        return write_blob(odb, f.name)
+        return write_blob_from_path(odb, f.name)
 
 
 def get_submodule_tree_content(commit_hexsha, name):
@@ -34,7 +34,7 @@ def get_submodule_tree_content(commit_hexsha, name):
 
 def create_submodule_tree(odb, submodule_commit_hexsha):
     submodule_conf = '/Users/kenjif/test_gitmodules'
-    conf_mode, conf_binsha = write_blob(odb, submodule_conf)
+    conf_mode, conf_binsha = write_blob_from_path(odb, submodule_conf)
     tree_contents = []
     tree_contents.append((conf_mode, conf_binsha, '.gitmodules'))
     tree_contents.append(get_submodule_tree_content(submodule_commit_hexsha, 'jEdit'))
