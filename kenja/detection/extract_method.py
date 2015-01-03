@@ -88,7 +88,7 @@ def detect_extract_method(historage):
             if commit.hexsha in checked_commit:
                 continue
             for p in commit.parents:
-                extract_method_information.extend(detect_extract_method_from_commit(p, commit))
+                extract_method_information.extend(detect_extract_method_from_commit(commit, p))
                 detection_stack.append(p)
             checked_commit.add(commit.hexsha)
 
