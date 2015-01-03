@@ -6,8 +6,9 @@ from kenja.historage import *
 from kenja.shingles import calculate_similarity
 
 
-def get_extends(commit, org_file_name, class_name):
-    extends_path = '/'.join([org_file_name, '[CN]', class_name, 'extend'])
+def get_extends(commit, org_file_name, classes):
+    classes_path = '/[CN]/'.join(classes)
+    extends_path = '/'.join([org_file_name, '[CN]', classes_path, 'extend'])
     try:
         extend = commit.tree / extends_path
         assert isinstance(extend, Blob)
@@ -19,7 +20,9 @@ def get_extends(commit, org_file_name, class_name):
 
 def exist_class(blob, commit):
     split_path = blob.path.split('/')
-    class_path = '/'.join(split_path[: split_path.index('[CN]') + 2])
+    while split_path[-2] != '[CN]':
+        split_path.pop()
+    class_path = '/'.join(split_path)
 
     try:
         commit.tree / class_path
@@ -53,20 +56,34 @@ class Method(object):
         self.blob = blob
 
         self.package_name = get_package(blob.path, commit)
-        self.class_name = get_class(blob.path)
+        self.classes = self.get_classes(blob.path)
         self.method_name = get_method(blob.path)
+        self.body_cache = None
+
+    def get_classes(self, path):
+        classes = []
+        split_path = path.split('/')
+        for i, v in enumerate(split_path):
+            if v == '[CN]':
+                classes.append(split_path[i+1])
+        return classes
+
+    def get_class_name(self):
+        return self.classes[-1]
 
     def get_full_name(self):
+        class_name = '.'.join(self.classes)
         if self.package_name:
-            return '.'.join([self.package_name, self.class_name, self.method_name])
+            return '.'.join([self.package_name, class_name, self.method_name])
         else:
-            return '.'.join([self.class_name, self.method_name])
+            return '.'.join([class_name, self.method_name])
 
     def get_full_class_name(self):
+        class_name = '.'.join(self.classes)
         if self.package_name:
-            return '.'.join([self.package_name, self.class_name])
+            return '.'.join([self.package_name, class_name])
         else:
-            return '.'.join([self.class_name])
+            return '.'.join([class_name])
 
     def get_parameter_types(self):
         index = self.method_name.index('(')
@@ -80,7 +97,9 @@ class Method(object):
             return None
 
     def get_body(self):
-        return self.blob.data_stream.read()
+        if self.body_cache is None:
+            self.body_cache = self.blob.data_stream.read()
+        return self.body_cache
 
     def __str__(self):
         return self.get_full_name()
@@ -91,7 +110,7 @@ class SubclassMethod(Method):
         super(SubclassMethod, self).__init__(blob, commit)
 
         split_path = blob.path.split('/')
-        self.extend = get_extends(commit, split_path[0], self.class_name)
+        self.extend = get_extends(commit, split_path[0], self.classes)
 
 
 def match_type(a_method, b_method):
@@ -104,15 +123,16 @@ def detect_shingle_pullup_method(old_commit, new_commit):
     diff_index = old_commit.diff(new_commit, create_patch=False)
 
     added_methods = defaultdict(list)
-    delted_methods = defaultdict(lambda: defaultdict(list))
+    deleted_methods = defaultdict(list)
     for diff in diff_index.iter_change_type('A'):
-        new_blob_path = diff.b_blob.path
         new_method = Method.create_from_blob(diff.b_blob, new_commit)
         if new_method:
-            added_methods[new_method.class_name].append(new_method)
+            added_methods[new_method.get_class_name()].append(new_method)
 
     deleted_classes = set()
     for diff in diff_index.iter_change_type('D'):
+        # NOTE change following old_commit to new_commit to detect
+        # pull_up_method by same condtion of UMLDiff
         subclass_method = SubclassMethod.create_from_blob(diff.a_blob, old_commit)
 
         if subclass_method:
@@ -127,84 +147,43 @@ def detect_shingle_pullup_method(old_commit, new_commit):
                 continue
 
             if subclass_method.extend in added_methods.keys():
-                delted_methods[subclass_method.extend][subclass_method.class_name].append(subclass_method)
+                deleted_methods[subclass_method.extend].append(subclass_method)
 
     pull_up_method_candidates = []
-    for super_class, v in delted_methods.iteritems():
+
+    old_org_commit = get_org_commit(old_commit)
+    new_org_commit = get_org_commit(new_commit)
+
+    for super_class, v in deleted_methods.iteritems():
         if super_class not in added_methods:
-            print '%s does\'nt have a deleted method' % (super_class)
+            print('%s does\'nt have a deleted method' % (super_class))
             continue
         for dst_method in added_methods[super_class]:
-            for src_class in v.keys():
-                for src_method in v[src_class]:
-                    src_body = src_method.get_body()
-                    dst_body = dst_method.get_body()
+            dst_body = dst_method.get_body()
+            if not dst_body:
+                continue
+            dst_body = '\n'.join(dst_body.split('\n')[1:-2])
+            for src_method in v:
+                src_body = src_method.get_body()
 
-                    is_same_parameters = match_type(src_method, dst_method)
-                    if dst_body:
-                        dst_body = '\n'.join(dst_body.split('\n')[1:-2])
-                        if src_body:
-                            src_body = '\n'.join(src_body.split('\n')[1:-2])
+                is_same_parameters = match_type(src_method, dst_method)
+                if src_body:
+                    src_body = '\n'.join(src_body.split('\n')[1:-2])
 
-                        if src_body or dst_body:
-                            try:
-                                sim = calculate_similarity(src_body, dst_body)
-                            except ZeroDivisionError:
-                                sim = "N/A"
-                        else:
-                            sim = 0
-                        old_org_commit = get_org_commit(old_commit)
-                        new_org_commit = get_org_commit(new_commit)
-                        pull_up_method_candidates.append((old_commit.hexsha,
-                                                          new_commit.hexsha,
-                                                          old_org_commit,
-                                                          new_org_commit,
-                                                          str(src_method),
-                                                          str(dst_method),
-                                                          sim,
-                                                          is_same_parameters))
+                if src_body or dst_body:
+                    try:
+                        sim = calculate_similarity(src_body, dst_body)
+                    except ZeroDivisionError:
+                        sim = "N/A"
+                else:
+                    sim = 0
+                pull_up_method_candidates.append((old_commit.hexsha,
+                                                  new_commit.hexsha,
+                                                  old_org_commit,
+                                                  new_org_commit,
+                                                  str(src_method),
+                                                  str(dst_method),
+                                                  sim,
+                                                  is_same_parameters))
 
     return pull_up_method_candidates
-
-
-def detect_pullup_method_from_commit(old_commit, new_commit):
-    result = []
-    # pullup_method_candidates = default
-
-    diff_index = old_commit.diff(new_commit, create_patch=False)
-
-    # method_added_classes =
-    added_methods = defaultdict(list)
-    delted_methods = defaultdict(lambda: defaultdict(list))
-    for diff in diff_index.iter_change_type('A'):
-        if is_method_body(diff.b_blob.path):
-            c = get_class(diff.b_blob.path)
-            added_methods[c].append(get_method(diff.b_blob.path))
-
-    for diff in diff_index.iter_change_type('D'):
-        if is_method_body(diff.a_blob.path):
-            c = get_class(diff.a_blob.path)
-            split_path = diff.a_blob.path.split('/')
-            extend = get_extends(new_commit, split_path[0], c)
-            if not extend:
-                continue
-
-            extend = extend.rstrip()
-            if extend in added_methods.keys():
-                # print extend
-                delted_methods[extend][c].append(get_method(diff.a_blob.path))
-
-    for k, v in delted_methods.items():
-        pull_up_target = k
-        # method_deleted_classes = set()
-        # for c, m in v.items():
-        #    method_deleted_classes.add(c)
-        if len(v.keys()) > 2:
-            print old_commit, new_commit, pull_up_target, v
-            print '[keys]:', v.keys()
-            for p in combinations(v.keys(), 2):
-                print p
-                for p2 in product(v[p[0]], v[p[1]]):
-                    print p, p2
-
-    return result
