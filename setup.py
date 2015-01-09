@@ -63,7 +63,7 @@ setup(name='kenja',
     ],
     dependency_links = [
             'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
-            'https://github.com/gitpython-developers/GitPython/tarball/0.3#egg=GitPython'
+            'https://github.com/gitpython-developers/GitPython/tarball/0.3.2#egg=GitPython'
         ],
 
     license="MIT license",
