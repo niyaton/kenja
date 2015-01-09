@@ -145,6 +145,10 @@ def detect_extract_method_from_commit(old_commit, new_commit):
     for diff in diff_index.iter_change_type('M'):
         a_path = diff.a_blob.path
         b_path = diff.b_blob.path
+
+        if a_path != b_path:
+            continue
+
         if not (is_method_body(b_path) or is_constructor_body(b_path)):
             continue
         c = get_class(b_path)
