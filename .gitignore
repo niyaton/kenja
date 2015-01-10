@@ -10,3 +10,4 @@ build
 dist
 kenja.egg-info
 kenja/lib/java-parser.jar
+.python-version
