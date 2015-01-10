@@ -102,7 +102,7 @@ def test_calculate_similarity():
 
 
 @raises(ZeroDivisionError)
-def test_calculate_similarity():
+def test_calculate_similarity2():
     script1 = ""
     script2 = ""
     calculate_similarity(script1, script2)

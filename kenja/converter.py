@@ -5,7 +5,7 @@ from shutil import rmtree
 from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
-from kenja.parser import ParserExecutor
+from kenja.parser import JavaParserExecutor
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
 from logging import getLogger
@@ -13,13 +13,24 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-class HistorageConverter:
-    parser_jar_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
+def is_target_blob(blob, language):
+    if not blob:
+        return False
 
+    if language == 'java':
+        exts = ['.java']
+    for ext in exts:
+        if blob.name.endswith(ext):
+            return True
+    return False
+
+
+class HistorageConverter:
     def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir=None):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
+        self.language = 'java'
         self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
@@ -46,36 +57,32 @@ class HistorageConverter:
                 logger.error('Kenja cannot make a directory: {0}'.format(path))
                 raise
 
-    def is_target_blob(self, blob, ext):
-        return blob and blob.name.endswith(ext)
-
-    def parse_all_java_files(self):
+    def parse_all_target_files(self):
         logger.info('create parser processes...')
-        parser_executor = ParserExecutor(self.syntax_trees_dir, self.parser_jar_path)
+        parser_executor = JavaParserExecutor(self.syntax_trees_dir)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
-            commit = self.org_repo.commit(commit)
             if commit.parents:
                 for p in commit.parents:
                     for diff in p.diff(commit):
-                        if self.is_target_blob(diff.b_blob, '.java'):
+                        if is_target_blob(diff.b_blob, self.language):
                             if diff.b_blob.hexsha not in parsed_blob:
                                 parser_executor.parse_blob(diff.b_blob)
                                 parsed_blob.add(diff.b_blob.hexsha)
             else:
                 for entry in commit.tree.traverse():
-                    if isinstance(entry, Blob) and self.is_target_blob(entry, '.java'):
+                    if isinstance(entry, Blob) and is_target_blob(entry, self.language):
                         if entry.hexsha not in parsed_blob:
                             parser_executor.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
         logger.info('waiting parser processes')
         parser_executor.join()
 
-    def prepare_base_repo(self):
-        base_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
-        self.set_git_config(base_repo)
-        return base_repo
+    def prepare_historage_repo(self):
+        historage_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)
+        self.set_git_config(historage_repo)
+        return historage_repo
 
     def set_git_config(self, repo):
         reader = repo.config_reader()  # global config
@@ -91,23 +98,23 @@ class HistorageConverter:
             writer.set(user_key, 'email', 'default@example.com')
 
     def convert(self):
-        self.parse_all_java_files()
+        self.parse_all_target_files()
         self.construct_historage()
 
     def construct_historage(self):
-        logger.info('create historage...')
+        logger.info('convert a git repository to a  historage...')
 
-        base_repo = self.prepare_base_repo()
-        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), base_repo, self.syntax_trees_dir)
+        historage_repo = self.prepare_historage_repo()
+        committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), historage_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
-            commit = self.org_repo.commit(commit)
-            logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, base_repo.git_dir))
+            logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, historage_repo.git_dir))
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:
-            base_repo.head.reset(working_tree=True)
+            historage_repo.head.reset(working_tree=True)
+        logger.info('completed!')
 
     def __del__(self):
         if self.use_tempdir and os.path.exists(self.syntax_trees_dir):

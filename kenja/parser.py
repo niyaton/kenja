@@ -18,9 +18,8 @@ def execute_parser(cmd, src):
 
 
 class ParserExecutor:
-    def __init__(self, output_dir, parser_path, processes=None):
+    def __init__(self, output_dir, processes=None):
         self.output_dir = output_dir
-        self.parser_path = parser_path
         self.processes = processes if processes else cpu_count()
         self.pool = Pool(self.processes)
         self.closed = False
@@ -36,11 +35,7 @@ class ParserExecutor:
         self.pool.apply_async(execute_parser, args=[cmd, src])
 
     def make_cmd(self, hexsha):
-        cmd = ["java",
-               "-jar",
-               self.parser_path,
-               os.path.join(self.output_dir, hexsha)
-               ]
+        cmd = ["true"]
         return cmd
 
     def join(self):
@@ -48,3 +43,15 @@ class ParserExecutor:
         self.closed = True
         self.pool.join()
         self.pool = None
+
+
+class JavaParserExecutor(ParserExecutor):
+    parser_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
+
+    def make_cmd(self, hexsha):
+        cmd = ["java",
+               "-jar",
+               self.parser_path,
+               os.path.join(self.output_dir, hexsha)
+               ]
+        return cmd

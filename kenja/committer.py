@@ -13,7 +13,7 @@ from kenja.git.util import (
     write_syntax_tree_from_file,
     tree_mode,
     create_note,
-    write_blob
+    write_blob_from_path
     )
 
 
@@ -30,7 +30,7 @@ class SyntaxTreesCommitter:
         path = os.path.join(self.syntax_trees_dir, blob.hexsha)
         return os.path.isfile(path)
 
-    def is_commit_target(self, blob):
+    def is_convert_target(self, blob):
         if blob is None or not blob.name.endswith('.java'):
             return False
         return self.is_completed_parse(blob)
@@ -81,7 +81,7 @@ class SyntaxTreesCommitter:
         tree_contents = SortedTreeContents()
 
         for entry in commit.tree.traverse():
-            if isinstance(entry, Blob) and self.is_commit_target(entry):
+            if isinstance(entry, Blob) and self.is_convert_target(entry):
                 path = self.get_normalized_path(entry.path)
                 binsha = self.add_changed_blob(entry)
                 tree_contents.insert(tree_mode, binsha, path)
@@ -107,7 +107,7 @@ class SyntaxTreesCommitter:
             )
             f.write(text)
             f.flush()
-            mode, binsha = write_blob(self.new_repo.odb, f.name)
+            mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
             tree_contents.insert(mode, binsha, 'README.md')
             return tree_contents
 
@@ -118,8 +118,8 @@ class SyntaxTreesCommitter:
         tree_contents = deepcopy(self.sorted_tree_contents[converted_parent_hexsha])
 
         for diff in parent.diff(commit):
-            is_a_target = self.is_commit_target(diff.a_blob)
-            is_b_target = self.is_commit_target(diff.b_blob)
+            is_a_target = self.is_convert_target(diff.a_blob)
+            is_b_target = self.is_convert_target(diff.b_blob)
             if is_a_target and not is_b_target:
                 # Blob was removed
                 name = self.get_normalized_path(diff.a_blob.path)
