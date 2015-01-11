@@ -140,14 +140,16 @@ def check_commits(a_repo, b_repo):
 
 
 def main():
-    import sys
+    import argparse
     from logging import basicConfig, DEBUG
-    if(len(sys.argv) != 3):
-        print("{0} {1} {2}".format(sys.argv[0], "a_repo", "b_repo"))
-        exit()
     basicConfig(level=DEBUG)
 
-    check_same_repository(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description='test historage equivalence')
+    parser.add_argument('a_repo', help='path of historage')
+    parser.add_argument('b_repo', help='path of historage')
+    args = parser.parse_args()
+
+    check_same_repository(args.a_repo, args.b_repo)
 
 
 if __name__ == '__main__':
