@@ -46,7 +46,7 @@ class ParserExecutor:
 
 
 class JavaParserExecutor(ParserExecutor):
-    parser_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java-parser.jar')
+    parser_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', 'java/java-parser.jar')
 
     def make_cmd(self, hexsha):
         cmd = ["java",

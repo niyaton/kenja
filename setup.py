@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 kenja_version = '0.6-122-gbd1964f'
 
-parser_path = 'kenja/lib/java-parser.jar'
+parser_path = 'kenja/lib/java/java-parser.jar'
 parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
 parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
 
@@ -45,7 +45,7 @@ setup(name='kenja',
     author_email='kenji-f@is.naist.jp',
     url='https://github.com/niyaton/kenja',
     packages=find_packages(),
-    data_files=[("kenja/lib", ["kenja/lib/java-parser.jar"]),
+    data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
                 ("kenja", ["kenja/readme_for_historage.txt"])],
     entry_points = {
         'console_scripts': [
