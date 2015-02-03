@@ -6,6 +6,7 @@ from copy import deepcopy
 from tempfile import NamedTemporaryFile
 from string import Template
 from git.objects import Blob
+from kenja.converter import is_target_blob
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
     commit_from_binsha,
@@ -31,7 +32,7 @@ class SyntaxTreesCommitter:
         return os.path.isfile(path)
 
     def is_convert_target(self, blob):
-        if blob is None or not blob.name.endswith('.java'):
+        if not is_target_blob(blob):
             return False
         return self.is_completed_parse(blob)
 
