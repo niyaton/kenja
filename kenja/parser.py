@@ -72,7 +72,19 @@ class PythonParserExecutor(ParserExecutor):
         self.pool.apply_async(parse_and_write_gittree, args=[src, output_path])
 
 
-blob_parsers = {'java': JavaParserExecutor, 'python': PythonParserExecutor}
+class CSharpParserExecutor(ParserExecutor):
+    file_path = 'csharp/kenja-csharp-parser.exe'
+    parser_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', file_path)
+
+    def make_cmd(self, hexsha):
+        cmd = ["mono",
+               self.parser_path,
+               os.path.join(self.output_dir, hexsha)
+               ]
+        return cmd
+
+
+blob_parsers = {'java': JavaParserExecutor, 'python': PythonParserExecutor, 'csharp': CSharpParserExecutor}
 
 
 class BlobParser:

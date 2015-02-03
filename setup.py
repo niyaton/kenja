@@ -3,6 +3,7 @@ import sys
 import hashlib
 import urllib
 import subprocess
+import glob
 from setuptools import setup, find_packages
 
 kenja_version = '0.6-122-gbd1964f'
@@ -46,6 +47,7 @@ setup(name='kenja',
       url='https://github.com/niyaton/kenja',
       packages=find_packages(),
       data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
+                  ("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")),
                   ("kenja", ["kenja/readme_for_historage.txt"])],
       entry_points={
           'console_scripts': [
