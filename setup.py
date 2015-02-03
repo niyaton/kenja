@@ -79,7 +79,7 @@ setup(name='kenja',
         'Programming Language :: Python',
         'Programming Language :: Java',
         'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Software Development :: Libraries'
-        'Topic :: Utilities',
-    ],
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Utilities'
+    ]
 )
