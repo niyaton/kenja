@@ -6,26 +6,12 @@ from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
 from kenja.parser import JavaParserExecutor
+from kenja.language import is_target_blob
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
 from logging import getLogger
 
 logger = getLogger(__name__)
-
-supported_languages = ['java']
-
-extension_dict = {'java': ['.java']}
-
-def is_target_blob(blob):
-    if not blob:
-        return False
-
-    for language in supported_languages:
-        if language in extension_dict:
-            for ext in extension_dict[language]:
-                if blob.name.endswith(ext):
-                    return True
-    return False
 
 
 class HistorageConverter:

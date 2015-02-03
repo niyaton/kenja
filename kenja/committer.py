@@ -6,7 +6,7 @@ from copy import deepcopy
 from tempfile import NamedTemporaryFile
 from string import Template
 from git.objects import Blob
-from kenja.converter import is_target_blob
+from kenja.language import is_target_blob
 from kenja.git.tree_contents import SortedTreeContents
 from kenja.git.util import (
     commit_from_binsha,
