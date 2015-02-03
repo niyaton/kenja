@@ -39,47 +39,46 @@ except subprocess.CalledProcessError, e:
     pass
 
 setup(name='kenja',
-    version=kenja_version,
-    description='A Refactoring Detection tool powered by Historage',
-    author='Kenji Fujiwara',
-    author_email='kenji-f@is.naist.jp',
-    url='https://github.com/niyaton/kenja',
-    packages=find_packages(),
-    data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
-                ("kenja", ["kenja/readme_for_historage.txt"])],
-    entry_points = {
-        'console_scripts': [
-            'kenja.historage.convert = kenja.convert:convert',
-            'kenja.historage.parse = kenja.convert:parse',
-            'kenja.historage.construct = kenja.convert:construct',
-            'kenja.detection.extract_method = kenja.refactoring_detection:main',
-            'kenja.detection.pull_up_method = kenja.pull_up_method:main',
-            'kenja.debug.check_duplicate_entry = kenja.git.detect_duplicate_entry:main',
-            'kenja.debug.check_historage_equivalence = kenja.git.diff:main'
-        ]
-    },
-    install_requires = [
-        "pyrem_torq",
-        "GitPython"
-    ],
-    dependency_links = [
-            'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
-            'https://github.com/gitpython-developers/GitPython/tarball/0.3.2#egg=GitPython'
-        ],
-
-    license="MIT license",
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Console',
-        'Environment :: Web Environment',
-        'Intended Audience :: Science/Resarch',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Java',
-        'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Software Development :: Libraries'
-        'Topic :: Utilities',
-    ],
-)
+      version=kenja_version,
+      description='A Refactoring Detection tool powered by Historage',
+      author='Kenji Fujiwara',
+      author_email='kenji-f@is.naist.jp',
+      url='https://github.com/niyaton/kenja',
+      packages=find_packages(),
+      data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
+                  ("kenja", ["kenja/readme_for_historage.txt"])],
+      entry_points={
+          'console_scripts': [
+              'kenja.historage.convert = kenja.convert:convert',
+              'kenja.historage.parse = kenja.convert:parse',
+              'kenja.historage.construct = kenja.convert:construct',
+              'kenja.detection.extract_method = kenja.refactoring_detection:main',
+              'kenja.detection.pull_up_method = kenja.pull_up_method:main',
+              'kenja.debug.check_duplicate_entry = kenja.git.detect_duplicate_entry:main',
+              'kenja.debug.check_historage_equivalence = kenja.git.diff:main'
+          ]
+      },
+      install_requires=[
+          "pyrem_torq",
+          "GitPython"
+      ],
+      dependency_links=[
+          'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
+          'https://github.com/gitpython-developers/GitPython/tarball/0.3.2#egg=GitPython'
+      ],
+      license="MIT license",
+      classifiers=[
+          'Development Status :: 3 - Alpha',
+          'Environment :: Console',
+          'Environment :: Web Environment',
+          'Intended Audience :: Science/Resarch',
+          'License :: OSI Approved :: MIT License',
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: POSIX :: Linux',
+          'Programming Language :: Python',
+          'Programming Language :: Java',
+          'Topic :: Scientific/Engineering :: Information Analysis',
+          'Topic :: Software Development :: Libraries',
+          'Topic :: Utilities'
+      ]
+      )
