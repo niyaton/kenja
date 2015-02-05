@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+from kenja_parser.gittree import parse_and_write_gittree
 from subprocess import (
     Popen,
     PIPE,
@@ -55,3 +56,15 @@ class JavaParserExecutor(ParserExecutor):
                os.path.join(self.output_dir, hexsha)
                ]
         return cmd
+
+
+class PythonParserExecutor(ParserExecutor):
+    def parse_blob(self, blob):
+        src = blob.data_stream.read()
+
+        if(self.closed):
+            self.pool = Pool(self.processes)
+            self.closed = False
+
+        output_path = os.path.join(self.output_dir, blob.hexsha)
+        self.pool.apply_async(parse_and_write_gittree, args=[src, output_path])

@@ -1,4 +1,4 @@
-extension_dict = {'java': ['.java']}
+extension_dict = {'python': ['.py']}
 
 
 def is_target_blob(blob):

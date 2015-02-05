@@ -5,7 +5,7 @@ from shutil import rmtree
 from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
-from kenja.parser import JavaParserExecutor
+from kenja.parser import PythonParserExecutor
 from kenja.language import is_target_blob
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
@@ -47,7 +47,7 @@ class HistorageConverter:
 
     def parse_all_target_files(self):
         logger.info('create parser processes...')
-        parser_executor = JavaParserExecutor(self.syntax_trees_dir)
+        parser_executor = PythonParserExecutor(self.syntax_trees_dir)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
