@@ -5,7 +5,8 @@ from shutil import rmtree
 from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
-from kenja.parser import JavaParserExecutor
+from kenja.parser import BlobParser
+from kenja.language import is_target_blob, extension_dict
 from kenja.git.util import get_reversed_topological_ordered_commits
 from kenja.committer import SyntaxTreesCommitter
 from logging import getLogger
@@ -13,24 +14,11 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def is_target_blob(blob, language):
-    if not blob:
-        return False
-
-    if language == 'java':
-        exts = ['.java']
-    for ext in exts:
-        if blob.name.endswith(ext):
-            return True
-    return False
-
-
 class HistorageConverter:
     def __init__(self, org_git_repo_dir, historage_dir, syntax_trees_dir=None):
         if org_git_repo_dir:
             self.org_repo = Repo(org_git_repo_dir)
 
-        self.language = 'java'
         self.check_and_make_working_dir(historage_dir)
         self.historage_dir = historage_dir
 
@@ -59,25 +47,25 @@ class HistorageConverter:
 
     def parse_all_target_files(self):
         logger.info('create parser processes...')
-        parser_executor = JavaParserExecutor(self.syntax_trees_dir)
+        blob_parser = BlobParser(extension_dict, self.syntax_trees_dir)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
             if commit.parents:
                 for p in commit.parents:
                     for diff in p.diff(commit):
-                        if is_target_blob(diff.b_blob, self.language):
+                        if is_target_blob(diff.b_blob):
                             if diff.b_blob.hexsha not in parsed_blob:
-                                parser_executor.parse_blob(diff.b_blob)
+                                blob_parser.parse_blob(diff.b_blob)
                                 parsed_blob.add(diff.b_blob.hexsha)
             else:
                 for entry in commit.tree.traverse():
-                    if isinstance(entry, Blob) and is_target_blob(entry, self.language):
+                    if isinstance(entry, Blob) and is_target_blob(entry):
                         if entry.hexsha not in parsed_blob:
-                            parser_executor.parse_blob(entry)
+                            blob_parser.parse_blob(entry)
                             parsed_blob.add(entry.hexsha)
         logger.info('waiting parser processes')
-        parser_executor.join()
+        blob_parser.join()
 
     def prepare_historage_repo(self):
         historage_repo = Repo.init(self.historage_dir, bare=self.is_bare_repo)

@@ -60,11 +60,13 @@ setup(name='kenja',
       },
       install_requires=[
           "pyrem_torq",
-          "GitPython"
+          "GitPython",
+          "kenja-python-parser"
       ],
       dependency_links=[
           'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
-          'https://github.com/gitpython-developers/GitPython/tarball/0.3.2#egg=GitPython'
+          'https://github.com/gitpython-developers/GitPython/tarball/0.3.2#egg=GitPython',
+          'https://github.com/sdlab-naist/kenja-python-parser/tarball/master#egg=kenja-python-parser'
       ],
       license="MIT license",
       classifiers=[
