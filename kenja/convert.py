@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import argparse
+import kenja.language
 from kenja.converter import HistorageConverter
 from logging import basicConfig
 
@@ -21,6 +22,12 @@ class CommandParser(object):
         self.parser.add_argument('org_git_dir', help='path of original git repository')
         self.parser.add_argument('historage_dir', help='path of historage directory')
         self.parser.add_argument('--logging-level', help='debug level for python logger', default='WARNING')
+        for extention in kenja.language.extension_dict.keys():
+            self.parser.add_argument(
+                '--disable-' + extention,
+                action='store_true',
+                help='disable parsing {0} files'.format(extention)
+            )
 
     def add_option_argument(self):
         self.parser.add_argument('--syntax-trees-dir', help='path of syntax trees dir')
@@ -53,6 +60,13 @@ class ConvertCommandParser(CommandParser):
             hc.parser_processes = args.parser_processes
 
         hc.is_bare_repo = args.bare
+
+        disable_arg = 'disable_'
+        args_dict = args.__dict__
+        for arg in filter(lambda arg: disable_arg in arg, args_dict):
+            if args_dict[arg]:
+                disable_extention = arg.replace(disable_arg, '')
+                kenja.language.extension_dict.pop(disable_extention)
 
         hc.convert()
 
