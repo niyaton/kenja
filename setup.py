@@ -10,6 +10,7 @@ from setuptools import setup, find_packages
 kenja_version = '0.6-122-gbd1964f'
 data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
+
 def copy_java_parser():
     parser_path = 'kenja/lib/java/java-parser.jar'
     parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
@@ -39,7 +40,6 @@ def copy_java_parser():
     else:
         data_files.append(("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]))
 
-copy_java_parser()
 
 def copy_csharp_parser():
     parser_path = 'kenja/lib/csharp/kenja-csharp-parser.exe'
@@ -74,6 +74,8 @@ def copy_csharp_parser():
     else:
         data_files.append(("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")))
 
+
+copy_java_parser()
 copy_csharp_parser()
 
 try:
