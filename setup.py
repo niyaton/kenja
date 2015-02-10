@@ -4,35 +4,79 @@ import hashlib
 import urllib
 import subprocess
 import glob
+from tarfile import open as tarfile_open
 from setuptools import setup, find_packages
 
 kenja_version = '0.6-122-gbd1964f'
+data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
-parser_path = 'kenja/lib/java/java-parser.jar'
-parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
-parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
 
-confirm_text = None
-exit_when_no = True
-if not os.path.exists(parser_path):
-    confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
-elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
-    confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
-    exit_when_no = False
+def copy_java_parser():
+    parser_path = 'kenja/lib/java/java-parser.jar'
+    parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
+    parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
 
-if confirm_text is not None:
-    print(confirm_text)
-    choice = raw_input().lower()
-    yes = set(['yes', 'y', 'ye'])
-    no = set(['no', 'n'])
-    if choice in yes:
-        urllib.urlretrieve(parser_location, parser_path)
-        digest = hashlib.md5(open(parser_path).read()).hexdigest()
-        if parser_digest != digest:
-            print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
-            sys.exit(1)
-    elif exit_when_no:
-        sys.exit(1)
+    confirm_text = None
+    if not os.path.exists(parser_path):
+        confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
+    elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
+        confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
+
+    if confirm_text is not None:
+        print(confirm_text)
+        choice = raw_input().lower()
+        yes = set(['yes', 'y', 'ye'])
+        no = set(['no', 'n'])
+        if choice in yes:
+            urllib.urlretrieve(parser_location, parser_path)
+            digest = hashlib.md5(open(parser_path).read()).hexdigest()
+            if parser_digest != digest:
+                print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
+                sys.exit(1)
+
+    if not os.path.exists(parser_path):
+        print("java parser will not be installed.")
+        print("You should disable java parser when you run kenja")
+    else:
+        data_files.append(("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]))
+
+
+def copy_csharp_parser():
+    parser_path = 'kenja/lib/csharp/kenja-csharp-parser.exe'
+    parser_digest = 'a3dfac7de0406e961d0c47f95d9bc522'
+    parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.1/kenja-csharp-parser-0.1.tar.gz'
+    parser_tar_digest = '583013bc78b3f1f158f094baa37b0808'
+
+    confirm_text = None
+    if not os.path.exists(parser_path):
+        confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
+    elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
+        confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
+
+    if confirm_text is not None:
+        print(confirm_text)
+        choice = raw_input().lower()
+        yes = set(['yes', 'y', 'ye'])
+        no = set(['no', 'n'])
+        if choice in yes:
+            (filename, _) = urllib.urlretrieve(parser_location)
+            digest = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+            if parser_tar_digest != digest:
+                print("md5 hash of {0} is incorrect! remove it and try again.".format(filename))
+                sys.exit(1)
+
+            tarfile = tarfile_open(filename, 'r')
+            tarfile.extractall('kenja/lib/csharp')
+
+    if not os.path.exists(parser_path):
+        print("java parser will not be installed.")
+        print("You should disable java parser when you run kenja")
+    else:
+        data_files.append(("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")))
+
+
+copy_java_parser()
+copy_csharp_parser()
 
 try:
     kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
@@ -46,9 +90,7 @@ setup(name='kenja',
       author_email='kenji-f@is.naist.jp',
       url='https://github.com/niyaton/kenja',
       packages=find_packages(),
-      data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
-                  ("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")),
-                  ("kenja", ["kenja/readme_for_historage.txt"])],
+      data_files=data_files,
       entry_points={
           'console_scripts': [
               'kenja.historage.convert = kenja.convert:convert',
