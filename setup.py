@@ -7,6 +7,7 @@ import glob
 from setuptools import setup, find_packages
 
 kenja_version = '0.6-122-gbd1964f'
+data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
 def copy_java_parser():
     parser_path = 'kenja/lib/java/java-parser.jar'
@@ -14,12 +15,10 @@ def copy_java_parser():
     parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
 
     confirm_text = None
-    exit_when_no = True
     if not os.path.exists(parser_path):
         confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
     elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
         confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
-        exit_when_no = False
 
     if confirm_text is not None:
         print(confirm_text)
@@ -32,10 +31,16 @@ def copy_java_parser():
             if parser_digest != digest:
                 print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
                 sys.exit(1)
-        elif exit_when_no:
-            sys.exit(1)
+
+    if not os.path.exists(parser_path):
+        print("java parser will not be installed.")
+        print("You should disable java parser when you run kenja")
+    else:
+        data_files.append(("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]))
 
 copy_java_parser()
+
+data_files.append(("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")))
 
 try:
     kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
@@ -49,9 +54,7 @@ setup(name='kenja',
       author_email='kenji-f@is.naist.jp',
       url='https://github.com/niyaton/kenja',
       packages=find_packages(),
-      data_files=[("kenja/lib/java", ["kenja/lib/java/java-parser.jar"]),
-                  ("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")),
-                  ("kenja", ["kenja/readme_for_historage.txt"])],
+      data_files=data_files,
       entry_points={
           'console_scripts': [
               'kenja.historage.convert = kenja.convert:convert',
