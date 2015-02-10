@@ -9,5 +9,6 @@ testdata
 build
 dist
 kenja.egg-info
-kenja/lib/java-parser.jar
+kenja/lib/java/java-parser.jar
+kenja/lib/csharp/*
 .python-version
