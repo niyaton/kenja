@@ -1,17 +1,29 @@
 # Requirements
 
-- python 2.7+ (kenja doesn't support python 3 because GitPython does'nt support python 3)
-- Java
+## for General
+- python 2.7+ (kenja doesn't support python 3 yet)
 - git (confirmed versions)
     - 1.7.10
     - 1.8.5.2
     - 2.0.1
+    - 2.2.2
+
+## for Java 
+- Java
+
+## for CSharp
+### Windows
+- .NET Framework
+
+### Mac or Linux
+- Mono
 
 # Dependencies
 Kenja needs following libraries.
 
 - [pyrem_torq](https://github.com/tos-kamiya/pyrem_torq)
 - [GitPython](https://github.com/gitpython-developers/GitPython/)
+- [kenja-python-parser](https://github.com/sdlab-naist/kenja-python-parser/)
 - [kenja-java-parser](https://github.com/niyaton/kenja-java-parser/)
 
 # Installation
@@ -20,17 +32,13 @@ Kenja needs following libraries.
 python setup.py install
 ```
 
-## Manual Installation
+## Installation (for developers)
 
 ```sh
-git submodule init
-git submodule update
-cd parser/java
-mvn assembly:assembly
-cd -
-cp parser/java/target/kenja-java-parser-0.1-jar-with-dependencies.jar kenja/lib/java-parser.jar
-python setup.py install
+sh install.sh
 ```
+
+If you cannot 
 
 # How to use
 
@@ -42,6 +50,7 @@ kenja.historage.convert <your_repository_path> <path_of_historage_directory> <pa
 - Use path of empty directory for \<path_of_historage_directory\>
     - Historage (a Git repository) will be created here.
     - Kenja will make this directory automatically if you give non-existing directory.
+    - use `--disable-python`, `--disable-csharp` or `--disable-java` option to avoid handling `.py`, `.cs` or `.java` files.
 
 ### Store syntax trees infromation [for DEBUG]
 ```sh
