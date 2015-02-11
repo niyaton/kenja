@@ -5,6 +5,8 @@ from shutil import rmtree
 from itertools import count, izip
 from git.repo import Repo
 from git.objects import Blob
+from kenja.git.util import memdb
+from gitdb.db.pack import PackedDB
 from kenja.parser import BlobParser
 from kenja.language import is_target_blob, extension_dict
 from kenja.git.util import get_reversed_topological_ordered_commits
@@ -100,6 +102,12 @@ class HistorageConverter:
             committer.apply_change(commit)
         committer.create_heads()
         committer.create_tags()
+
+        memdb.stream_copy(memdb.sha_iter(), historage_repo.odb)
+        #packeddb = PackedDB(os.path.join(historage_repo.git_dir, 'objects', 'pack'))
+        #memdb.stream_copy(memdb.sha_iter(), historage_repo.odb)
+        #memdb.stream_copy(memdb.sha_iter(), packeddb)
+
         if not self.is_bare_repo:
             historage_repo.head.reset(working_tree=True)
         logger.info('completed!')
