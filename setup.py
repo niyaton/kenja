@@ -13,8 +13,8 @@ data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
 def copy_java_parser():
     parser_path = 'kenja/lib/java/java-parser.jar'
-    parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.3/kenja-java-parser-0.3-jar-with-dependencies.jar'
-    parser_digest = '9e45f37dd7f52f5cf5c817026159db3b'
+    parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.4/kenja-java-parser-0.4-jar-with-dependencies.jar'
+    parser_digest = '233d89fd14331277d577c4fbea911aa3'
 
     confirm_text = None
     if not os.path.exists(parser_path):
