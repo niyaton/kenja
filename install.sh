@@ -10,7 +10,7 @@ MAVEN_BIN=mvn
 PYTHON_BIN=python
 
 # location of java-parser created by maven
-JAVA_PARSER_PATH=parser/java/target/kenja-java-parser-0.3-jar-with-dependencies.jar
+JAVA_PARSER_PATH=parser/java/target/kenja-java-parser-0.4-jar-with-dependencies.jar
 
 # root path of python-parser
 PYTHON_PARSER_ROOT=parser/csharp
@@ -23,7 +23,7 @@ git submodule update
 cd parser/java
 $MAVEN_BIN assembly:assembly
 cd -
-cp ${JAVA_PARSER_PATH} kenja/lib/java-parser.jar
+cp ${JAVA_PARSER_PATH} kenja/lib/java/java-parser.jar
 
 # Build Python parser for kenja
 if type "xbuild" > /dev/null; then
