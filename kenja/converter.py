@@ -47,7 +47,7 @@ class HistorageConverter:
 
     def parse_all_target_files(self):
         logger.info('create parser processes...')
-        blob_parser = BlobParser(extension_dict, self.syntax_trees_dir)
+        blob_parser = BlobParser(extension_dict, self.syntax_trees_dir, self.org_repo.git_dir)
         parsed_blob = set()
         for commit in get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs):
             self.num_commits = self.num_commits + 1
