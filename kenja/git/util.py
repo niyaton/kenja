@@ -9,7 +9,7 @@ from StringIO import StringIO
 from collections import deque
 
 blob_mode = '100644'
-tree_mode = '040000'
+tree_mode = '40000'
 
 
 def tree_item_str(mode, file_name, binsha):
