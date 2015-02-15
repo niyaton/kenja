@@ -10,7 +10,7 @@ MAVEN_BIN=mvn
 PYTHON_BIN=python
 
 # location of java-parser created by maven
-JAVA_PARSER_PATH=parser/java/target/kenja-java-parser-0.4-jar-with-dependencies.jar
+JAVA_PARSER_PATH=parser/java/target/kenja-java-parser-0.5-jar-with-dependencies.jar
 
 # root path of python-parser
 PYTHON_PARSER_ROOT=parser/csharp
