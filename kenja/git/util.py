@@ -136,6 +136,7 @@ def commit_from_binsha(repo, binsha, org_commit, parents=None):
                                    author=org_commit.author,
                                    committer=org_commit.committer)
 
+
 def create_note(repo, message):
     kwargs = ['add', '-f', '-m', message]
     repo.git.notes(kwargs)
