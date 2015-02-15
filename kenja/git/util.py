@@ -129,11 +129,9 @@ def mktree_from_iter(odb, object_info_iter):
 
 
 def commit_from_binsha(repo, binsha, org_commit, parents=None):
-    message = org_commit.message.encode(org_commit.encoding)
-
     tree = Tree.new(repo, bin_to_hex(binsha))
 
-    return Commit.create_from_tree(repo, tree, message, parents,
+    return Commit.create_from_tree(repo, tree, org_commit.message, parents,
                                    head=True,
                                    author=org_commit.author,
                                    committer=org_commit.committer)
