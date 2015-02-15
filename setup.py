@@ -79,9 +79,11 @@ copy_java_parser()
 copy_csharp_parser()
 
 try:
-    kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
+    kenja_version = subprocess.check_output(["git", "describe"]).rstrip().replace('-', '.')
 except subprocess.CalledProcessError, e:
     pass
+
+print(kenja_version)
 
 setup(name='kenja',
       version=kenja_version,
