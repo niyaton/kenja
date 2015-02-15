@@ -121,10 +121,15 @@ class SyntaxTreesCommitter:
         for diff in parent.diff(commit):
             is_a_target = self.is_convert_target(diff.a_blob)
             is_b_target = self.is_convert_target(diff.b_blob)
-            if is_a_target and not is_b_target:
+            if is_a_target and (not is_b_target or diff.renamed):
                 # Blob was removed
                 name = self.get_normalized_path(diff.a_blob.path)
                 tree_contents.remove(name)
+                if diff.renamed:
+                    # Blob was created
+                    name = self.get_normalized_path(diff.b_blob.path)
+                    binsha = self.add_changed_blob(diff.b_blob)
+                    tree_contents.insert(tree_mode, binsha, name)
             elif is_b_target:
                 name = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
