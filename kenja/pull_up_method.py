@@ -30,8 +30,8 @@ class RefactoringDetectionCommandParser:
     def detect_all(self, args):
         historage = Repo(args.historage_dir)
         pull_up_method_candidates = detect_pull_up_method(historage)
-        print('"old_commit","new_commit","old_org_commit","new_org_commit",'
-              + '"src_method","dst_method","similarity","isSamePrameters"')
+        print('"old_commit","new_commit","old_org_commit","new_org_commit",' +
+              '"src_method","dst_method","similarity","isSamePrameters"')
         for info in pull_up_method_candidates:
             print(','.join(['"' + str(s) + '"' for s in info]))
 
