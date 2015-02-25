@@ -37,5 +37,13 @@ else
 	echo "Please install mono from http://www.mono-project.com if you want."
 fi
 
+# Build and install Ruby parser for kenja
+old=`pwd`
+cd parser/ruby
+rake build
+cd pkg
+gem install kenja_ruby_parser
+cd $old
+
 # Install kenja
 $SUDO $PYTHON_BIN setup.py install
