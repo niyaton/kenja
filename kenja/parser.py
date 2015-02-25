@@ -145,7 +145,19 @@ class CSharpParserExecutor(ParserExecutor):
         return cmd
 
 
-blob_parsers = {'java': JavaMultipleParserExecutor, 'python': PythonParserExecutor, 'csharp': CSharpParserExecutor}
+class RubyParserExecutor(ParserExecutor):
+
+    def make_cmd(self, hexsha):
+        cmd = ["parse_ruby",
+               os.path.join(self.output_dir, hexsha)
+               ]
+        return cmd
+
+
+blob_parsers = {'java': JavaMultipleParserExecutor,
+                'python': PythonParserExecutor,
+                'csharp': CSharpParserExecutor,
+                'ruby': RubyParserExecutor}
 
 
 class BlobParser:
