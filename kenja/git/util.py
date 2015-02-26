@@ -5,6 +5,7 @@ import os
 import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
+from git.objects.util import altz_to_utctz_str
 from StringIO import StringIO
 from collections import deque
 
@@ -15,7 +16,7 @@ tree_mode = '40000'
 def tree_item_str(mode, file_name, binsha):
     if mode[0] == 0:
         mode = mode[1:]
-    return '%s %s\0%s' % (mode, file_name, binsha)
+    return '{} {}\0{}'.format(mode, file_name, binsha)
 
 
 def write_blob_from_path(odb, src_path):
@@ -129,28 +130,22 @@ def mktree_from_iter(odb, object_info_iter):
 
 
 def commit_from_binsha(repo, binsha, org_commit, parents=None):
-    message = org_commit.message.encode(org_commit.encoding)
-
     tree = Tree.new(repo, bin_to_hex(binsha))
 
-    new_commit = Commit(repo, Commit.NULL_BIN_SHA, tree,
-                        org_commit.author, org_commit.authored_date, org_commit.author_tz_offset,
-                        org_commit.committer, org_commit.committed_date, org_commit.committer_tz_offset,
-                        message, parents, org_commit.encoding)
-    stream = StringIO()
-    new_commit._serialize(stream)
-    streamlen = stream.tell()
-    stream.seek(0)
-    istream = repo.odb.store(IStream(Commit.type, streamlen, stream))
-    new_commit.binsha = istream.binsha
+    env = os.environ
 
-    try:
-        repo.head.set_commit(new_commit, logmsg="commit: %s" % message)
-    except ValueError:
-        master = git.refs.Head.create(repo, repo.head.ref, new_commit, logmsg="commit (initial): %s" % message)
-        repo.head.set_reference(master, logmsg='commit: Switching to %s' % master)
+    offset = altz_to_utctz_str(org_commit.author_tz_offset)
+    date = org_commit.authored_date
+    env[Commit.env_author_date] = '{} {}'.format(date, offset)
 
-    return new_commit
+    offset = altz_to_utctz_str(org_commit.committer_tz_offset)
+    date = org_commit.committed_date
+    env[Commit.env_committer_date] = '{} {}'.format(date, offset)
+
+    return Commit.create_from_tree(repo, tree, org_commit.message, parents,
+                                   head=True,
+                                   author=org_commit.author,
+                                   committer=org_commit.committer)
 
 
 def create_note(repo, message):

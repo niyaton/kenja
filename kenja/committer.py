@@ -59,7 +59,7 @@ class SyntaxTreesCommitter:
     def commit(self, org_commit, tree_contents):
         (_, binsha) = mktree_from_iter(self.new_repo.odb, tree_contents)
 
-        parents = [self.old2new[parent.hexsha] for parent in org_commit.parents]
+        parents = [self.new_repo.commit(self.old2new[parent.hexsha]) for parent in org_commit.parents]
 
         result = commit_from_binsha(self.new_repo, binsha, org_commit, parents)
 
@@ -121,10 +121,15 @@ class SyntaxTreesCommitter:
         for diff in parent.diff(commit):
             is_a_target = self.is_convert_target(diff.a_blob)
             is_b_target = self.is_convert_target(diff.b_blob)
-            if is_a_target and not is_b_target:
+            if is_a_target and (not is_b_target or diff.renamed):
                 # Blob was removed
                 name = self.get_normalized_path(diff.a_blob.path)
                 tree_contents.remove(name)
+                if diff.renamed:
+                    # Blob was created
+                    name = self.get_normalized_path(diff.b_blob.path)
+                    binsha = self.add_changed_blob(diff.b_blob)
+                    tree_contents.insert(tree_mode, binsha, name)
             elif is_b_target:
                 name = self.get_normalized_path(diff.b_blob.path)
                 binsha = self.add_changed_blob(diff.b_blob)
