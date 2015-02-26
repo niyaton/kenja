@@ -5,6 +5,7 @@ import os
 import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
+from git.objects.util import altz_to_utctz_str
 from StringIO import StringIO
 from collections import deque
 
@@ -130,6 +131,16 @@ def mktree_from_iter(odb, object_info_iter):
 
 def commit_from_binsha(repo, binsha, org_commit, parents=None):
     tree = Tree.new(repo, bin_to_hex(binsha))
+
+    env = os.environ
+
+    offset = altz_to_utctz_str(org_commit.author_tz_offset)
+    date = org_commit.authored_date
+    env[Commit.env_author_date] = '{} {}'.format(date, offset)
+
+    offset = altz_to_utctz_str(org_commit.committer_tz_offset)
+    date = org_commit.committed_date
+    env[Commit.env_committer_date] = '{} {}'.format(date, offset)
 
     return Commit.create_from_tree(repo, tree, org_commit.message, parents,
                                    head=True,
