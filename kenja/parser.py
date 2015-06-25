@@ -11,13 +11,22 @@ from multiprocessing import (
     Process,
     JoinableQueue
     )
+from logging import getLogger
+from functools import partial
+
+logger = getLogger(__name__)
 
 
 def execute_parser(cmd, src):
     p = Popen(cmd, stdin=PIPE)
     p.stdin.write(src)
     p.communicate()
-    return True
+    return p.returncode == 0
+
+
+def callback_main(blob_hash, result):
+    if not result:
+        logger.error("parsing {} was not completed correctly.".format(blob_hash))
 
 
 class ParserExecutor:
@@ -35,7 +44,8 @@ class ParserExecutor:
             self.pool = Pool(self.processes)
             self.closed = False
 
-        self.pool.apply_async(execute_parser, args=[cmd, src])
+        callback = partial(callback_main, blob.hexsha)
+        self.pool.apply_async(execute_parser, args=[cmd, src], callback=callback)
 
     def make_cmd(self, hexsha):
         cmd = ["true"]
