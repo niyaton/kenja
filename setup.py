@@ -43,9 +43,9 @@ def copy_java_parser():
 
 def copy_csharp_parser():
     parser_path = 'kenja/lib/csharp/kenja-csharp-parser.exe'
-    parser_digest = 'a3dfac7de0406e961d0c47f95d9bc522'
-    parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.1/kenja-csharp-parser-0.1.tar.gz'
-    parser_tar_digest = '583013bc78b3f1f158f094baa37b0808'
+    parser_digest = '1e3712d6164b3f51103970646a65420c'
+    parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.tar.gz'
+    parser_tar_digest = 'b226eb37f256f771b7fb06a63258d42a'
 
     confirm_text = None
     if not os.path.exists(parser_path):
