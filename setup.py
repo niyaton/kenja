@@ -11,17 +11,21 @@ kenja_version = '0.6-122-gbd1964f'
 data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
 
+def get_confirm_text(parser_path, parser_digest):
+    if not os.path.exists(parser_path):
+        return "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
+    elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
+        return "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
+    else:
+        return None
+
+
 def copy_java_parser():
     parser_path = 'kenja/lib/java/java-parser.jar'
     parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.5/kenja-java-parser-0.5-jar-with-dependencies.jar'
     parser_digest = '3686529db9d36d5ef5d7425692d95aea'
 
-    confirm_text = None
-    if not os.path.exists(parser_path):
-        confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
-    elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
-        confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
-
+    confirm_text = get_confirm_text(parser_path, parser_digest)
     if confirm_text is not None:
         print(confirm_text)
         choice = raw_input().lower()
@@ -47,12 +51,7 @@ def copy_csharp_parser():
     parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.tar.gz'
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
 
-    confirm_text = None
-    if not os.path.exists(parser_path):
-        confirm_text = "{0} does not exist. Do you want to download it?[y/n]".format(parser_path)
-    elif hashlib.md5(open(parser_path).read()).hexdigest() != parser_digest:
-        confirm_text = "{0} is different from designated parser script. Do you want to overwrite it?[y/n]".format(parser_path)
-
+    confirm_text = get_confirm_text(parser_path, parser_digest)
     if confirm_text is not None:
         print(confirm_text)
         choice = raw_input().lower()
