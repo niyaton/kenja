@@ -7,6 +7,6 @@ def is_target_blob(blob):
 
     for exts in extension_dict.values():
         for ext in exts:
-            if blob.name.endswith(ext):
+            if blob.name.lower().endswith(ext):
                 return True
     return False
