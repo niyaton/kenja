@@ -41,7 +41,7 @@ def write_blob_from_file(odb, f, line_size):
 
 def write_syntax_tree_from_file(odb, src_path):
     if not os.path.isfile(src_path):
-        raise Exception
+        raise Exception('{} is not a file'.format(src_path))
 
     f = open(src_path)
     line = f.readline()
@@ -95,7 +95,7 @@ def write_path(odb, src_path):
     elif os.path.isdir(src_path):
         return write_tree(odb, src_path)
 
-    raise Exception
+    raise Exception('{} is not a valid file or directory'.format(src_path))
 
 
 def write_paths(odb, paths, names):
