@@ -20,23 +20,25 @@ def get_confirm_text(parser_path, parser_digest):
         return None
 
 
+def ask_yesno(confirm_text):
+    print(confirm_text)
+    choice = raw_input().lower()
+    yes = set(['yes', 'y', 'ye'])
+    return choice in yes
+
+
 def copy_java_parser():
     parser_path = 'kenja/lib/java/java-parser.jar'
     parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.5/kenja-java-parser-0.5-jar-with-dependencies.jar'
     parser_digest = '3686529db9d36d5ef5d7425692d95aea'
 
     confirm_text = get_confirm_text(parser_path, parser_digest)
-    if confirm_text is not None:
-        print(confirm_text)
-        choice = raw_input().lower()
-        yes = set(['yes', 'y', 'ye'])
-        no = set(['no', 'n'])
-        if choice in yes:
-            urllib.urlretrieve(parser_location, parser_path)
-            digest = hashlib.md5(open(parser_path).read()).hexdigest()
-            if parser_digest != digest:
-                print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
-                sys.exit(1)
+    if confirm_text and ask_yesno(confirm_text):
+        urllib.urlretrieve(parser_location, parser_path)
+        digest = hashlib.md5(open(parser_path).read()).hexdigest()
+        if parser_digest != digest:
+            print("md5 hash of {0} is incorrect! remove it and try again.".format(parser_path))
+            sys.exit(1)
 
     if not os.path.exists(parser_path):
         print("java parser will not be installed.")
@@ -52,20 +54,15 @@ def copy_csharp_parser():
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
 
     confirm_text = get_confirm_text(parser_path, parser_digest)
-    if confirm_text is not None:
-        print(confirm_text)
-        choice = raw_input().lower()
-        yes = set(['yes', 'y', 'ye'])
-        no = set(['no', 'n'])
-        if choice in yes:
-            (filename, _) = urllib.urlretrieve(parser_location)
-            digest = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-            if parser_tar_digest != digest:
-                print("md5 hash of {0} is incorrect! remove it and try again.".format(filename))
-                sys.exit(1)
+    if confirm_text and ask_yesno(confirm_text):
+        (filename, _) = urllib.urlretrieve(parser_location)
+        digest = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+        if parser_tar_digest != digest:
+            print("md5 hash of {0} is incorrect! remove it and try again.".format(filename))
+            sys.exit(1)
 
-            tarfile = tarfile_open(filename, 'r')
-            tarfile.extractall('kenja/lib/csharp')
+        tarfile = tarfile_open(filename, 'r')
+        tarfile.extractall('kenja/lib/csharp')
 
     if not os.path.exists(parser_path):
         print("java parser will not be installed.")
