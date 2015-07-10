@@ -125,7 +125,7 @@ class SyntaxTreesCommitter:
                 # Blob was removed
                 name = self.get_normalized_path(diff.a_blob.path)
                 tree_contents.remove(name)
-                if diff.renamed:
+                if is_b_target and diff.renamed:
                     # Blob was created
                     name = self.get_normalized_path(diff.b_blob.path)
                     binsha = self.add_changed_blob(diff.b_blob)
