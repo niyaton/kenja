@@ -65,8 +65,8 @@ def copy_csharp_parser():
         tarfile.extractall('kenja/lib/csharp')
 
     if not os.path.exists(parser_path):
-        print("java parser will not be installed.")
-        print("You should disable java parser when you run kenja")
+        print("C# parser will not be installed.")
+        print("You should disable C# parser when you run kenja")
     else:
         data_files.append(("kenja/lib/csharp", glob.glob("kenja/lib/csharp/*")))
 
