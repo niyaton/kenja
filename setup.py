@@ -11,6 +11,10 @@ kenja_version = '0.6-122-gbd1964f'
 data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
 
+def validate_md5sum(digest, path):
+    return digest == hashlib.md5(open(path).read()).hexdigest()
+
+
 class JavaParserInstaller:
     parser_path = 'kenja/lib/java/java-parser.jar'
     parser_location = 'https://github.com/niyaton/kenja-java-parser/releases/download/0.5/kenja-java-parser-0.5-jar-with-dependencies.jar'
@@ -60,10 +64,26 @@ class JavaParserInstaller:
 
 
 class CSharpParserInstaller(JavaParserInstaller):
-    parser_path = 'kenja/lib/csharp/kenja-csharp-parser.exe'
-    parser_digest = '1e3712d6164b3f51103970646a65420c'
+    parser_path = os.path.join('kenja', 'lib', 'csharp')
     parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.tar.gz'
+    md5sum_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.md5sum'
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
+
+    def __init__(self):
+        (filename, _) = urllib.urlretrieve(self.md5sum_location)
+        with open(filename) as f:
+            self.hash_table = [line.strip().split(' ') for line in f.readlines()]
+
+    def validate_parser(self):
+        for h, f in self.hash_table:
+            path = os.path.join(self.parser_path, f)
+            if not os.path.exists(path):
+                return 'not installed'
+
+            if not validate_md5sum(h, path):
+                return 'invalid parser'
+
+        return 'installed'
 
     def download_parser(self):
         (filename, _) = urllib.urlretrieve(self.parser_location)
