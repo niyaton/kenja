@@ -24,8 +24,7 @@ class JavaParserInstaller:
         if not os.path.exists(self.parser_path):
             return 'not installed'
 
-        digest = hashlib.md5(open(self.parser_path).read()).hexdigest()
-        if digest != self.parser_digest:
+        if not validate_md5sum(self.parser_digest, self.parser_path):
             return 'invalid parser'
         return 'installed'
 
@@ -87,8 +86,7 @@ class CSharpParserInstaller(JavaParserInstaller):
 
     def download_parser(self):
         (filename, _) = urllib.urlretrieve(self.parser_location)
-        digest = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-        if digest != self.parser_tar_digest:
+        if not validate_md5sum(self.parser_tar_digest, filename):
             print("md5 hash of downloaded file is incorrect! try again.")
             sys.exit(1)
 
