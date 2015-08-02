@@ -154,7 +154,7 @@ def create_note(repo, message):
 
 
 def get_reversed_topological_ordered_commits(repo, refs):
-    revs = [ref.commit for ref in refs]
+    revs = [repo.commit(ref) for ref in refs]
     nodes = deque(revs)
     visited_hexsha = set()
     visited_commits = []
