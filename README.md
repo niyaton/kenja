@@ -44,13 +44,13 @@ If you cannot
 
 ## Convert your git repository to historage
 ```sh
-kenja.historage.convert <your_repository_path> <path_of_historage_directory> <path_of_syntax_tree_directory>
+kenja.historage.convert <your_repository_path> <path_of_historage_directory>
 ```
 
 - Use path of empty directory for \<path_of_historage_directory\>
     - Historage (a Git repository) will be created here.
     - Kenja will make this directory automatically if you give non-existing directory.
-    - use `--disable-python`, `--disable-csharp` or `--disable-java` option to avoid handling `.py`, `.cs` or `.java` files.
+    - use `--disable-python`, `--disable-ruby`, `--disable-csharp` or `--disable-java` option to avoid handling `.py`, `.rb`, `.cs` or `.java` files.
 
 ### Store syntax trees infromation [for DEBUG]
 ```sh
