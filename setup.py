@@ -116,7 +116,7 @@ copy_csharp_parser()
 
 try:
     kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
-except subprocess.CalledProcessError, e:
+except subprocess.CalledProcessError:
     pass
 
 setup(name='kenja',
