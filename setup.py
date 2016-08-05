@@ -4,6 +4,7 @@ import hashlib
 import urllib
 import subprocess
 import glob
+from six.moves import input
 from tarfile import open as tarfile_open
 from setuptools import setup, find_packages
 
@@ -38,7 +39,7 @@ class JavaParserInstaller:
 
     def ask_yesno(self, confirm_text):
         print(confirm_text)
-        choice = raw_input().lower()
+        choice = input().lower()
         yes = set(['yes', 'y', 'ye'])
         return choice in yes
 
