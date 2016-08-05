@@ -1,10 +1,10 @@
 import os
 import sys
 import hashlib
-import urllib
 import subprocess
 import glob
 from six.moves import input
+from six.moves import urllib
 from tarfile import open as tarfile_open
 from setuptools import setup, find_packages
 
@@ -60,7 +60,7 @@ class JavaParserInstaller:
         return True
 
     def download_parser(self):
-        urllib.urlretrieve(self.parser_location, self.parser_path)
+        urllib.request.urlretrieve(self.parser_location, self.parser_path)
 
 
 class CSharpParserInstaller(JavaParserInstaller):
@@ -70,7 +70,7 @@ class CSharpParserInstaller(JavaParserInstaller):
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
 
     def __init__(self):
-        (filename, _) = urllib.urlretrieve(self.md5sum_location)
+        (filename, _) = urllib.request.urlretrieve(self.md5sum_location)
         with open(filename) as f:
             self.hash_table = [line.strip().split(' ') for line in f.readlines()]
 
@@ -86,7 +86,7 @@ class CSharpParserInstaller(JavaParserInstaller):
         return 'installed'
 
     def download_parser(self):
-        (filename, _) = urllib.urlretrieve(self.parser_location)
+        (filename, _) = urllib.request.urlretrieve(self.parser_location)
         if not validate_md5sum(self.parser_tar_digest, filename):
             print("md5 hash of downloaded file is incorrect! try again.")
             sys.exit(1)
