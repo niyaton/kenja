@@ -7,4 +7,4 @@ install:
 script: 
         - pep8 --max-line-length=120 kenja
         - nosetests
-        - kenja.historage.convert kenja kenja.historage
+        - kenja.historage.convert . /tmp/historage
