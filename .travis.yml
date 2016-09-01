@@ -5,6 +5,7 @@ install:
         - "yes | python setup.py install"
         - pip install pep8
 script: 
+        - git show 0ebce35596234a95f5ddcd1748d726c15e66067e
         - pep8 --max-line-length=120 kenja
         - nosetests
         - kenja.historage.convert . /tmp/historage
