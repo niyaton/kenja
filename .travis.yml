@@ -10,6 +10,7 @@ script:
 - nosetests
 before_deploy:
 - kenja.historage.convert /tmp/kenja /tmp/historage
+- ls /tmp
 - git --git-dir /tmp/historage gc
 - tar cfz kenja-historage.tar.gz /tmp/historage
 
