@@ -1,11 +1,25 @@
 language: python
 python:
-        - "2.7"
+- '2.7'
 install:
-        - "yes | python setup.py install"
-        - pip install pep8
-script: 
-        - git clone https://github.com/niyaton/kenja.git /tmp/kenja
-        - pep8 --max-line-length=120 kenja
-        - nosetests
-        - kenja.historage.convert /tmp/kenja /tmp/historage
+- yes | python setup.py install
+- pip install pep8
+script:
+- git clone https://github.com/niyaton/kenja.git /tmp/kenja
+- pep8 --max-line-length=120 kenja
+- nosetests
+before_deploay:
+- kenja.historage.convert /tmp/kenja /tmp/historage
+- git --git-dir /tmp/historage gc
+- tar cfz kenja-historage.tar.gz /tmp/historage
+
+env:
+  global:
+    secure: fPrvpaklJHvaGbzUegy/TUhDopK2+osZ3RAsLh99GP+BdzhgR5bpX5Da+xzWiuICd/L/VJRhQTA8uKJSKCpevZrq72/7JiYSyu9nlekVFYY6kMa0tRil2wZBwBTjBNlUROWb13CYRlQjuaGJxQHfmHNF9Q5If0MIFvCqE2Lyo0g=
+deploy:
+  provider: releases
+  api_key:
+    secure: ktIWHWsXpYybGaY7u3hqRxxfpptSBFEVKpO7CQTWnfwsqRZI1D/g/yDceyrQMtX7gOkyPJO/waRRXIEzpJb7otSscC7RxqhZhc2brIKpGORKcjZHT6Oqa7nfc1Nk+sCIBq3cLCaQ1hjLBrt45JkvMNyQakXTR72rhdEuA+aeHXo=
+  file: kenja-historage.tar.gz
+  on:
+    repo: niyaton/kenja
