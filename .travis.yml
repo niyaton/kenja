@@ -21,5 +21,7 @@ deploy:
   api_key:
     secure: ktIWHWsXpYybGaY7u3hqRxxfpptSBFEVKpO7CQTWnfwsqRZI1D/g/yDceyrQMtX7gOkyPJO/waRRXIEzpJb7otSscC7RxqhZhc2brIKpGORKcjZHT6Oqa7nfc1Nk+sCIBq3cLCaQ1hjLBrt45JkvMNyQakXTR72rhdEuA+aeHXo=
   file: kenja-historage.tar.gz
+  skip_clean: true
   on:
     repo: niyaton/kenja
+    all_branches: true
