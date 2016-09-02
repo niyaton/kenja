@@ -8,7 +8,7 @@ script:
 - git clone https://github.com/niyaton/kenja.git /tmp/kenja
 - pep8 --max-line-length=120 kenja
 - nosetests
-before_deploay:
+before_deploy:
 - kenja.historage.convert /tmp/kenja /tmp/historage
 - git --git-dir /tmp/historage gc
 - tar cfz kenja-historage.tar.gz /tmp/historage
