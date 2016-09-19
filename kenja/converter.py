@@ -97,7 +97,7 @@ class HistorageConverter:
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, historage_repo.git_dir))
-            committer.apply_change(commit)
+            committer.apply_change(commit, (num+1)==num_commits)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:

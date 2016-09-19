@@ -14,7 +14,8 @@ from kenja.git.util import (
     write_syntax_tree_from_file,
     tree_mode,
     create_note,
-    write_blob_from_path
+    write_blob_from_path,
+    large_names_as_string
     )
 
 
@@ -67,12 +68,15 @@ class SyntaxTreesCommitter:
         create_note(self.new_repo, note_message)
         return result
 
-    def apply_change(self, commit):
+    def apply_change(self, commit, last_commit=False):
         if commit.parents:
             tree_contents = self.create_tree_contents(commit.parents[0], commit)
         else:
             tree_contents = self.create_tree_contents_from_commit(commit)
             tree_contents = self.create_readme(tree_contents)
+
+	if last_commit:
+	    self.create_large_names(tree_contents)
 
         new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
@@ -110,6 +114,15 @@ class SyntaxTreesCommitter:
             f.flush()
             mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
             tree_contents.insert(mode, binsha, 'README.md')
+            return tree_contents
+
+    def create_large_names(self, tree_contents):
+        with NamedTemporaryFile() as f:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            f.write(large_names_as_string())
+            f.flush()
+            mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
+            tree_contents.insert(mode, binsha, 'large-names.csv')
             return tree_contents
 
     def create_tree_contents(self, parent, commit):

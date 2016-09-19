@@ -12,6 +12,7 @@ from collections import deque
 blob_mode = '100644'
 tree_mode = '40000'
 
+large_names = {}
 
 def tree_item_str(mode, file_name, binsha):
     if mode[0] == 0:
@@ -65,6 +66,10 @@ def write_syntax_tree_from_file(odb, src_path):
             # Contents of tree end by [TE].
             # [TE] tree_name
             tree_name = info
+	    if len(tree_name) > 250:
+		if not tree_name in large_names:
+		    large_names[tree_name] = len(large_names)+1
+	        tree_name = format_large_name(tree_name)
             (mode, binsha) = mktree_from_iter(odb, trees.pop())
             trees[-1].append((mode, binsha, tree_name))
 
@@ -73,6 +78,8 @@ def write_syntax_tree_from_file(odb, src_path):
     (mode, binsha) = mktree_from_iter(odb, trees.pop())
     return (mode, binsha)
 
+def format_large_name(key):
+    return '--large-name{0}--'.format(large_names[key])
 
 def write_tree(odb, src_path):
     assert os.path.isdir(src_path) and not os.path.islink(src_path)
@@ -173,3 +180,11 @@ def get_reversed_topological_ordered_commits(repo, refs):
             visited_commits.append(node)
 
     return visited_commits
+
+def large_names_as_string():
+    result = ''
+    for k in large_names.keys():
+	if len(result) > 0:
+	    result += '\n'
+	result += '{0};{1}'.format(format_large_name(k), k)
+    return result
