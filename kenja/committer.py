@@ -76,7 +76,7 @@ class SyntaxTreesCommitter:
             tree_contents = self.create_readme(tree_contents)
 
 	if last_commit:
-	    self.create_large_names(tree_contents)
+	    tree_contents = self.create_large_names(tree_contents)
 
         new_commit = self.commit(commit, tree_contents)
         self.old2new[commit.hexsha] = new_commit.hexsha
@@ -118,7 +118,6 @@ class SyntaxTreesCommitter:
 
     def create_large_names(self, tree_contents):
         with NamedTemporaryFile() as f:
-            dir_path = os.path.dirname(os.path.realpath(__file__))
             f.write(large_names_as_string())
             f.flush()
             mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
