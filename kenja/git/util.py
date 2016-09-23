@@ -66,17 +66,26 @@ def write_syntax_tree_from_file(odb, src_path):
             # Contents of tree end by [TE].
             # [TE] tree_name
             tree_name = info
-	    if len(tree_name) > 250:
+	    if len(tree_name) > 240:
 		if not tree_name in large_names:
 		    large_names[tree_name] = len(large_names)+1
 	        tree_name = format_large_name(tree_name)
-            (mode, binsha) = mktree_from_iter(odb, trees.pop())
+	    t = sorted(deduplicated(trees.pop()), cmp=git_cmp)
+            (mode, binsha) = mktree_from_iter(odb, t)
             trees[-1].append((mode, binsha, tree_name))
 
         line = f.readline()
 
-    (mode, binsha) = mktree_from_iter(odb, trees.pop())
+    t = sorted(deduplicated(trees.pop()), cmp=git_cmp)
+    (mode, binsha) = mktree_from_iter(odb, t)
     return (mode, binsha)
+
+def deduplicated(l):
+    result = {}
+    for e in l:
+	if not e[2] in result:
+	    result[e[2]] = e
+    return result.values()
 
 def format_large_name(key):
     return '--large-name{0}--'.format(large_names[key])
@@ -95,6 +104,18 @@ def write_tree(odb, src_path):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+def git_cmp(t1, t2):
+    a, b = t1[2], t2[2]
+    len_a, len_b = len(a), len(b)
+    min_len = min(len_a, len_b)
+    min_cmp = cmp(a[:min_len], b[:min_len])
+    if min_cmp <> 0:
+        return min_cmp
+    if len_a < len_b:
+	return -1
+    if len_a > len_b:
+	return 1
+    return 0
 
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
@@ -186,5 +207,5 @@ def large_names_as_string():
     for k in large_names.keys():
 	if len(result) > 0:
 	    result += '\n'
-	result += '{0};{1}'.format(format_large_name(k), k)
+	result += '"{0}","{1}"'.format(format_large_name(k), k)
     return result
