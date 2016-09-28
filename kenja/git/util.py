@@ -106,6 +106,10 @@ def write_tree(odb, src_path):
 
 def git_cmp(t1, t2):
     a, b = t1[2], t2[2]
+    if t1[0] == tree_mode:
+	a += "/"
+    if t2[0] == tree_mode:
+	b += "/"
     len_a, len_b = len(a), len(b)
     min_len = min(len_a, len_b)
     min_cmp = cmp(a[:min_len], b[:min_len])
@@ -188,6 +192,8 @@ def get_reversed_topological_ordered_commits(repo, refs):
     visited_commits = []
     while nodes:
         node = nodes.pop()
+	if node is None:
+	    continue
         if node.hexsha in visited_hexsha:
             continue
 
