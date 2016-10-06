@@ -34,7 +34,7 @@ class HistorageConverter:
 
         self.is_bare_repo = False
 
-	self.head_name = self.org_repo.active_branch
+	self.head_name = self.org_repo.active_branch.name
 
     def check_and_make_working_dir(self, path):
         if os.path.isdir(path):
