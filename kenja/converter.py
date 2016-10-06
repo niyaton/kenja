@@ -34,6 +34,8 @@ class HistorageConverter:
 
         self.is_bare_repo = False
 
+	self.head_name = self.org_repo.active_branch
+
     def check_and_make_working_dir(self, path):
         if os.path.isdir(path):
             if os.listdir(path):
@@ -96,7 +98,7 @@ class HistorageConverter:
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), historage_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
         for head in self.org_repo.heads:
-	    if head.name == 'master':
+	    if head.name == self.head_name:
                 head_hexsha = head.commit.hexsha
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, historage_repo.git_dir))
