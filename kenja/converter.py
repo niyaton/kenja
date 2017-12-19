@@ -95,9 +95,12 @@ class HistorageConverter:
         historage_repo = self.prepare_historage_repo()
         committer = SyntaxTreesCommitter(Repo(self.org_repo.git_dir), historage_repo, self.syntax_trees_dir)
         num_commits = self.num_commits if self.num_commits != 0 else '???'
+        for head in self.org_repo.heads:
+	    if head.name == 'master':
+                head_hexsha = head.commit.hexsha
         for num, commit in izip(count(), get_reversed_topological_ordered_commits(self.org_repo, self.org_repo.refs)):
             logger.info('[%d/%s] convert %s to: %s' % (num, num_commits, commit.hexsha, historage_repo.git_dir))
-            committer.apply_change(commit)
+            committer.apply_change(commit, head_hexsha == commit.hexsha)
         committer.create_heads()
         committer.create_tags()
         if not self.is_bare_repo:
