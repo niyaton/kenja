@@ -12,6 +12,7 @@ from collections import deque
 blob_mode = '100644'
 tree_mode = '40000'
 
+large_names = {}
 
 def tree_item_str(mode, file_name, binsha):
     if mode[0] == 0:
@@ -65,14 +66,29 @@ def write_syntax_tree_from_file(odb, src_path):
             # Contents of tree end by [TE].
             # [TE] tree_name
             tree_name = info
-            (mode, binsha) = mktree_from_iter(odb, trees.pop())
+	    if len(tree_name) > 240:
+		if not tree_name in large_names:
+		    large_names[tree_name] = len(large_names)+1
+	        tree_name = format_large_name(tree_name)
+	    t = sorted(deduplicated(trees.pop()), cmp=git_cmp)
+            (mode, binsha) = mktree_from_iter(odb, t)
             trees[-1].append((mode, binsha, tree_name))
 
         line = f.readline()
 
-    (mode, binsha) = mktree_from_iter(odb, trees.pop())
+    t = sorted(deduplicated(trees.pop()), cmp=git_cmp)
+    (mode, binsha) = mktree_from_iter(odb, t)
     return (mode, binsha)
 
+def deduplicated(l):
+    result = {}
+    for e in l:
+	if not e[2] in result:
+	    result[e[2]] = e
+    return result.values()
+
+def format_large_name(key):
+    return '--large-name{0}--'.format(large_names[key])
 
 def write_tree(odb, src_path):
     assert os.path.isdir(src_path) and not os.path.islink(src_path)
@@ -88,6 +104,22 @@ def write_tree(odb, src_path):
     odb.store(istream)
     return (tree_mode, istream.binsha)
 
+def git_cmp(t1, t2):
+    a, b = t1[2], t2[2]
+    if t1[0] == tree_mode:
+	a += "/"
+    if t2[0] == tree_mode:
+	b += "/"
+    len_a, len_b = len(a), len(b)
+    min_len = min(len_a, len_b)
+    min_cmp = cmp(a[:min_len], b[:min_len])
+    if min_cmp <> 0:
+        return min_cmp
+    if len_a < len_b:
+	return -1
+    if len_a > len_b:
+	return 1
+    return 0
 
 def write_path(odb, src_path):
     if os.path.isfile(src_path):
@@ -160,6 +192,8 @@ def get_reversed_topological_ordered_commits(repo, refs):
     visited_commits = []
     while nodes:
         node = nodes.pop()
+	if node is None:
+	    continue
         if node.hexsha in visited_hexsha:
             continue
 
@@ -173,3 +207,11 @@ def get_reversed_topological_ordered_commits(repo, refs):
             visited_commits.append(node)
 
     return visited_commits
+
+def large_names_as_string():
+    result = ''
+    for k in large_names.keys():
+	if len(result) > 0:
+	    result += '\n'
+	result += '"{0}","{1}"'.format(format_large_name(k), k)
+    return result
