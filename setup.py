@@ -127,6 +127,7 @@ setup(name='kenja',
       url='https://github.com/niyaton/kenja',
       packages=find_packages(),
       data_files=data_files,
+      zip_safe=False,
       entry_points={
           'console_scripts': [
               'kenja.historage.convert = kenja.convert:convert',
