@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import argparse
 import kenja.language
 from kenja.converter import HistorageConverter

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from git.repo import Repo
 from collections import defaultdict
 from pyrem_torq.expression import Search

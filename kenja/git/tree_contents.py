@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from bisect import bisect_left
 from itertools import (izip, repeat)
 from kenja.git.util import tree_mode

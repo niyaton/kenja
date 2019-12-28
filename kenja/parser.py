@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 from kenja_parser.gittree import parse_and_write_gittree
 from subprocess import (

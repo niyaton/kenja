@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import re
 from kenja.historage import get_org_commit
 from git import Repo

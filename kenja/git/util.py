@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from git.objects import (Commit, Tree)
 import io
 import os

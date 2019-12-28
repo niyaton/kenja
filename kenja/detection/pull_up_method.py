@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from itertools import product, combinations
 from git.objects import Blob
 from collections import defaultdict
