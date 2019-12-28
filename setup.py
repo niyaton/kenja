@@ -141,7 +141,7 @@ setup(name='kenja',
       },
       install_requires=[
           "pyrem_torq",
-          "GitPython==0.3.6",
+          "GitPython",
           "kenja-python-parser"
       ],
       dependency_links=[
