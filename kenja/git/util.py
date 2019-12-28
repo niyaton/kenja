@@ -5,7 +5,7 @@ import git.refs
 from gitdb import IStream
 from gitdb.util import bin_to_hex
 from git.objects.util import altz_to_utctz_str
-from StringIO import StringIO
+from io import StringIO
 from collections import deque
 
 blob_mode = '100644'
