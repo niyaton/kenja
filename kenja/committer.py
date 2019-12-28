@@ -105,7 +105,7 @@ class SyntaxTreesCommitter:
                 url=url,
                 version=version
             )
-            f.write(text)
+            f.write(text.encode('utf-8'))
             f.flush()
             mode, binsha = write_blob_from_path(self.new_repo.odb, f.name)
             tree_contents.insert(mode, binsha, 'README.md')
