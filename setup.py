@@ -1,7 +1,7 @@
 import os
 import sys
 import hashlib
-import urllib
+import urllib.request
 import subprocess
 import glob
 from tarfile import open as tarfile_open
@@ -12,7 +12,7 @@ data_files = [("kenja", ["kenja/readme_for_historage.txt"])]
 
 
 def validate_md5sum(digest, path):
-    return digest == hashlib.md5(open(path).read()).hexdigest()
+    return digest == hashlib.md5(open(path, 'rb').read()).hexdigest()
 
 
 class JavaParserInstaller:
@@ -38,7 +38,7 @@ class JavaParserInstaller:
 
     def ask_yesno(self, confirm_text):
         print(confirm_text)
-        choice = raw_input().lower()
+        choice = input().lower()
         yes = set(['yes', 'y', 'ye'])
         return choice in yes
 
@@ -59,7 +59,7 @@ class JavaParserInstaller:
         return True
 
     def download_parser(self):
-        urllib.urlretrieve(self.parser_location, self.parser_path)
+        urllib.request.urlretrieve(self.parser_location, self.parser_path)
 
 
 class CSharpParserInstaller(JavaParserInstaller):
@@ -69,7 +69,7 @@ class CSharpParserInstaller(JavaParserInstaller):
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
 
     def __init__(self):
-        (filename, _) = urllib.urlretrieve(self.md5sum_location)
+        (filename, _) = urllib.request.urlretrieve(self.md5sum_location)
         with open(filename) as f:
             self.hash_table = [line.strip().split(' ') for line in f.readlines()]
 
@@ -85,7 +85,7 @@ class CSharpParserInstaller(JavaParserInstaller):
         return 'installed'
 
     def download_parser(self):
-        (filename, _) = urllib.urlretrieve(self.parser_location)
+        (filename, _) = urllib.request.urlretrieve(self.parser_location)
         if not validate_md5sum(self.parser_tar_digest, filename):
             print("md5 hash of downloaded file is incorrect! try again.")
             sys.exit(1)
@@ -115,8 +115,8 @@ copy_java_parser()
 copy_csharp_parser()
 
 try:
-    kenja_version = subprocess.check_output(["git", "describe"]).rstrip()
-except subprocess.CalledProcessError, e:
+    kenja_version = subprocess.check_output(["git", "describe"]).decode().rstrip()
+except subprocess.CalledProcessError as e:
     pass
 
 setup(name='kenja',
