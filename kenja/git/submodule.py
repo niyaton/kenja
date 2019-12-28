@@ -1,5 +1,4 @@
 from git.repo import Repo
-from itertools import izip
 from itertools import count
 from git.objects import Commit
 from ConfigParser import RawConfigParser

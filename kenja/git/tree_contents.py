@@ -1,5 +1,5 @@
 from bisect import bisect_left
-from itertools import (izip, repeat)
+from itertools import repeat
 from kenja.git.util import tree_mode
 
 
@@ -10,7 +10,7 @@ class SortedTreeContents(object):
         self._names = [i[2] for i in iterable]
 
     def __iter__(self):
-        return izip(self._modes, self._binshas, self._names)
+        return zip(self._modes, self._binshas, self._names)
 
     def index(self, name):
         pos = bisect_left(self._names, name)
