@@ -1,9 +1,9 @@
 language: python
 python:
-        - "2.7"
+        - "3.7"
 install:
         - "yes | python setup.py install"
         - pip install pep8
-script: 
+script:
         - pep8 --max-line-length=120 kenja
         - nosetests

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 from kenja_parser.gittree import parse_and_write_gittree
 from subprocess import (
@@ -87,7 +86,8 @@ class JavaConsumer(Process):
             blob_hexsha = self.blobs_queue.get()
             if blob_hexsha is None:
                 break
-            parser_process.stdin.write(blob_hexsha + '\n')
+            # just encode string to byte string by utf-8
+            parser_process.stdin.write((blob_hexsha + '\n').encode('utf-8'))
             self.blobs_queue.task_done()
 
         parser_process.communicate()

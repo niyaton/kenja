@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from git.repo import Repo
 from gitdb.exc import BadObject
 from kenja.detection.extract_method import detect_extract_method
