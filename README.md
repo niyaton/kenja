@@ -1,12 +1,13 @@
+# Current Status
+Kenja currently only support the feature of historage converter in Python3.
+
 # Requirements
 
 ## for General
-- python 2.7+ (kenja doesn't support python 3 yet)
+- python 3.7
+
 - git (confirmed versions)
-    - 1.7.10
-    - 1.8.5.2
-    - 2.0.1
-    - 2.2.2
+    - 2.23.0
 
 ## for Java 
 - Java
