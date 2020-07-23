@@ -155,6 +155,67 @@ class CSharpParserExecutor(ParserExecutor):
         return cmd
 
 
+class CSharpConsumer(Process):
+    file_path = 'csharp/kenja-csharp-parser.exe'
+    parser_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', file_path)
+    print parser_path
+
+    def __init__(self, blobs_queue, repo_path, output_dir):
+        Process.__init__(self)
+        self.blobs_queue = blobs_queue
+        self.output_dir = output_dir
+        self.repo_path = repo_path
+
+    def run(self):
+        parser_process = Popen(self.make_cmd(), stdin=PIPE)
+        while True:
+            blob_hexsha = self.blobs_queue.get()
+            if blob_hexsha is None:
+                break
+            print blob_hexsha
+            parser_process.stdin.write(blob_hexsha + '\n')
+            self.blobs_queue.task_done()
+
+        parser_process.communicate()
+        self.blobs_queue.task_done()
+
+    def make_cmd(self):
+        cmd = ["mono",
+               self.parser_path,
+               self.repo_path,
+               self.output_dir
+               ]
+        return cmd
+
+
+class CSharpMultipleParserExecutor:
+    def __init__(self, output_dir, repo_path, processes=None):
+        self.target_blobs = JoinableQueue()
+
+        self.num_consumers = processes if processes else cpu_count()
+        self.consumers = [CSharpConsumer(self.target_blobs, repo_path, output_dir)
+                          for i in range(self.num_consumers)]
+
+        for consumer in self.consumers:
+            consumer.start()
+
+        self.closed = False
+
+    def parse_blob(self, blob):
+        if self.closed:
+            return
+        self.target_blobs.put(blob.hexsha)
+
+    def join(self):
+        if self.closed:
+            return
+        for i in range(self.num_consumers):
+            self.target_blobs.put(None)
+
+        self.target_blobs.join()
+        self.closed = True
+
+
 class RubyParserExecutor(ParserExecutor):
 
     def make_cmd(self, hexsha):
@@ -166,7 +227,7 @@ class RubyParserExecutor(ParserExecutor):
 
 blob_parsers = {'java': JavaMultipleParserExecutor,
                 'python': PythonParserExecutor,
-                'csharp': CSharpParserExecutor,
+                'csharp': CSharpMultipleParserExecutor,
                 'ruby': RubyParserExecutor}
 
 
