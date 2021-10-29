@@ -64,8 +64,8 @@ class JavaParserInstaller:
 
 class CSharpParserInstaller(JavaParserInstaller):
     parser_path = os.path.join('kenja', 'lib', 'csharp')
-    parser_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.tar.gz'
-    md5sum_location = 'https://github.com/sdlab-naist/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.md5sum'
+    parser_location = 'https://github.com/tcu-sdlab/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.tar.gz'
+    md5sum_location = 'https://github.com/tcu-sdlab/kenja-csharp-parser/releases/download/0.3/kenja-csharp-parser-0.3.md5sum'
     parser_tar_digest = '0f5db497559f68ec884d6699057777d9'
 
     def __init__(self):
@@ -146,7 +146,7 @@ setup(name='kenja',
       ],
       dependency_links=[
           'https://github.com/tos-kamiya/pyrem_torq/tarball/master#egg=pyrem_torq',
-          'https://github.com/sdlab-naist/kenja-python-parser/tarball/master#egg=kenja-python-parser'
+          'https://github.com/tcu-sdlab/kenja-python-parser/tarball/master#egg=kenja-python-parser'
       ],
       license="MIT license",
       classifiers=[

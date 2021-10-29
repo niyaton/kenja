@@ -24,7 +24,7 @@ Kenja needs following libraries.
 
 - [pyrem_torq](https://github.com/tos-kamiya/pyrem_torq)
 - [GitPython](https://github.com/gitpython-developers/GitPython/)
-- [kenja-python-parser](https://github.com/sdlab-naist/kenja-python-parser/)
+- [kenja-python-parser](https://github.com/tcu-sdlab/kenja-python-parser/)
 - [kenja-java-parser](https://github.com/niyaton/kenja-java-parser/)
 
 # Installation

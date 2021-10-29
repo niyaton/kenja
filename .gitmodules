@@ -3,7 +3,7 @@
 	url = https://github.com/niyaton/kenja-java-parser.git
 [submodule "parser/csharp"]
 	path = parser/csharp
-	url = https://github.com/sdlab-naist/kenja-csharp-parser.git
+	url = https://github.com/tcu-sdlab/kenja-csharp-parser.git
 [submodule "parser/ruby"]
 	path = parser/ruby
 	url = https://github.com/niyaton/kenja-ruby-parser.git
