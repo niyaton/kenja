@@ -3,7 +3,7 @@ import io
 import os
 import git.refs
 from gitdb import IStream
-from gitdb.util import bin_to_hex
+from gitdb.util import bin_to_hex, hex_to_bin
 from git.objects.util import altz_to_utctz_str
 from io import StringIO, BytesIO
 from collections import deque
@@ -126,6 +126,10 @@ def mktree(odb, modes, binshas, names):
 def mktree_from_iter(odb, object_info_iter):
     items = [tree_item_str(mode, name, binsha) for mode, binsha, name in object_info_iter]
     items_str = b''.join(items)
+
+    if len(items_str) == 0:
+        items_str = tree_item_str(blob_mode, '.gitkeep', hex_to_bin('e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'))
+        print(items_str)
 
     istream = IStream("tree", len(items_str), BytesIO(items_str))
     odb.store(istream)
